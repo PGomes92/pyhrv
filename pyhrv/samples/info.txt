@@ -1,0 +1,21 @@
+# Info file - Sample NNI series
+# The NNI series samples can be used to test and learn how to work with this toolbox without having to acquire own
+# ECG signals and derive the NNI series.
+#
+# The samples in this folder where taken from the MIT-BIH HSRDB database from physionet.org
+# Link: https://physionet.org/physiobank/database/nsrdb/
+#
+# The files of this database where cleaned from NNI outliers (>1.2s) and segmented into 5min intervals from which
+# 5 segments have been randomly selected using the NumPy randint() function (random indices selection).
+#
+# Number of generated series/files: 50
+File: mit_bih_nsrdb_16539.npy	Selected segments: set([9, 12, 245, 22, 121])
+File: mit_bih_nsrdb_19140.npy	Selected segments: set([73, 140, 165, 86, 213])
+File: mit_bih_nsrdb_17453.npy	Selected segments: set([8, 57, 203, 240, 79])
+File: mit_bih_nsrdb_16272.npy	Selected segments: set([116, 58, 211, 212, 25])
+File: mit_bih_nsrdb_16265.npy	Selected segments: set([24, 35, 171, 227, 151])
+File: mit_bih_nsrdb_19093.npy	Selected segments: set([160, 184, 138, 126, 215])
+File: mit_bih_nsrdb_16273.npy	Selected segments: set([91, 89, 226, 35, 204])
+File: mit_bih_nsrdb_16773.npy	Selected segments: set([80, 74, 12, 101, 63])
+File: mit_bih_nsrdb_18177.npy	Selected segments: set([50, 31, 36, 62, 143])
+File: mit_bih_nsrdb_19090.npy	Selected segments: set([112, 17, 20, 49, 143])

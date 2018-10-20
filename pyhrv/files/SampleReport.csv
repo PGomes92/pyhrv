@@ -1,0 +1,138 @@
+# BIOSPPY HRV REPORT - v.0.1.2
+# Sampling Rate       ; n/a
+# Date Time           ; 2018-10-16_23-31-57
+# File                ; n/a
+# Device              ; n/a
+# Identifier/MAC      ; n/a
+# Resolution          ; n/a
+
+
+----------------------------------------------------------------------
+COMMENTS
+n/a
+----------------------------------------------------------------------
+
+
+----------------------------------------------------------------------
+Time Domain
+----------------------------------------------------------------------
+Number of NNIs (-)                                ; 337.000
+Mean NNI (ms)                                     ; 888.955
+Minimum NNI (ms)                                  ; 719.000
+Maximum NNI (ms)                                  ; 1195.000
+Mean Delta-NNI (ms)                               ; 74.295
+Minimum Delta-NNI (ms)                            ; 0.000
+Maximum Delta-NNI (ms)                            ; 336.000
+Standard Deviation of Delta-NNI (8)               ; 68.966
+Mean Heart Rate (bpm)                             ; 68.215
+Minimum Heart Rate (bpm)                          ; 50.209
+Maximum Heart Rate (bpm)                          ; 83.449
+Standard Deviation of Heart Rate (bpm)            ; 6.773
+SDNN (ms)                                         ; 95.690
+SDNN Index (ms)                                   ; n/a
+SDANN (ms)                                        ; n/a
+SDSD (ms)                                         ; 68.966
+RMSSD (ms)                                        ; 101.301
+NN50 (-)                                          ; 163.000
+pNN50 (%)                                         ; 48.512
+NN20 (-)                                          ; 266.000
+pNN20 (%)                                         ; 79.167
+Triangular Index (-)                              ; 12.036
+TINN (ms)                                         ; 148.438
+TINN N (ms)                                       ; 765.625
+TINN M (ms)                                       ; 914.062
+
+
+----------------------------------------------------------------------
+Frequency Domain - FFT Welch's Method
+----------------------------------------------------------------------
+Frequency Bands (Hz)                              ; 
+	-	None
+	-	[0.0, 0.04]
+	-	[0.04, 0.15]
+	-	[0.15, 0.4]
+Peak Frequencies (Hz)                             ; 
+	-	0.005859
+	-	0.067383
+	-	0.241211
+Absolute Powers (Hz)                              ; 
+	-	2660.768201
+	-	1561.556726
+	-	5337.081162
+FFT Logarithmic Powers (Hz)                       ; 
+	-	7.88637
+	-	7.353439
+	-	8.582434
+FFT Relative Powers (%)                           ; 
+	-	27.834033
+	-	16.33529
+	-	55.830677
+FFT Normalized Powers (-)                         ; 
+	-	22.635725
+	-	77.364275
+FFT Total Power (ms^2)                            ; 9559.406
+FFT LF/HF Ratio (-)                               ; 0.293
+Number of PSD Samples (-)                         ; 4096.000
+Window Function (-)                               ; hamming
+Resampling Frequency (Hz)                         ; 4.000
+Interpolation Method (-)                          ; cubic
+
+
+----------------------------------------------------------------------
+Frequency Domain - Autoregression Method
+----------------------------------------------------------------------
+Frequency Bands (Hz)                              ; n/a
+Peak Frequencies (Hz)                             ; n/a
+Absolute Powers (ms^2)                            ; n/a
+Logarithmic Powers (Hz)                           ; n/a
+Relative Powers (%)                               ; n/a
+Normalized Powers (-)                             ; n/a
+Total Power (ms^2)                                ; n/a
+LF/HF Ratio (-)                                   ; n/a
+Number of PSD Samples (-)                         ; n/a
+Moving Average Window Size (-)                    ; n/a
+
+
+----------------------------------------------------------------------
+Frequency Domain - Lomb-Scargle Method
+----------------------------------------------------------------------
+Frequency Bands (Hz)                              ; 
+	-	None
+	-	[0.0, 0.04]
+	-	[0.04, 0.15]
+	-	[0.15, 0.4]
+lomb Peak frequencies (Hz)                        ; 
+	-	0.017686
+	-	0.065922
+	-	0.276549
+lomb Absolute powers (Hz)                         ; 
+	-	164.401937
+	-	687.573553
+	-	1621.494164
+lomb Logarithmic powers (Hz)                      ; 
+	-	5.102314
+	-	6.533169
+	-	7.391103
+lomb Relative powers (%)                          ; 
+	-	6.646612
+	-	27.797938
+	-	65.55545
+lomb Normalized powers (-)                        ; 
+	-	29.777106
+	-	70.222894
+lomb Total power (ms^2)                           ; 2473.470
+lomb LF/HF ratio (-)                              ; 0.424
+Number of PSD Samples (-)                         ; 256.000
+Moving Average Window Size (-)                    ; n/a
+
+
+----------------------------------------------------------------------
+Nonlinear Methods
+----------------------------------------------------------------------
+SD1 (ms)                                          ; 71.630
+SD2 (ms)                                          ; 114.785
+SD2/SD1 (-)                                       ; 1.602
+Ellipse Area S (ms^2)                             ; 25830.488
+Sample Entropy (-)                                ; 1.712
+DFA alpha 1 (long term fluctuation) (-)           ; 0.756
+DFA alpha 2 (long term fluctuation) (-)           ; 0.922

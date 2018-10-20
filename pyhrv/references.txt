@@ -1,0 +1,20 @@
+"""
+	References (all submodules (will be updated soon))
+	--------------------------------------------------
+	..  Task Force of the European Society of Cardiology and the North American Society of Pacing and Electrophysiology,
+		"Heart rate variability - Standards of measurement, physiological interpretation, and clinical use."
+		European Heart Journal 17, pp. 354-381, 1996
+		[Electrophysiology1996]
+	..  T.P. Hutchinson, "Statistics and graphs for heart rate variability: pNN50 or pNN20?" Physiological Measurement
+		24, N9 - N14, 2003
+		[Hutchinson2003]
+	.. 	J. Mietus, C. Peng, I. Henry, L. Goldsmith, and A. Goldberger, “The pNNx files: re-examining a widely used
+		heart rate variability measure,” Heart, vol. 88, no. 4, pp. 378–380, 2002.
+		[Mietus2002]
+	..	M. B. Tayel and E. I. Alsaba, “Poincaré Plot for Heart Rate Variability,”
+		Int. J. Medical, Heal. Biomed. Bioeng. Pharm. Eng., vol. 9, no. 9, pp. 708–711, 2015.
+		[Tayel2015]
+	..	F. Shaffer and J. P. Ginsberg, “An Overview of Heart Rate Variability Metrics and Norms,”
+		Front. Public Heal., vol. 5, no. September, pp. 1–17, 2017.
+		[Shaffer2017]
+"""
