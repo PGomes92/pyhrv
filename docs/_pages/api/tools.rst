@@ -3,6 +3,10 @@ Tools Module
 
 The *Tools Module* contains general purpose functions and key functionalities (e.g. computation of NNI series) for the entire HRV package among other useful features for HRV analysis workflow (e.g., HRV report, HRV export/import).
 
+.. seealso::
+
+   `pyHRV Tools Module source code <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/tools.py>`_
+
 .. contents:: Module Contents
 
 .. note::
