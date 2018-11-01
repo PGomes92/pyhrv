@@ -10,7 +10,7 @@
 The toolbox bundles a selection functions to compute Time Domain, Frequency Domain, and nonlinear HRV parameters along with other additional features designed to support your HRV research.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :numbered:
    :glob:
    :caption: Contents:
@@ -39,7 +39,7 @@ This Python package computes...
 Installation
 ------------
 
-This package can be installed usingthe `pip` tool:
+This package can be installed using the `pip` tool:
 
 .. code:: bash
 
