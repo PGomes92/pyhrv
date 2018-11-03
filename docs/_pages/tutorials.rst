@@ -202,6 +202,8 @@ To compute all available HRV parameters with the default parameters, add the fol
       # Compute all HRV parameters with default input parameters and show all plot figures
       results = pyhrv.hrv(signal=signal, show=True)
 
+
+.. important::
    You might have to close all generated plot figures to allow the execution of the upcoming code sections.
    Alternatively, turn on the interactive mode of the matplotlib package to prevent this issue.
 

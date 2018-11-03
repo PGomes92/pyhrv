@@ -9,16 +9,24 @@ The *Tools Module* contains general purpose functions and key functionalities (e
 
 .. contents:: Module Contents
 
-.. note::
+.. important::
 
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and loaded with the ``opensignalsreader`` package.
-
-   Visit the following website/repository for more information about this software and this package in case you want to follow these examples using OpenSignals data.
-
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `opensignalsreader package <https://github.com/PGomes92/opensignalsreader>`_
+   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
 
    These examples do work with any other ECG signal independently of the acquisition software, of course.
+
+   The sample NNI series used in the some examples below was taken from the NNI samples which come with the `pyHRV`
+   package.
+
+.. seealso::
+
+   Useful links:
+
+   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
+   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
+   * :ref:`ref-samples` (docs)
+   * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/samples>`_
+   * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/series_1.npy>`_
 
 NN Intervals: nn_intervals()
 ############################
@@ -30,10 +38,10 @@ NN Intervals: nn_intervals()
 Computes the series of NN intervals [ms] from a series of successive R-peak locations.
 
 **Input Parameters**
-   - ``rpeaks`` (array): R-peak times in (ms) or (s).
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].
 
 **Returns**
-   - ``nn`` (array): Series of NN intervals in (ms).
+   - ``nni`` (array): Series of NN intervals in [ms].
 
 **Computation**
 
@@ -41,7 +49,9 @@ The NN interval series is computed from the R-peak series as follows:
 
 .. math::
 
-   NNI_j = |R_{j+1} - R_j}|  for 0 <= j < n
+   NNI_{j} = R_{j+1} - R_{j}
+
+for :math:`0 <= j <= (n - 1)`
 
 with:
 
@@ -52,7 +62,7 @@ with:
 
 **Application Notes**
 
-The ``nn`` series will be returned in [ms] format, even if the ``rpeaks`` are provided in [s] format.
+The ``nni`` series will be returned in [ms] format, even if the ``rpeaks`` are provided in [s] format.
 
 .. seealso::
 
@@ -70,31 +80,30 @@ The following example code demonstrates how to use this function:
    from opensignalsreader import OpenSignalsReader
 
    # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('./samples/SampleECG.npy').signal('ECG')
+   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
 
-   # Get R-peak locations
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   # Get R-peak locations (and hide the ECG plots)
+   rpeaks = biosppy.signals.ecg.ecg(signal, show=False)[2]
 
    # Compute NNI parameters
    nni = tools.nn_intervals(rpeaks)
-
 
 .. _ref-nnformat:
 
 NN Format: nn_format()
 ######################
 
-.. py:function:: pyhrv.tools.nn_format(rpeaks=None)
+.. py:function:: pyhrv.tools.nn_format(nni=None)
 
 **Function Description**
 
 Checks the format of the NNI series and converts data in [s] to [ms] format. Additionally, it ensures that the data will be returned int the ``NumPy`` array format.
 
 **Input Parameters**
-   - ``nn`` (array): NNI series [ms] or [s].
+   - ``nni`` (array): NNI series [ms] or [s].
 
 **Returns**
-   - ``nn`` (array): NNI series [ms] and NumPy array format.
+   - ``nni`` (array): NNI series [ms] and NumPy array format.
 
 **Computation**
 
@@ -102,8 +111,8 @@ The automatic [s] to [ms] conversion occurs on a threshold based identification 
 
 This conversion process is based on the following two assumptions:
 
-   * any interval data in [s] format for both healthy individuals or individuals with existing medical conditions ranges between 0.2s (:math:`\hat{=}300bpm`) and 1.5s (:math:'\hat{=}40bpm`). Any interval greater 1.5s is highly unlikely to occur, and even if it does, it does still not reach the specified interval limit of 10s (:math:`\hat{=}6bpm`)
-   * the provided NNI series has been filtered from NNI outliers caused by signal artifacts (e.g. ECG signal loss)
+   * Any interval data in [s] format ranges between 0.2s (:math:`\hat{=}300bpm`) and 1.5s (:math:`\hat{=}40bpm`). Any interval greater 1.5s is highly unlikely to occur, and even if it does, it does still not reach the specified maximum interval limit of 10s (:math:`\hat{=}6bpm`)
+   * The provided NNI series has been filtered from NNI outliers caused by signal artifacts (e.g. ECG signal loss)
 
 .. note::
 
@@ -111,7 +120,7 @@ This conversion process is based on the following two assumptions:
 
 **Application Notes**
 
-The ``nn`` series will be returned in [ms] format, even if the ``rpeaks`` are provided in [s] format.
+The ``nni`` series will be returned in [ms] format, even if the ``rpeaks`` are provided in [s] format.
 
 .. seealso::
 
@@ -155,7 +164,7 @@ NN Interval Differences: nn_diff()
 Computes the series of NN interval differences [ms] from a series of successive NN intervals.
 
 **Input Parameters**
-   - ``nn`` (array): NNI series in [ms] or [s].
+   - ``nni`` (array): NNI series in [ms] or [s].
 
 **Returns**
    - ``nn_diff_`` (array): Series of NN interval differences in [ms].
@@ -166,7 +175,9 @@ The NN interval series is computed from the R-peak series as follows:
 
 .. math::
 
-   \Delta NNI_j = \abs{NNI_{j+1} - NNI_j}}  for 0 <= j < n
+   \Delta NNI_j = NNI_{j+1} - NNI_j
+
+for :math:`0 <= j <= (n - 1)`
 
 with:
 
@@ -177,7 +188,7 @@ with:
 
 **Application Notes**
 
-The ``nn_diff_`` series will be returned in [ms] format, even if the ``nn`` are provided in [s] format.
+The ``nn_diff_`` series will be returned in [ms] format, even if the ``nni`` are provided in [s] format.
 
 .. seealso::
 
@@ -206,6 +217,7 @@ The following example code demonstrates how to use this function:
    # Compute NNI differences
    delta_nni = tools.nn_diff(nni)
 
+.. _ref-hr:
 
 Heart Rate: heart_rate()
 ########################
@@ -214,10 +226,10 @@ Heart Rate: heart_rate()
 
 **Function Description**
 
-Computes a series of Heart Rate values in [bpm] from a series of NN intervals or R-peaks in [ms] or [s].
+Computes a series of Heart Rate values in [bpm] from a series of NN intervals or R-peaks in [ms] or [s] or the HR from a single NNI.
 
 **Input Parameters**
-   - ``nni`` (array): NN interval series in [ms] or [s]
+   - ``nni`` (int, float, array): NN interval series in [ms] or [s]
    - ``rpeaks`` (array): R-peak locations in [ms] or [s]
 
 **Returns**
@@ -229,7 +241,9 @@ The Heart Rate series is computed as follows:
 
 .. math::
 
-   HR_j = \frac{60000}{NNI_j}  for 0 <= j < n
+   HR_j = \frac{60000}{NNI_j}
+
+for :math:`0 <= j <= n`
 
 with:
 
@@ -239,7 +253,7 @@ with:
 
 **Application Notes**
 
-The input ``nn`` series will be converted to [ms], even if the ``rpeaks`` are provided in [s] format.
+The input ``nni`` series will be converted to [ms], even if the ``rpeaks`` are provided in [s] format.
 
 .. seealso::
 
@@ -261,10 +275,22 @@ The following example code demonstrates how to use this function:
    # Compute Heart Rate series
    hr = tools.heart_rate(nn)
 
+It is also possible to compute the HR from a single NNI:
+
+.. code-block:: python
+
+   # Compute Heart Rate from a single NNI
+   hr = tools.heart_rate(800)
+   # here: hr = 75 [bpm]
+
+.. Attention::
+
+   In this case, the input NNI must be provided in [ms] as the [s] to [ms] conversion is only conducted for series of NN Intervals.
+
 Plot ECG: plot_ecg()
 ####################
 
-.. py:function:: pyhrv.tools.plot_ecg(signal=None, t=None, samplin_rate=1000., interval=None, rpeaks=True, figsize=None, show=True)
+.. py:function:: pyhrv.tools.plot_ecg(signal=None, t=None, samplin_rate=1000., interval=None, rpeaks=True, figsize=None, title=None, show=True)
 
 **Function Description**
 
@@ -274,15 +300,20 @@ An example of an ECG plot generated by this function can be seen here:
 
 .. figure:: /_static/ecg10.png
 
+The x-Division does automatically adapt to the visualized interval (e.g., 10s interval -> 1s, 20s interval -> 2s, ...).
+
 **Input Parameters**
    - ``signal`` (array): ECG signal (filtered or unfiltered)
    - ``t`` (array, optional): Time vector for the ECG signal (default: None)
+   - ``sampling_rate`` (int, float, optional): Sampling rate of the acquired signal in [Hz] (default: 1000Hz)
    - ``interval`` (array, optional): Visualization interval of the ECG signal plot (default: [0s, 10s])
    - ``rpeaks`` (bool, optional): If True, marks R-peaks in ECG signal (default: True)
-   - ``show`` (bool, optional): If True, shows the ECG plot figure (default: True
+   - ``figsize`` (array, optional): Matplotlib figure size (width, height) (default: None: (12, 4)
+   - ``title`` (str, optional): Plot figure title (default: None)
+   - ``show`` (bool, optional): If True, shows the ECG plot figure (default: True)
 
 **Returns**
-   - ``fig_ecg`` (matplotlib figure object): Matplotlibe figure of the ECG plot.
+   - ``fig_ecg`` (matplotlib figure object): Matplotlibe figure of the ECG plot
 
 **Application Notes**
 
@@ -292,7 +323,17 @@ The input ``nni`` series will be converted to [ms], even if ``nni`` are provided
 
    :ref:`ref-nnformat` for more information about the [s] to [ms] conversion.
 
-This functions sets, by default, markers to highlight the detected R-peaks which can be turned on (``rpeaks=True``) or turned of (``rpeaks=False``). This parameter will have no effect if the number of R-peaks within the visualization interval is greater than 50. In this case, for reasons of plot clarity, no R-peak markers will be added to the plot.
+This functions marks, by default, the detected R-peaks. Use the ``rpeaks`` input parameter to turn on (``rpeaks=True``) or to turn of (``rpeaks=False``) the visualization of these markers.
+
+.. important::
+
+   This parameter will have no effect if the number of R-peaks within the visualization interval is greater than 50. In this case, for reasons of plot clarity, no R-peak markers will be added to the plot.
+
+The time axis scaling will change depending on the duration of the visualized interval:
+
+   * t in [s] if visualized duration <= 60s
+   * t in [mm:ss] (minutes:seconds) if 60s < visualized duration <= 1h
+   * t in [hh:mm:ss] (hours:minutes:seconds) if visualized duration > 1h
 
 **Example**
 
@@ -311,17 +352,15 @@ This functions sets, by default, markers to highlight the detected R-peaks which
 The plot of this example should look like the following plot:
 
 .. figure:: /_static/ecg10.png
+   :align: center
 
-Use the ``interval`` input parameter to change the visualization interval (default: 0s to 10s; here: 0s to 20s) or to hide the R-peak markers:
+   Default visualization interval of the ``plot_ecg()`` function.
+
+Use the ``interval`` input parameter to change the visualization interval using a 2-element array (``[lower_interval_limit, upper_interval_limit]``; default: 0s to 10s). Additionally, use the ``rpeaks`` parameter to toggle the R-peak markers.
+
+The following code sets the visualization interval from 0s to 20s and hides the R-peak markers:
 
 .. code-block:: python
-
-   # Import
-   import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
-
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
 
    # Plot ECG
    tools.plot_ecg(signal, interval=[0, 20], rpeaks=False)
@@ -329,6 +368,21 @@ Use the ``interval`` input parameter to change the visualization interval (defau
 The plot of this example should look like the following plot:
 
 .. figure:: /_static/ecg20.png
+   :align: center
+
+   Visualizing the first 20 seconds of the ECG signal without R-peak markers.
+
+Use the ``title`` input parameter to add titles to the ECG plot:
+
+.. code-block:: python
+
+   # Plot ECG
+   tools.plot_ecg(signal, interval=[0, 20], rpeaks=False, title='This is a Title')
+
+.. figure:: /_static/ecg20title.png
+   :align: center
+
+   ECG plot with custom title.
 
 Tachogram: tachogram()
 ######################
@@ -359,26 +413,15 @@ An example of a Tachogram plot generated by this function can be seen here:
 
 **Application Notes**
 
-The input ``nn`` series will be converted to [ms], even if the ``rpeaks`` or ``nni`` are provided in [s] format.
+The input ``nni`` series will be converted to [ms], even if the ``rpeaks`` or ``nni`` are provided in [s] format.
 
 .. seealso::
 
    :ref:`ref-nnformat` for more information about the [s] to [ms] conversion.
 
-
 **Example**
 
 The following example demonstrate how to load an ECG signal recorded with the OpenSignals (r)evolution and loaded with the opensignalsreader package.
-
-.. seealso::
-
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `opensignalsreader package <https://github.com/PGomes92/opensignalsreader>`_
-
-.. note::
-
-   The following examples use an OpenSignals (r)evolution acquisition file but works with any other ECG signal of
-   course.
 
 .. code-block:: python
 
@@ -423,6 +466,9 @@ Alternatively, use R-peak data to plot the histogram...
 The plots generated by the examples above should look like the plot below:
 
 .. figure:: /_static/tachogram10.png
+   :align: center
+
+   Tachogram with default visualization interval.
 
 Use the ``interval`` input parameter to change the visualization interval (default: 0s to 10s; here: 0s to 20s):
 
@@ -434,6 +480,9 @@ Use the ``interval`` input parameter to change the visualization interval (defau
 The plot of this example should look like the following plot:
 
 .. figure:: /_static/tachogram20.png
+   :align: center
+
+   Tachogram with custom visualization interval.
 
 .. note::
 
@@ -452,6 +501,9 @@ Set the ``hr`` parameter to ``False`` in case only the NNI Tachogram is needed:
    tools.plot_ecg(signal, interval=[0, 20], hr=False)
 
 .. figure:: /_static/tachogramNoHR.png
+   :align: center
+
+   Tachogram of the NNI series only.
 
 The time axis scaling will change depending on the duration of the visualized interval:
 
@@ -460,7 +512,9 @@ The time axis scaling will change depending on the duration of the visualized in
    * t in [hh:mm:ss] (hours:minutes:seconds) if visualized duration > 1h
 
 .. figure:: /_static/tachogramlong.png
+   :align: center
 
+   Tachogram of an ~1h NNI series.
 
 Check Interval: check_interval()
 ################################
@@ -474,16 +528,16 @@ General purpose function that checks and verifies correctness of interval limits
 This function can be used to set visualization intervals, check overlapping frequency bands, or for other similar purposes and is intended to automatically catch possible error sources due to invalid intervals boundaries.
 
 **Input Parameters**
-   - ``interval`` (array): Input interval (default: None)
-   - ``limit`` (array): Minimum and maximum allowed interval limits (default: None)
+   - ``interval`` (array): Input interval [min, max] (default: None)
+   - ``limits`` (array): Minimum and maximum allowed interval limits (default: None)
    - ``default`` (array): Specified default interval (e.g. if ``interval`` is None) (default: None)
 
 **Returns**
-   - ``interval`` (array): Interval with correct(ed) interval limits.
+   - ``interval`` (array): Interval with correct(ed)/valid interval limits.
 
 **Raises**
    - ``TypeError`` If no input data is specified.
-   - ``ValueError`` If the input interval(s) have equal lower and upper limits.
+   - ``ValueError`` If the input interval[s] have equal lower and upper limits.
 
 **Computation**
 
@@ -506,19 +560,24 @@ The following example code demonstrates how to use this function:
    # Import packages
    import pyhrv.tools as tools
 
-   # Check interval limits; returns interval without modifications
+   # Check valid interval limits; returns interval without modifications
    interval = [0, 10]
-   res = tools.check(interval)
+   res = tools.check_interval(interval)
 
-   # Check interval limits; returns corrected interval limits
+   # Check invalid interval limits; returns corrected interval limits
    interval = [10, 0]
-   res = tools.check(interval)
+   res = tools.check_interval(interval)
    # here: res = [0, 10]
 
-   # Specify minimum and maximum valid values (here: [2, 8])
+You can specify valid minimum and maximum values for the interval limits. If an interval with limits outside the valid
+region are provided, the limits will be set to the specified valid minimum and maximum values:
+
+.. code-block:: python
+
+   # Specify minimum and maximum valid values (here: [2, 8]); interval is out of valid interval
    interval = [0, 10]
    limits = [2, 8]
-   res = tools.check(interval, limits)
+   res = tools.check_interval(interval, limits)
    # here: res = [2, 8]
 
 You can specify default values for this function. These can be used if no interval is specified by the user and default values should apply (e.g. when integrating this function in custom functions with dynamic intervals).
@@ -527,6 +586,8 @@ You can specify default values for this function. These can be used if no interv
 
    # Don't specify intervals or limits, but set a default values (here: [0, 10])
    res = tools.check(interval=None, limits=None, default=[0, 10])
+
+.. _ref-segmentation:
 
 Segmentation: segmentation()
 ############################
@@ -560,7 +621,7 @@ Segmentation of NNI series into individual segments of specified duration (e.g. 
    **Application Notes** below for more information about the returned segmentation results.
 
 **Raises**
-   - ``TypeError`` If ``nn`` input data is not specified
+   - ``TypeError``: If ``nni`` input data is not specified
 
 **Application Notes**
 
@@ -611,7 +672,7 @@ Generates HRV report (in .txt or .csv format) of the provided HRV results. You c
    - ``results`` (dict, ReturnTuple object): Computed HRV parameter results
    - ``path`` (str): Absolute path of the output directory
    - ``rfile`` (str): Output file name
-   - ``nn`` (array, optional): NN interval series in [ms] or [s]
+   - ``nni`` (array, optional): NN interval series in [ms] or [s]
    - ``info`` (dict, optional): Dictionary with HRV metadata
    - ``file_format`` (str, optional): Output file format, select 'txt' or 'csv' (default: 'txt')
    - ``delimiter`` (str, optional): Delimiter separating the columns in the report (default: ';')
@@ -628,11 +689,17 @@ Generates HRV report (in .txt or .csv format) of the provided HRV results. You c
       * key: ``fs`` - Sampling rate used during ECG acquisition
       * key: ``resolution`` - Resolution used during acquisition
 
+   Any other key will be ignored.
+
+.. important::
+
+   It is recommended to use absolute file paths when using the ``path`` parameter to ensure the correct functionality of this function.
+
 **Raises**
-   - ``TypeError`` If no HRV results are provided
-   - ``TypeError`` If no file or directory path is provided
-   - ``TypeError`` If specified selected file format is not supported
-   - ``IOError`` If the selected output file or directory does not exist
+   - ``TypeError``: If no HRV results are provided
+   - ``TypeError``: If no file or directory path is provided
+   - ``TypeError``: If specified selected file format is not supported
+   - ``IOError``: If the selected output file or directory does not exist
 
 **Application Notes**
 
@@ -642,7 +709,7 @@ For instance, if a report file with the name  *SampleReport.txt* exists, this fi
 
 If the file with the file name *SampleReport_1.txt* exists, the file name of the new report will be incremented to *SampleReport_2.txt*, and so on...
 
-.. note::
+.. important::
 
    The maximum supported number of file name increments is limited to 999 files, i.e., using the example above, the
    implemented file protection mechanisms will go up to *SampleReport_999.txt*.
@@ -699,14 +766,18 @@ Exports HRV results into a JSON file. You can find a sample export generated wit
    - ``comment`` (str, optional): Optional comment
    - ``plots`` (bool, optional): If True, save figures of the results in .png format
 
+.. important::
+
+   It is recommended to use absolute file paths when using the ``path`` parameter to ensure the correct functionality of this function.
+
 **Returns**
    - ``efile`` (str): Absolute path of the output report file (may vary from the input data)
 
 **Raises**
-   - ``TypeError`` If no HRV results are provided
-   - ``TypeError`` If no file or directory path is provided
-   - ``TypeError`` If specified selected file format is not supported
-   - ``IOError`` If the selected output file or directory does not exist
+   - ``TypeError``: If no HRV results are provided
+   - ``TypeError``: If no file or directory path is provided
+   - ``TypeError``: If specified selected file format is not supported
+   - ``IOError``: If the selected output file or directory does not exist
 
 **Application Notes**
 
@@ -718,10 +789,10 @@ the file name of the new export file will be incremented to *SampleExport_1.json
 If the file with the file name *SampleExport_1.json* exists, the file name of the new export will be incremented to
 *SampleExport_2.json*, and so on...
 
-.. note::
+.. important::
 
    The maximum supported number of file name increments is limited to 999 files, i.e., using the example above, the
-   implemented file protection mechanisms will go up to *SampleExport_999.txt*.
+   implemented file protection mechanisms will go up to *SampleExport_999.json*.
 
 If no file name is provided, an automatic file name with a time stamp will be generated for the generated report
 (*hrv_export_YYYY-MM-DD_hh-mm-ss.json*).
@@ -772,7 +843,7 @@ Imports HRV results stored in JSON files generated with the 'hrv_export()'.
    - ``output`` (ReturnTuple object): All HRV parameters stored in a ``biosppy.utils.ReturnTuple`` object
 
 **Raises**
-   - ``TypeError`` If no file path or handler is provided
+   - ``TypeError``: If no file path or handler is provided
 
 **Example**
 
@@ -786,6 +857,9 @@ The following example code demonstrates how to use this function:
    # Import HRV results
    hrv_results = tools.hrv_import('/path/to/my/HRVResults.json')
 
+.. seealso::
+
+   ... the `HRV keys file <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/files/hrv_keys.json>`_ for a full list of HRV parameters and their respective keys.
 
 Join Tuples: join_tuples()
 ##########################
@@ -801,10 +875,10 @@ Joins multiple biosppy.utils.ReturnTuple objects into one biosppy.utils.ReturnTu
    :ref:`ref-returntuple`
 
 **Input Parameters**
-   - ``tuples`` (biosppy.utils.ReturnTuple): Array containing biosppy.utils.ReturnTuple objects or multiple ReturnTuple objects
+   - ``*args`` (biosppy.utils.ReturnTuple): Multiple biosppy.utils.ReturnTuple objects (can also be stored in an array)
 
 **Returns**
-   - ``ouptput`` (ReturnTuple object): biosppy.utils.ReturnTuple object with the content of all input tuples/objects joined together.
+   - ``output`` (ReturnTuple object): biosppy.utils.ReturnTuple object with the content of all input tuples/objects joined together.
 
 **Raises**
    - ``TypeError``: If no input data is provided
@@ -821,7 +895,6 @@ The following example code demonstrates how to use this function:
 
    # Join multiple ReturnTuple objects
    tuples = tools.join_tuples(return_tuple1, return_tuple2, return_tuple3)
-
 
 Standard Deviation: std()
 #########################
@@ -919,7 +992,7 @@ Check Input: check_input()
 
 **Function Description**
 
-Checks if input series of NN intervals or R-peaks are provided and returns a NN interval series in [ms] format.
+Checks if input series of NN intervals or R-peaks are provided and, if yes, returns a NN interval series in [ms] format.
 
 **Input Parameters**
    - ``nni`` (array): NN interval series in [ms] or [s] (default: None)
