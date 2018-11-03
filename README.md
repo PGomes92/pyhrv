@@ -17,7 +17,9 @@ pip install pyhrv
 ### Documentation & Tutorials
 An overview of all the available functions and short quickstart tutorials can be found in the [README](./pyhrv/README.md) file found in the `pyhrv` package.
 
-Additional detailed documentation will be uploaded soon.
+The official **pyHRV** Documentation is now available on ReadTheDocs (currently still a work in progress):
+
+https://pyhrv.readthedocs.io
 
 ## HRV Parameter List
 
