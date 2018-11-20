@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-Heart Rate Variability Toolkit - Frequency Domain Module
---------------------------------------------------------
+pyHRV - Frequency Domain Module
+--------------------------------
 
 This module provides function to compute frequency domain HRV parameters using R-peak locations
 or NN intervals extracted from an ECG lead I-like signal. The implemented Power Spectral Estimation (PSD)
@@ -10,13 +9,17 @@ estimation methods are:
 
 	* Welch's Method
 	* Lomb-Scargle
+	* Autoregressive
 
 Notes
 -----
 ..  This module is part of the master thesis
 	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
+..	This module is a contribution to the open-source biosignal processing toolbox 'BioSPPy':
 	https://github.com/PIA-Group/BioSPPy
+..	You find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html
+.. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
@@ -24,25 +27,27 @@ Author
 
 Thesis Supervisors
 ------------------
-..  Hugo Silva, PhD, Instituto de Telecomunicacoes, PLUX wireless biosignals S.A.
+..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-16-10-2018
+19-11-2018
 
 :copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
 """
+# Compatibility
 from __future__ import absolute_import, division, print_function
 
 # Imports
+import warnings
+import spectrum
 import numpy as np
 import scipy as sp
 import matplotlib as mpl
-import warnings
-from matplotlib import pyplot as plt
 from scipy.signal import welch, lombscargle
+from matplotlib import pyplot as plt
 
 # biosppy imports
 import biosppy
@@ -55,7 +60,7 @@ import pyhrv.tools as tools
 warnings.filterwarnings(action="ignore", module="scipy")
 
 
-def welch_psd(nn=None,
+def welch_psd(nni=None,
 			  rpeaks=None,
 			  fbands=None,
 			  nfft=2**12,
@@ -64,16 +69,20 @@ def welch_psd(nn=None,
 			  show=True,
 			  show_param=True,
 			  legend=True):
-	"""Computes a PSD
+	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Welch’s method
+	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
+
+	References: [Electrophysiology1996], [Umberto2017], [Welch2017]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#welch-s-method-welch-psd
 
 	Parameters
 	----------
-	rpeaks : array, int
-		R-peak locations.
-	nn : array, int
-		NN-Intervals.
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	nni : array
+		NN-Intervals in [ms] or [s]
 	fbands : dict, optional
-		Dictionary with frequency bands (tuples or list).
+		Dictionary with frequency bands (2-element tuples or list)
 		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
 		Keys:	'ulf'	Ultra low frequency		(default: none) optional
 				'vlf'	Very low frequency		(default: (0.000Hz, 0.04Hz))
@@ -86,11 +95,11 @@ def welch_psd(nn=None,
 	window : scipy window function, optional
 		Window function used for PSD estimation (default: 'hamming')
 	show : bool, optional
-		If true, show PSD plot.
+		If true, show PSD plot (default: True)
 	show_param : bool, optional
-		If true, list all computed PSD parameters next to the plot
+		If true, list all computed PSD parameters next to the plot (default: True)
 	legend : bool, optional
-		If true, add a legend with frequency bands to the plot
+		If true, add a legend with frequency bands to the plot (default: True)
 
 	Returns
 	-------
@@ -99,20 +108,20 @@ def welch_psd(nn=None,
 
 	Returned Parameters & Keys
 	--------------------------
-	..	Peak frequencies of all frequency bands (key: 'fft_peak')
-	..	Absolute frequencies of all frequency bands (key: 'fft_abs')
-	..	Relative frequencies of all frequency bands (key: 'fft_rel')
-	..	Logarithmic frequencies of all frequency bands (key: 'fft_log')
-	..	Normalized frequencies of all frequency bands (key: 'fft_norms')
-	..	LF/HF ratio (key: 'fft_ratio')
-	..	Total power over all frequency bands (key: 'fft_total')
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'fft_peak')
+	..	Absolute powers of all frequency bands in [ms^2][(key: 'fft_abs')
+	..	Relative powers of all frequency bands [%] (key: 'fft_rel')
+	..	Logarithmic powers of all frequency bands [-] (key: 'fft_log')
+	..	Normalized powers of all frequency bands [-] (key: 'fft_norms')
+	..	LF/HF ratio [-] (key: 'fft_ratio')
+	..	Total power over all frequency bands in [ms^2] (key: 'fft_total')
 	..	Interpolation method used for NNI interpolation (key: 'fft_interpolation')
 	..	Resampling frequency used for NNI interpolation (key: 'fft_resampling_frequency')
 	..	Spectral window used for PSD estimation of the Welch's method (key: 'fft_spectral_window)'
 
 	Notes
 	-----
-	..	The returned BioSppy ReturnTuple object contains all frequency band parameters in parameter specific tuples
+	..	The returned BioSPPy ReturnTuple object contains all frequency band parameters in parameter specific tuples
 		of length 4 when using the ULF frequency band or of length 3 when NOT using the ULF frequency band.
 		The structures of those tuples are shown in this example below (fft_results = ReturnTuple object returned by
 		this function):
@@ -126,10 +135,14 @@ def welch_psd(nn=None,
 	..	If 'show_param' is true, the parameters (incl. frequency band limits) will be listed next to the graph and no
 		legend with frequency band limits will be added to the plot graph itself, i.e. the effect of 'show_param'
 		will be used over the 'legend' effect.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nni' and the 'nni' data will be computed
+		from the 'rpeaks'.
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Verify or set default frequency bands
 	fbands = _check_freq_bands(fbands)
@@ -180,41 +193,44 @@ def welch_psd(nn=None,
 
 
 def lomb_psd(
-		nn=None,
+		nni=None,
 		rpeaks=None,
 		fbands=None,
-		nfft=2 ** 8,
+		nfft=2**8,
 		ma_size=None,
 		show=True,
 		show_param=True,
 		legend=True
 	):
-	"""Computes a Power Spectral Density estimation using the Welch's Method from a series of NN intervals and
-	returns all HRV specific parameters.
+	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Lomb-Scargle Periodogram
+	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
+
+	References: [Lomb1976], [Scargle1982], [Kuusela2014], [Laguna1995]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#lomb-scargle-periodogram-lomb-psd
 
 	Parameters
 	----------
-	rpeaks : array, int
-		R-peak locations.
-	nn : array, int
-		NN-Intervals.
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	nni : array
+		NN-Intervals in [ms] or [s]
 	fbands : dict, optional
-		Dictionary with frequency bands (tuples or list).
+		Dictionary with frequency bands (2-element tuples or list)
 		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
 		Keys:	'ulf'	Ultra low frequency		(default: none) optional
 				'vlf'	Very low frequency		(default: (0.003Hz, 0.04Hz))
 				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
 				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))´
 	nfft : int, optional
-		Number of points computed for the FFT result.
+		Number of points computed for the FFT result (default: 2**8)
 	ma_size : int, optional
-		Window size of the optional moving average filter.
+		Window size of the optional moving average filter (default: None)
 	show : bool, optional
-		If true, show PSD plot.
+		If true, show PSD plot (default: True)
 	show_param : bool, optional
-		If true, list all computed PSD parameters next to the plot.
+		If true, list all computed PSD parameters next to the plot (default: True)
 	legend : bool, optional
-		If true, add a legend with frequency bands to the plot.
+		If true, add a legend with frequency bands to the plot (default: True)
 
 	Returns
 	-------
@@ -223,17 +239,19 @@ def lomb_psd(
 
 	Returned Parameters & Keys
 	--------------------------
-	..	Peak frequencies of all frequency bands (key: 'lomb_peak')
-	..	Absolute frequencies of all frequency bands (key: 'lomb_abs')
-	..	Relative frequencies of all frequency bands (key: 'lomb_rel')
-	..	Logarithmic frequencies of all frequency bands (key: 'lomb_log')
-	..	Normalized frequencies of all frequency bands (key: 'lomb_norms')
-	..	LF/HF ratio (key: 'lomb_ratio')
-	..	Total power over all frequency bands (key: 'lomb_total')
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'lomb_peak')
+	..	Absolute powers of all frequency bands in [ms^2][(key: 'lomb_abs')
+	..	Relative powers of all frequency bands [%] (key: 'lomb_rel')
+	..	Logarithmic powers of all frequency bands [-] (key: 'lomb_log')
+	..	Normalized powers of all frequency bands [-] (key: 'lomb_norms')
+	..	LF/HF ratio [-] (key: 'lomb_ratio')
+	..	Total power over all frequency bands in [ms^2] (key: 'lomb_total')
+	.. 	Number of PSD samples (key: 'lomb_nfft')
+	.. 	Moving average filter order (key: 'lomb_ma')
 
 	Notes
 	-----
-	..	The returned BioSppy ReturnTuple object contains all frequency band parameters in parameter specific tuples
+	..	The returned BioSPPy ReturnTuple object contains all frequency band parameters in parameter specific tuples
 		of length 4 when using the ULF frequency band or of length 3 when NOT using the ULF frequency band.
 		The structures of those tuples are shown in this example below (lomb_results = ReturnTuple object returned by
 		this function):
@@ -247,10 +265,14 @@ def lomb_psd(
 	..	If 'show_param' is true, the parameters (incl. frequency band limits) will be listed next to the graph and no
 		legend with frequency band limits will be added to the plot graph itself, i.e. the effect of 'show_param'
 		will be used over the 'legend' effect.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nni' and the 'nni' data will be computed
+		from the 'rpeaks'.
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Verify or set default frequency bands
 	fbands = _check_freq_bands(fbands)
@@ -258,9 +280,12 @@ def lomb_psd(
 	t -= t[0]
 
 	# Compute PSD according to the Lomb-Scargle method
+	# Specify frequency grid
 	frequencies = np.linspace(0, 0.41, nfft)
+	# Compute angular frequencies
 	a_frequencies = np.asarray(2 * np.pi / frequencies)
 	powers = np.asarray(lombscargle(t, nn, a_frequencies, normalize=True))
+	# ms^2 to s^2
 	powers = powers * 10**6
 
 	# Fix power = inf at f=0
@@ -284,8 +309,132 @@ def lomb_psd(
 	return tools.join_tuples(params, figure, meta)
 
 
+def ar_psd(nni=None,
+		   rpeaks=None,
+		   fbands=None,
+		   nfft=2**12,
+		   order=16,
+		   show=True,
+		   show_param=True,
+		   legend=True):
+	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Autoregressive method
+	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
+
+	References: [Electrophysiology1996], [Kuusela2014], [Kallas2012], [Boardman2002]
+				(additionally recommended: [Miranda2012])
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#autoregressive-method-ar-psd
+
+	Parameters
+	----------
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	nni : array
+		NN-Intervals in [ms] or [s]
+	fbands : dict, optional
+		Dictionary with frequency bands (2-element tuples or list)
+		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
+		Keys:	'ulf'	Ultra low frequency		(default: none) optional
+				'vlf'	Very low frequency		(default: (0.003Hz, 0.04Hz))
+				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
+				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))´
+	nfft : int, optional
+		Number of points computed for the entire AR result (default: 2**12)
+	order : int, optional
+		Autoregressive model order (default: 16)
+	show : bool, optional
+		If true, show PSD plot (default: True)
+	show_param : bool, optional
+		If true, list all computed PSD parameters next to the plot (default: True)
+	legend : bool, optional
+		If true, add a legend with frequency bands to the plot (default: True)
+
+	Returns
+	-------
+	results : biosppy.utils.ReturnTuple object
+		All results of the Autoregressive PSD estimation (see list and keys below)
+
+	Returned Parameters & Keys
+	--------------------------
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'ar_peak')
+	..	Absolute powers of all frequency bands in [ms^2][(key: 'ar_abs')
+	..	Relative powers of all frequency bands [%] (key: 'ar_rel')
+	..	Logarithmic powers of all frequency bands [-] (key: 'ar_log')
+	..	Normalized powers of all frequency bands [-] (key: 'ar_norms')
+	..	LF/HF ratio [-] (key: 'ar_ratio')
+	..	Total power over all frequency bands in [ms^2] (key: 'ar_total')
+	..	Interpolation method (key: 'ar_interpolation')
+	..	Resampling frequency (key: 'ar_resampling_frequency')
+	.. 	AR model order (key: 'ar_order')
+	.. 	Number of PSD samples (key: 'ar_nfft')
+
+	Notes
+	-----
+	..	The returned BioSPPy ReturnTuple object contains all frequency band parameters in parameter specific tuples
+		of length 4 when using the ULF frequency band or of length 3 when NOT using the ULF frequency band.
+		The structures of those tuples are shown in this example below (lomb_results = ReturnTuple object returned by
+		this function):
+
+			Using ULF, VLF, LF and HF frequency bands:
+				lomb['ar_peak'] = (ulf_peak, vlf_peak, lf_peak, hf_peak)
+
+			Using VLF, LF and HF frequency bands:
+				lomb['ar_peak'] = (vlf_peak, lf_peak, hf_peak)
+
+	..	If 'show_param' is true, the parameters (incl. frequency band limits) will be listed next to the graph and no
+		legend with frequency band limits will be added to the plot graph itself, i.e. the effect of 'show_param'
+		will be used over the 'legend' effect.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nni' and the 'nni' data will be computed
+		from the 'rpeaks'.
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
+
+	"""
+	# Check input
+	nn = tools.check_input(nni, rpeaks)
+
+	# Verify or set default frequency bands
+	fbands = _check_freq_bands(fbands)
+
+	# Resampling (with 4Hz) and interpolate
+	# Because RRi are unevenly spaced we must interpolate it for accurate PSD estimation.
+	fs = 4
+	t = np.cumsum(nn)
+	t -= t[0]
+	f_interpol = sp.interpolate.interp1d(t, nn, 'cubic')
+	t_interpol = np.arange(t[0], t[-1], 1000./fs)
+	nn_interpol = f_interpol(t_interpol)
+
+	# Compute autoregressive PSD
+	ar = spectrum.pyule(data=nn_interpol, order=order, NFFT=nfft, sampling=fs, scale_by_freq=False)
+	ar()
+
+	# Get frequencies and powers
+	frequencies = np.asarray(ar.frequencies())
+	psd = np.asarray(ar.psd)
+	powers = np.asarray(10 * np.log10(psd) * 10**3) 	# * 10**3 to compensate with ms^2 to s^2 conversion
+														# in the upcoming steps
+
+	# Compute frequency parameters
+	params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
+
+	# Define metadata
+	meta = utils.ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
+														  'ar_interpolation'))
+	params = tools.join_tuples(params, meta)
+
+	# Plot PSD
+	figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
+	figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+
+	# Complete output
+	return tools.join_tuples(params, figure)
+
+
 def _compute_parameters(method, frequencies, power, freq_bands):
 	"""Computes PSD HRV parameters from the PSD frequencies and powers.
+
+	References: [Electrophysiology1996], [Basak2014]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#frequency-parameters
 
 	Parameters
 	----------
@@ -313,13 +462,13 @@ def _compute_parameters(method, frequencies, power, freq_bands):
 	Returned Parameters & Keys
 	--------------------------
 	(below, X = method identifier 'fft', 'ar' or 'lomb'
-	..	Peak frequencies of all frequency bands (key: 'X_peak')
-	..	Absolute frequencies of all frequency bands (key: 'X_abs')
-	..	Relative frequencies of all frequency bands (key: 'X_rel')
-	..	Logarithmic frequencies of all frequency bands (key: 'X_log')
-	..	Normalized frequencies of all frequency bands (key: 'X_norms')
-	..	LF/HF ratio (key: 'X_ratio')
-	..	Total power over all frequency bands (key: 'X_total')
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'X_peak')
+	..	Absolute powers of all frequency bands in [ms^2] (key: 'X_abs')
+	..	Relative powers of all frequency bands in [%] (key: 'X_rel')
+	..	Logarithmic powers of all frequency bands [-] (key: 'X_log')
+	..	Normalized powers of all frequency bands [-](key: 'X_norms')
+	..	LF/HF ratio [–] (key: 'X_ratio')
+	..	Total power over all frequency bands in [ms^] (key: 'X_total')
 
 	Raises
 	------
@@ -479,7 +628,6 @@ def _get_frequency_indices(freq, freq_bands):
 				'vlf'	Very low frequency		(default: (0.003Hz, 0.04Hz))
 				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
 				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
-				'uhf'	Ultra high frequency	(default: none) optional
 
 	Returns
 	-------
@@ -528,10 +676,10 @@ def _get_frequency_arrays(freq, ulf_i, vlf_i, lf_i, hf_i):
 		Frequencies of the HF band.
 
 	"""
-	ulf_f = freq[ulf_i] if ulf_i is not None else None
-	vlf_f = freq[vlf_i]
-	lf_f = freq[lf_i]
-	hf_f = freq[hf_i]
+	ulf_f = np.asarray(freq[ulf_i]) if ulf_i is not None else None
+	vlf_f = np.asarray(freq[vlf_i])
+	lf_f = np.asarray(freq[lf_i])
+	hf_f = np.asarray(freq[hf_i])
 	return ulf_f, vlf_f, lf_f, hf_f
 
 
@@ -590,24 +738,24 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 				data.append(mpl.patches.Patch(facecolor=colors[band], label='%s: %.3fHz - %.3fHz' %
 					(band.upper(), fbands[band][0], fbands[band][1])))
 				data.append(
-					mpl.patches.Patch(facecolor='white', label='Peak: %0.3f ($Hz$)' %
+					mpl.patches.Patch(facecolor='white', label='Peak: %0.3f [$Hz$]' %
 						parameters['%s_peak' % method][index]))
 				data.append(
-					mpl.patches.Patch(facecolor='white', label='Abs:  %0.3f ($ms^2$)' %
+					mpl.patches.Patch(facecolor='white', label='Abs:  %0.3f [$ms^2$]' %
 						parameters['%s_abs' % method][index]))
 				data.append(
-					mpl.patches.Patch(facecolor='white', label='Rel:  %0.3f (%%)' %
+					mpl.patches.Patch(facecolor='white', label='Rel:  %0.3f [%%]' %
 						parameters['%s_rel' % method][index]))
 				data.append(
-					mpl.patches.Patch(facecolor='white', label='Log:  %0.3f ($log$)' %
+					mpl.patches.Patch(facecolor='white', label='Log:  %0.3f [$-$]' %
 						parameters['%s_log' % method][index]))
 
 				if band == 'lf':
-					data.append(mpl.patches.Patch(facecolor='white', label='Norm: %0.3f ($-$)' %
+					data.append(mpl.patches.Patch(facecolor='white', label='Norm: %0.3f [$-$]' %
 						parameters['%s_norm' % method][0]))
 					data.append(mpl.patches.Patch(facecolor='white', label=''))
 				elif band == 'hf':
-					data.append(mpl.patches.Patch(facecolor='white', label='Norm: %0.3f ($-$)' %
+					data.append(mpl.patches.Patch(facecolor='white', label='Norm: %0.3f [$-$]' %
 						parameters['%s_norm' % method][1]))
 					data.append(mpl.patches.Patch(facecolor='white', label=''))
 
@@ -626,9 +774,9 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 					data.append(mpl.patches.Patch(facecolor='white', label=''))
 
 				if (fbands['ulf'] is not None and  band == 'vlf') or (fbands['ulf'] is None and  band == 'lf'):
-					data.append(mpl.patches.Patch(fc='white', label='Total Power: %.3f ($ms^2$)' % parameters[
+					data.append(mpl.patches.Patch(fc='white', label='Total Power: %.3f [$ms^2$]' % parameters[
 						'%s_total' % method]))
-					data.append(mpl.patches.Patch(fc='white', label='LF/HF: %.3f (%%)' %
+					data.append(mpl.patches.Patch(fc='white', label='LF/HF: %.3f [-]' %
 						parameters['%s_ratio' % method]))
 				index += 1
 		ax2.legend(handles=data, ncol=2, frameon=False)
@@ -658,11 +806,11 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 
 	# Finalize plot customization
 	if method == 'fft':
-		ax.set_title("PSD - FFT based Welch's Method")
+		ax.set_title("PSD - Welch's Method")
 	elif method == 'ar':
-		ax.set_title("PSD - AR")
+		ax.set_title("PSD - Autoregressive (Order %i)" % parameters['ar_order'])
 	elif method == 'lomb':
-		ax.set_title("PSD - Lomb-Scargle")
+		ax.set_title("PSD - Lomb-Scargle Periodogram")
 
 	ax.grid(alpha=0.3)
 	ax.set_xlabel('Frequency [$Hz$]')
@@ -675,46 +823,70 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 	return fig_psd
 
 
-def frequency_domain(signal=None,
-					 nn=None,
+def frequency_domain(nni=None,
 					 rpeaks=None,
+					 signal=None,
 					 sampling_rate=1000.,
 					 fbands=None,
 					 show=False,
-					 show_param=False,
+					 show_param=True,
+					 legend=True,
 					 kwargs_welch=None,
-					 kwargs_lomb=None):
-	"""Computes PSDs (Welch and Lomb), the parameters of the frequency domain, and returns the results in a
-	ReturnTuple object.
+					 kwargs_lomb=None,
+					 kwargs_ar=None):
+	"""Computes PSDs (Welch, Lomb, and Autoregressive), the parameters of the frequency domain, and returns
+	the results in a ReturnTuple object.
+
+	References: [Electrophysiology1996], [Kuusela2014], [Kallas2012], [Boardman2002], [Lomb1976], [Scargle1982],
+				[Laguna1995], [Umberto2017], [Welch2017], [Basak2014]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#module-level-function-frequency-domain
 
 	Parameters
 	----------
-	signal : array_like
-		ECG signal.
-	nn : array_like
-		NN intervals in (ms) or (s).
+	nni : array_like
+		NN intervals in (ms) or (s)
 	rpeaks : array_like
-		R-peak times in (ms) or (s).
+		R-peak times in (ms) or (s)
+	signal : array_like
+		ECG signal
 	sampling_rate : int, float
-		Sampling rate used for the ECG acquisition in (Hz).
+		Sampling rate used for the ECG acquisition in (Hz)
 	fbands : dict, optional
-		Dictionary with frequency bands (tuples or list).
+		Dictionary with frequency bands (tuples or list)
 		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
 		Keys:	'ulf'	Ultra low frequency		(default: none) optional
 				'vlf'	Very low frequency		(default: (0.003Hz, 0.04Hz))
 				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
 				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
 	show : bool, optional
-		If true, show PSD plots.
+		If True, show PSD plots
 	show_param : bool, optional
-		If true, list all computed PSD parameters next to the plot.
-	kwargs_welch : dict, optional
-		Dictionary containing the kwargs for the 'welch_psd' function (see docstring of the 'welch_psd' for more
-		information)
-	kwargs_lomb : dict, optional
-		Dictionary containing the kwargs for the 'lomb_psd' function (see docstring of the 'lomb_psd' for more
-		information)
+		If True, list all computed parameters next to the plots
+	legend : bool, optional
+		If True, adds legends to the PSD plots
 
+	kwargs_welch : dict, optional
+		Dictionary containing the kwargs for the 'welch_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the FFT result (default: 2**12)
+			..	detrend : bool optional
+					If True, detrend NNI series by subtracting the mean NNI (default: True)
+			..	window : scipy window function, optional
+					Window function used for PSD estimation (default: 'hamming')
+
+	kwargs_lomb : dict, optional
+		Dictionary containing the kwargs for the 'lomb_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the FFT result (default: 2**8)
+			..	ma_size : int, optional
+					Window size of the optional moving average filter (default: None)
+
+	kwargs_ar : dict, optional
+		Dictionary containing the kwargs for the 'ar_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the entire AR result (default: 2**12)
+			..	order : int, optional
+					Autoregressive model order (default: 16)
 	Returns
 	-------
 	results : biosppy.utils.ReturnTuple object
@@ -722,23 +894,26 @@ def frequency_domain(signal=None,
 
 	Returned Parameters & Keys
 	--------------------------
-	(below, X = one of the methods 'fft' or 'lomb')
-	..	Peak frequencies of all frequency bands (key: 'X_peak')
-	..	Absolute frequencies of all frequency bands (key: 'X_abs')
-	..	Relative frequencies of all frequency bands (key: 'X_rel')
-	..	Logarithmic frequencies of all frequency bands (key: 'X_log')
-	..	Normalized frequencies of all frequency bands (key: 'X_norms')
-	..	LF/HF ratio (key: 'X_ratio')
-	..	Total power over all frequency bands (key: 'X_total')
+	(below, X = one of the methods 'fft', 'ar' or 'lomb')
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'X_peak')
+	..	Absolute powers of all frequency bands in [ms^2] (key: 'X_abs')
+	..	Relative powers of all frequency bands in [%] (key: 'X_rel')
+	..	Logarithmic powers of all frequency bands in [-] (key: 'X_log')
+	..	Normalized powers of all frequency bands in [-] (key: 'X_norms')
+	..	LF/HF ratio in [-] (key: 'X_ratio')
+	..	Total power over all frequency bands in [ms^2] (key: 'X_total')
 	..	Number of PSD samples (key: 'X_nfft')
 	..	FFT-specific: Interpolation method used for NNI interpolation (key: 'fft_interpolation')
 	..	FFT-specific: Resampling frequency used for NNI interpolation (key: 'fft_resampling_frequency')
 	..	FFT-specific: Window function used for PSD estimation of the Welch's method (key: 'fft_window)
 	..	Lomb-specific: Moving average window size (key: 'lomb_ma')
+	..  AR-specific: Model order (key: 'ar_order')
+	..	AR-specific: Interpolation method used for NNI interpolation (key: 'ar_interpolation')
+	..	AR-specific: Resampling frequency used for NNI interpolation (key: 'ar_resampling_frequency')
 
 	Notes
 	-----
-	..	The returned BioSppy ReturnTuple object contains all frequency band parameters in parameter specific tuples
+	..	The returned BioSPPy ReturnTuple object contains all frequency band parameters in parameter specific tuples
 		of length 4 when using the ULF frequency band or of length 3 when NOT using the ULF frequency band.
 		The structures of those tuples are shown in this example below (fft_results = ReturnTuple object returned by
 		this function):
@@ -760,11 +935,11 @@ def frequency_domain(signal=None,
 	# Check input
 	if signal is not None:
 		rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
-	elif nn is None and rpeaks is None:
+	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Check for kwargs for the 'welch_psd' function and compute the PSD
 	if kwargs_welch is not None:
@@ -777,10 +952,8 @@ def frequency_domain(signal=None,
 
 		# Unwrwap kwargs dictionary for Welch specific parameters
 		detrend = kwargs_welch['detrend'] if 'detrend' in kwargs_welch.keys() else True
-		show_param = kwargs_welch['show_param'] if 'show_param' in kwargs_welch.keys() else show_param
-		legend = kwargs_welch['legend'] if 'legend' in kwargs_welch.keys() else True
 		window = kwargs_welch['window'] if 'window' in kwargs_welch.keys() else 'hamming'
-		nfft = kwargs_welch['nfft'] if 'nfft' in kwargs_welch.keys() else 'nfft'
+		nfft = kwargs_welch['nfft'] if 'nfft' in kwargs_welch.keys() else 2**12
 
 		unsupported_kwargs = []
 		for args in kwargs_welch.keys():
@@ -797,7 +970,7 @@ def frequency_domain(signal=None,
 								  legend=legend, nfft=nfft, window=window)
 	else:
 		# Compute Welch's PSD with default values
-		welch_results = welch_psd(nn, show=False, fbands=fbands)
+		welch_results = welch_psd(nn, show=False, fbands=fbands, legend=legend, show_param=show_param)
 
 	# Check for kwargs for the 'welch_psd' function and compute the PSD
 	if kwargs_lomb is not None:
@@ -809,9 +982,6 @@ def frequency_domain(signal=None,
 		available_kwargs = ['fbands', 'ma_size', 'show', 'show_param', 'legend', 'nfft', '']
 
 		# Unwrwap kwargs dictionary
-		detrend = kwargs_lomb['ma_size'] if 'ma_size' in kwargs_lomb.keys() else None
-		show_param = kwargs_lomb['show_param'] if 'show_param' in kwargs_lomb.keys() else show_param
-		legend = kwargs_lomb['legend'] if 'legend' in kwargs_lomb.keys() else True
 		nfft = kwargs_lomb['nfft'] if 'nfft' in kwargs_lomb.keys() else 2**8
 		ma_size = kwargs_lomb['ma_size'] if 'ma_size' in kwargs_lomb.keys() else None
 
@@ -830,60 +1000,87 @@ def frequency_domain(signal=None,
 								legend=legend, nfft=nfft)
 	else:
 		# Compute Welch's PSD with default values
-		lomb_results = lomb_psd(nn, show=False, fbands=fbands)
+		lomb_results = lomb_psd(nn, show=False, fbands=fbands, legend=legend, show_param=show_param)
 
-	# If plots should be shown
+	# Check for kwargs for the 'ar_psd' function and compute the PSD
+	if kwargs_ar is not None:
+		if type(kwargs_ar) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_ar' must be a dictionary containing "
+							"parameters (keys) and values for the 'ar_psd' function." % type(kwargs_ar))
+
+		# Supported kwargs
+		available_kwargs = ['fbands', 'show', 'order', 'show_param', 'legend', 'window', 'nfft']
+
+		# Unwrwap kwargs dictionary for Welch specific parameters
+		nfft = kwargs_ar['nfft'] if 'nfft' in kwargs_ar.keys() else 2**12
+		order = kwargs_ar['order'] if 'order' in kwargs_ar.keys() else 16
+
+		unsupported_kwargs = []
+		for args in kwargs_ar.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'welch_psd': %s. These kwargs have no effect." %
+						  unsupported_kwargs, stacklevel=2)
+
+		# Compute Autoregressive PSD with custom parameter settings
+		ar_results = ar_psd(nn, fbands=fbands, order=order, show=False, show_param=show_param, legend=legend, nfft=nfft)
+	else:
+		# Compute Autoregressive PSD with default values
+		ar_results = ar_psd(nn, show=False, fbands=fbands, legend=legend, show_param=show_param)
+
+	# If plots should be shown (show all plots at once)
 	if show:
 		plt.show()
 
 	# Output
-	return tools.join_tuples(welch_results, lomb_results)
+	return tools.join_tuples(welch_results, lomb_results, ar_results)
 
 
 if __name__ == "__main__":
 	"""
 	Example Script - HRV Frequency Domain Analysis
+	
 	"""
 	# Load sample NNI series
-	nni = np.load('./samples/series_1.npy')
+	nni = np.load('./files/SampleNNISeries.npy')
 
-	lomb_psd(nn=nni, show=False)
-	fbands = {'ulf': (0.0, 0.1), 'vlf': (0.1, 0.2), 'lf': (0.2, 0.3), 'hf': (0.3, 0.4)}
-	lomb_psd(nn=nni, show=False, fbands=fbands)
+	# Compute all frequency domain parameters and all methods
+	results = frequency_domain(nni=nni)
+
+	# Print results
+	print("===========================")
+	print("FREQUENCY DOMAIN PARAMETERS")
+	print("===========================")
+
+	print("Peak Frequencies:")
+	print("VLF:		%f [Hz]" % results['fft_peak'][0])
+	print("LF :		%f [Hz]" % results['fft_peak'][1])
+	print("HLF:		%f [Hz]" % results['fft_peak'][2])
+
+	print("Absolute Powers:")
+	print("VLF:		%f [ms^2]" % results['fft_abs'][0])
+	print("LF :		%f [ms^2]" % results['fft_abs'][1])
+	print("HLF:		%f [ms^2]" % results['fft_abs'][2])
+
+	print("Relative Powers:")
+	print("VLF:		%f [%%]" % results['fft_rel'][0])
+	print("LF :		%f [%%]" % results['fft_rel'][1])
+	print("HLF:		%f [%%]" % results['fft_rel'][2])
+
+	print("Logarithmic Powers:")
+	print("VLF:		%f [-]" % results['fft_log'][0])
+	print("LF :		%f [-]" % results['fft_log'][1])
+	print("HLF:		%f [-]" % results['fft_log'][2])
+	print("Total Power	:	%f [ms^2]" % results['fft_total'])
+	print("LF/HF ratio	: 	%f [-]" % results['fft_ratio'])
+
+	psd_plot = results['fft_plot']
 	plt.show()
-	# # Compute all frequency domain parameters and all methods
-	# results = frequency_domain(nn=nni)
-	#
-	# # Print results
-	# print("===========================")
-	# print("FREQUENCY DOMAIN PARAMETERS")
-	# print("===========================")
-	#
-	# print("Peak Frequencies:")
-	# print("VLF:		%f (Hz)" % results['fft_peak'][0])
-	# print("LF :		%f (Hz)" % results['fft_peak'][1])
-	# print("HLF:		%f (Hz)" % results['fft_peak'][2])
-	#
-	# print("Absolute Powers:")
-	# print("VLF:		%f (ms^2/Hz)" % results['fft_abs'][0])
-	# print("LF :		%f (ms^2/Hz)" % results['fft_abs'][1])
-	# print("HLF:		%f (ms^2/Hz)" % results['fft_abs'][2])
-	#
-	# print("Relative Powers:")
-	# print("VLF:		%f (%%)" % results['fft_rel'][0])
-	# print("LF :		%f (%%)" % results['fft_rel'][1])
-	# print("HLF:		%f (%%)" % results['fft_rel'][2])
-	#
-	# print("Logarithmic Powers:")
-	# print("VLF:		%f (ms^2/Hz)" % results['fft_log'][0])
-	# print("LF :		%f (ms^2/Hz)" % results['fft_log'][1])
-	# print("HLF:		%f (ms^2/Hz)" % results['fft_log'][2])
-	# print("Total Power	:	%f (ms^2/Hz)" % results['fft_total'])
-	# print("LF/HF ratio	: 	%f" % results['fft_ratio'])
-	#
-	# psd_plot = results['fft_plot']
-	# plt.show()
-	#
-	# # Alternatively compute the methods individually
-	# lomb_psd(nni)
-	# welch_psd(nni)
+
+	# Alternatively compute the methods individually
+	welch_psd(nni)
+	lomb_psd(nni)
+	ar_psd(nni)

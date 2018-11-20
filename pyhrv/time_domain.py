@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Heart Rate Variability Toolbox - Time Domain Module
----------------------------------------------------
+pyHRV - Time Domain Module
+--------------------------
 
 This module provides functions to compute HRV time domain  parameters using R-peak locations
-and/or NN interval series extracted from an ECG lead I-like signl (e.g. ECG, SpO2 or BVP sensor data).
+and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, SpO2 or BVP sensor data).
 
 Notes
 -----
@@ -12,6 +12,9 @@ Notes
 	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
 ..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
 	https://github.com/PIA-Group/BioSPPy
+..	You find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html
+.. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
@@ -24,7 +27,7 @@ Thesis Supervisors
 
 Last Update
 -----------
-12-09-2018
+19-11-2018
 
 :copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
@@ -46,127 +49,118 @@ from biosppy import utils
 # Local imports/HRV toolbox imports
 import pyhrv.tools as tools
 
-# Suppress SciPy warnings
-# warnings.filterwarnings('error', category=FutureWarning)
 
-
-def nn_parameters(nn=None, rpeaks=None):
+def nni_parameters(nni=None, rpeaks=None):
 	"""Computes basic statistical parameters from a series of NN intervals (# of intervals, mean, min, max).
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
-	nn_counter : int
+	nni_counter : int
 		Number of NN intervals.
-	nn_mean : float
-		Mean NN interval (ms).
-	nn_min : float
-		Minimum NN interval (ms).
-	nn_max : float
-		Maximum NN interval (ms).
+	nni_mean : float
+		Mean NN interval [ms].
+	nni_min : float
+		Minimum NN interval [ms].
+	nni_max : float
+		Maximum NN interval [ms].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# output
 	args = (int(nn.size), nn.mean(), nn.min(), nn.max())
-	names = ('nn_counter', 'nn_mean', 'nn_min', 'nn_max')
+	names = ('nni_counter', 'nni_mean', 'nni_min', 'nni_max')
 	return utils.ReturnTuple(args, names)
 
 
-def nn_differences_parameters(nn=None, rpeaks=None):
-	"""Computes basic statistical parameters from a series of successive NN interval differences (mean, min, max,
-	standard deviation).
+def nni_differences_parameters(nni=None, rpeaks=None):
+	"""Computes basic statistical parameters from a series of successive NN interval differences (mean, min, max, standard deviation).
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
-	nn_diff_mean: float
-		Mean NN interval difference (ms).
-	nn_diff_min : float
-		Minimum NN interval difference (ms).
-	nn_diff_max : float
-		Maximum NN interval difference (ms).
-	nn_diff_std : float
-		Standard deviation of the NN interval differences series (ms).
+	nni_diff_mean: float
+		Mean NN interval difference [ms].
+	nni_diff_min : float
+		Minimum NN interval difference [ms].
+	nni_diff_max : float
+		Maximum NN interval difference [ms].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Get NN interval differences
-	nnd = tools.nn_diff(nn)
+	nnd = tools.nni_diff(nn)
 
 	# output
-	args = (float(nnd.mean()), int(nnd.min()), int(nnd.max()), float(nnd.std(ddof=1)))
-	names = ('nn_diff_mean', 'nn_diff_min', 'nn_diff_max', 'nn_diff_std')
+	args = (float(nnd.mean()), int(nnd.min()), int(nnd.max()), )
+	names = ('nni_diff_mean', 'nni_diff_min', 'nni_diff_max', )
 	return utils.ReturnTuple(args, names)
 
 
-def hr_parameters(nn=None, rpeaks=None):
+def hr_parameters(nni=None, rpeaks=None):
 	"""Computes basic statistical parameters from a series of Heart Rate (HR) data (mean, min, max, standard deviation).
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
-	bpm_mean : float
-		Mean heart rate (bpm).
-	bpm_min : float
-		Minimum heart rate value (bpm).
-	bpm_max : float
-		Maximum heart rate value (bpm).
-	bpm_std : float
-		Standard deviation of the HR series (bpm).
+	hr_mean : float
+		Mean heart rate [bpm].
+	hr_min : float
+		Minimum heart rate value [bpm].
+	hr_max : float
+		Maximum heart rate value [bpm].
+	hr_std : float
+		Standard deviation of the HR series [bpm].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Get heart rate series
 	hr = tools.heart_rate(nn)
@@ -177,33 +171,35 @@ def hr_parameters(nn=None, rpeaks=None):
 	return utils.ReturnTuple(args, names)
 
 
-def sdnn(nn=None, rpeaks=None):
-	"""Computation of the standard deviation of a NN interval series.
+def sdnn(nni=None, rpeaks=None):
+	"""Computation of the standard deviation of an NN interval series.
+
+	References: [Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#sdnn-sdnn
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	sdnn : float
-		Standard deviation of NN intervals (ms).
+		Standard deviation of NN intervals [ms].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Computation of SDNN & Output
 	args = [tools.std(nn)]
@@ -211,35 +207,37 @@ def sdnn(nn=None, rpeaks=None):
 	return utils.ReturnTuple(args, names)
 
 
-def sdnn_index(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
+def sdnn_index(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
 	"""Computes the mean of the SDNN values of each segment (default: 300s segments).
+
+	References: [Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#sdnn-index-sdnn-index
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	full : bool, optional
 		If True, returns last segment, even if the cumulative sum of NNI does not reach the 300s (default: False).
 	overlap : bool, optional
 		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
-		Maximum duration duration per segment in (s) (default: 300s).
+		Maximum duration duration per segment in [s] (default: 300s).
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	sdnn_index : float
-		Mean of the standard deviations of all NN intervals within 5 minutes intervals (ms)
+		Mean of the standard deviations of all NN intervals within 5 minutes intervals [ms]
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 	..	In some cases, the NN interval may start in a segment (or time interval) N and end only in the successive
 		segment N+1. In this case, use the 'overlap' parameter to select if the first element of the segment should be
 		dropped or not:
@@ -249,7 +247,7 @@ def sdnn_index(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
 			will always be < specified duration.
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
 	segments, seg = tools.segmentation(nn,  full=full, overlap=overlap, duration=duration)
@@ -268,34 +266,36 @@ def sdnn_index(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
 	return utils.ReturnTuple(args, names)
 
 
-def sdann(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
+def sdann(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
 	"""Computes the standard deviation of the mean NNI value of each segment (default: 300s segments).
 
+	References: [Electrophysiology1996], [Lohninger2017]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#sdann-sdann
+
 	Parameters
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	full : bool, optional
 		If True, returns last segment, even if the cumulative sum of NNI does not reach the 300s (default: False).
 	overlap : bool, optional
 		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
-		Maximum duration duration per segment in (s) (default: 300s).
+		Maximum duration duration per segment in [s] (default: 300s).
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	sdnn_index : float
-		Standard deviations of the means of all NN intervals within 5 minutes intervals in (ms).
+		Standard deviations of the means of all NN intervals within 5 minutes intervals in [ms].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
 	..	In some cases, the NN interval may start in a segment (or time interval) N and end only in the successive
 		segment N+1. In this case, use the 'overlap' parameter to select if the first element of the segment should be
 		dropped or not:
@@ -305,7 +305,7 @@ def sdann(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
 			will always be < specified duration.
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
 	segments, seg = tools.segmentation(nn, full=full, overlap=overlap, duration=duration)
@@ -324,74 +324,79 @@ def sdann(nn=None, rpeaks=None, full=False, overlap=False, duration=300):
 	return utils.ReturnTuple(args, names)
 
 
-def rmssd(nn=None, rpeaks=None):
+def rmssd(nni=None, rpeaks=None):
 	"""Computes root mean of squared differences of successive NN Intervals.
+
+	References: [Electrophysiology1996], [Lohninger2017]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#rmssd-rmssd
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	rmssd : float
-		RMSSD value in (ms).
+		RMSSD value in [ms].
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Compute RMSSD
-	nnd = tools.nn_diff(nn)
-	rmssd = np.sum(x**2 for x in nnd)
-	rmssd = np.sqrt(1. / nnd.size * rmssd)
+	nnd = tools.nni_diff(nn)
+	rmssd_ = np.sum(x**2 for x in nnd)
+	rmssd_ = np.sqrt(1. / nnd.size * rmssd_)
 
 	# Output
-	args = [rmssd]
-	names = ['rmssd']
+	args = (rmssd_, )
+	names = ('rmssd', )
 	return utils.ReturnTuple(args, names)
 
 
-def sdsd(nn=None, rpeaks=None):
+def sdsd(nni=None, rpeaks=None):
 	"""Computation of the standard deviation of differences of successive NN intervals.
+
+	References: [Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#sdsd-sdsd
+
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	sdsd : float
-		Standard deviation of successive differences of NN intervals (ms)
+		Standard deviation of successive differences of NN intervals [ms]
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Compute NN differences
-	nnd = tools.nn_diff(nn)
+	nnd = tools.nni_diff(nn)
 
 	# Computation of SDNN
 	sdsd_ = tools.std(nnd)
@@ -402,43 +407,53 @@ def sdsd(nn=None, rpeaks=None):
 	return utils.ReturnTuple(args, names)
 
 
-def nnXX(nn=None, rpeaks=None, threshold=None):
+def nnXX(nni=None, rpeaks=None, threshold=None):
 	"""Find number of NN interval differences greater than a specified threshold and ratio between number of intervals
 	> threshold and total number of NN interval differences.
 
+	References:	[Electrophysiology1996], [Ewing1984]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#nnxx-nnxx
+
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	threshold : int
-		Threshold for nnXX values in (ms).
+		Threshold for nnXX values in [ms].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	nnXX: int
-		Number of NN interval differences greater than the specified threshold (-).
+		Number of NN interval differences greater than the specified threshold [-].
 	pnnXX : float
-		Ratio between nnXX and total number of NN interval differences (-).
+		Ratio between nnXX and total number of NN interval differences [-].
 
 	Notes
 	-----
-	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
-		done with dictionaries (see list of parameters and keys above)
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
+	..	The ``XX`` in the ``nnXX`` and the ``pnnXX`` keys are substituted by the specified threshold (``threshold``).
+
+		For instance, ``nnXX(nni, threshold=30)`` returns the custom ``nn30`` and ``pnn30`` parameters. Using a
+		``threshold=30`` as ``nnXX(nni, threshold=35`` returns the custom ``nn35`` and ``pnn35`` parameters.
 
 	"""
-	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	# Check input
+	nn = tools.check_input(nni, rpeaks)
+
+	# Check threshold
+	if threshold is None:
+		raise TypeError("No threshold specified. Please specify a [ms] threshold.")
+	if threshold <= 0:
+		raise ValueError("Invalid value for 'threshold'. Value must not be <= 0.")
 
 	# Count NN20
-	nnd = tools.nn_diff(nn)
+	nnd = tools.nni_diff(nn)
 	nnxx = sum(i > threshold for i in nnd)
 	pnnxx = nnxx / len(nnd) * 100
 
@@ -448,18 +463,19 @@ def nnXX(nn=None, rpeaks=None, threshold=None):
 	return utils.ReturnTuple(args, names)
 
 
-def nn50(nn=None, rpeaks=None):
+def nn50(nni=None, rpeaks=None):
 	"""Find number of NN interval differences which are greater 50ms (NN50) and ratio between NN50 and total amount of
 	NN intervals.
 
-	References: [Hutchinson2003] [Mietus2002]
+	References: [Electrophysiology1996], [Ewing1984]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#nn50-nn50
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -473,37 +489,31 @@ def nn50(nn=None, rpeaks=None):
 	Raises
 	------
 	TypeError
-		If no input data for 'rpeaks' or 'nn' provided.
+		If no input data for 'rpeaks' or 'nni' provided.
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
 
 	"""
-	# Check input values
-	if nn is not None:
-		return nnXX(nn, threshold=50)
-	elif r_peaks is not None:
-		return nnXX(rpeaks=rpeaks, threshold=50)
-	else:
-		raise TypeError("No data for r_peaks or nn_intervals provided. Please specify input data.")
+	return nnXX(nni=nni, rpeaks=rpeaks, threshold=50)
 
 
-def nn20(nn=None, rpeaks=None):
+def nn20(nni=None, rpeaks=None):
 	"""Find number of NN interval differences which are greater 20ms (NN20) and ratio between NN20 and total amount of
 	NN intervals.
 
-	References: [Hutchinson2003] [Mietus2002]
+	References: [Electrophysiology1996], [Hutchinson2003], [Mietus2002]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#nn20-nn20
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 
 	Returns
 	-------
@@ -519,37 +529,32 @@ def nn20(nn=None, rpeaks=None):
 
 	Notes
 	-----
-	..	Provide at least one type of input data.
-	.. 	If both 'nn' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nn' data will be computed
-		from the 'rpeaks'.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
-
+	..	Only one type of input data is required
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
 	"""
-	# Check input values
-	if nn is not None:
-		return nnXX(nn, threshold=20)
-	elif r_peaks is not None:
-		return nnXX(rpeaks=rpeaks, threshold=20)
-	else:
-		raise TypeError("No data for r_peaks or nn_intervals provided. Please specify input data.")
+	return nnXX(nni=nni, rpeaks=rpeaks, threshold=20)
 
 
-def tinn(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
+def tinn(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
 	"""Computes TINN based on the NN intervals histogram.
+
+	References:	[Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#tinn-tinn
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	binsize : int, float
 		Bin size of the histogram bins (default: 7.8125ms).
 	plot : bool
 		If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot).
 	show : bool, optional
 		If true, shows histogram (default: True).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
@@ -570,19 +575,21 @@ def tinn(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None
 	Raises
 	------
 	TypeError (via 'check_input()')
-		If no input data for 'rpeaks' or 'nn' provided.
+		If no input data for 'rpeaks' or 'nni' provided.
 
 	Notes
 	-----
 	..	Default bin size set to recommended bin size of 1/128 (with 128Hz being the minimum recommended sampling
-		frequency) as recommended by the HRV guidelines REFERENCE.
+		frequency) as recommended by the HRV guidelines.
 	..	'show' has only effect if 'plot' is also True.
 	.. 	'legend' has only effect if 'plot' is also True.
 	..	'figsize' has only effect if 'plot' is also True.
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nni' and the 'nni' data will be computed
+		from the 'rpeaks'.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Get Histogram data (with or without histogram plot figure)
 	if plot:
@@ -680,22 +687,25 @@ def tinn(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None
 	return utils.ReturnTuple(args, names)
 
 
-def triangular_index(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
+def triangular_index(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
 	"""Computes triangular index based on the NN intervals histogram.
+
+	References:	[Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#triangular-index-triangular-index
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	binsize : int, float
 		Bin size of the histogram bins (default: 7.8125ms).
 	plot : bool
 		If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot).
 	show : bool, optional
 		If true, shows histogram (default: True).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
@@ -712,19 +722,19 @@ def triangular_index(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, 
 	Raises
 	------
 	TypeError
-		If no input data for 'rpeaks' or 'nn' provided.
+		If no input data for 'rpeaks' or 'nni' provided.
 
 	Notes
 	-----
 	..	Default bin size set to recommended bin size of 1/128 (with 128Hz being the minimum recommended sampling
-		frequency) as recommended by the HRV guidelines REFERENCE.
+		frequency) as recommended by the HRV guidelines.
 	..	'show' has only effect if 'plot' is also True.
 	.. 	'legend' has only effect if 'plot' is also True.
 	..	'figsize' has only effect if 'plot' is also True.
 
 	"""
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# If histogram should be plotted
 	if plot:
@@ -749,7 +759,7 @@ def triangular_index(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, 
 
 		# Show plot
 		if show:
-			fig.show()
+			plt.show()
 
 		# Output
 		args = (fig, tri_index,)
@@ -774,11 +784,11 @@ def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
+	nn : array
+		NN intervals in [ms] or [s].
 	plot : bool
 		If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	binsize : int, float
 		Bin size of the histogram bins.
@@ -789,9 +799,9 @@ def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
 	-------
 	fig : matplotlib figure object
 		Figure of the histogram plot (only if input parameter 'plot' is True).
-	vals : array_like
+	vals : array
 		Histogram distribution values.
-	bins : array_like
+	bins : array
 		Histogram bins.
 
 	Raises
@@ -850,23 +860,27 @@ def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
 		return vals, bins[:-1]
 
 
-def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
+def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
 	"""Creates NNI histogram with specified binsize (default: 7.815ms) and computes geometrical parameters (triangular
 	index, TINN, N, and M).
 
+	References:	[Electrophysiology1996]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html#geometrical-parameters-function-geometrical-parameters
+
+
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	binsize : int, float
 		Bin size of the histogram bins (default: 7.8125ms).
 	plot : bool
 		If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot).
 	show : bool, optional
 		If true, shows histogram (default: True).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
@@ -875,7 +889,7 @@ def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=
 	------------------------------------------
 	[key : format]
 		Description.
-	nn_histogram : matplotlib figure object
+	nni_histogram : matplotlib figure object
 		Histogram figure (only if input parameter 'plot' is True).
 	tri_index : float
 		Triangular index.
@@ -889,12 +903,12 @@ def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=
 	Raises
 	------
 	TypeError (via 'check_input()')
-		If no input data for 'rpeaks' or 'nn' provided.
+		If no input data for 'rpeaks' or 'nni' provided.
 
 	Notes
 	-----
 	..	Default bin size set to recommended bin size of 1/128 (with 128Hz being the minimum recommended sampling
-		frequency) as recommended by the HRV guidelines REFERENCE.
+		frequency) as recommended by the HRV guidelines.
 	..	'show' has only effect if 'plot' is also True.
 	.. 	'legend' has only effect if 'plot' is also True.
 	..	'figsize' has only effect if 'plot' is also True.
@@ -902,7 +916,7 @@ def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=
 	"""
 
 	# Check input
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Get Histogram data & plot (optional)
 	if plot:
@@ -911,10 +925,10 @@ def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=
 		fig = None
 
 	# Get TINN values without plot figure
-	tinn_vals = tinn(nn=nn, rpeaks=rpeaks, binsize=binsize, show=False, legend=False, figsize=figsize, plot=False)
+	tinn_vals = tinn(nni=nn, rpeaks=rpeaks, binsize=binsize, show=False, legend=False, figsize=figsize, plot=False)
 
 	# Get triangular index without plot figure
-	trindex = triangular_index(nn=nn, rpeaks=rpeaks, binsize=binsize, show=False, legend=False, plot=False)['tri_index']
+	trindex = triangular_index(nni=nn, rpeaks=rpeaks, binsize=binsize, show=False, legend=False, plot=False)['tri_index']
 
 	# Histogram plot & settings
 	if plot:
@@ -941,51 +955,40 @@ def geometrical_parameters(nn=None, rpeaks=None, binsize=7.815, plot=True, show=
 
 	# Output
 	args = (fig, tinn_vals['tinn_n'], tinn_vals['tinn_m'], tinn_vals['tinn'], trindex)
-	names = ('nn_histogram', 'tinn_n', 'tinn_m', 'tinn', 'tri_index')
+	names = ('nni_histogram', 'tinn_n', 'tinn_m', 'tinn', 'tri_index')
 	return utils.ReturnTuple(args, names)
 
 
-def time_domain(signal=None,
-				nn=None,
+def time_domain(nni=None,
 				rpeaks=None,
+				signal=None,
 				sampling_rate=1000.,
 				threshold=None,
 				plot=True,
 				show=False,
-				binsize=7.8125,
-				**kwargs):
-	"""Computes all time domain parameters of the HRV time domain module
-	and returns them in a ReturnTuple object.
+				binsize=7.8125):
+	"""Computes all time domain parameters of the HRV time domain module and returns them in a ReturnTuple object.
 
 	Parameters
 	----------
-	ecg_signal : array_like
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
+	signal : array
 		ECG signal.
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
-	sampling_rate : int, float
-		Sampling rate used for the ECG acquisition in (Hz).
-	threshold : int
-		Custom threshold in (ms) for the NNXX and pNNXX parameters.
+	sampling_rate : int, float, optional
+		Sampling rate used for the ECG acquisition in [Hz] (default: 1000.).
+	threshold : int, optional
+		Custom threshold in [ms] for the NNXX and pNNXX parameters (default: None).
 	plot : bool
 		If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot) - (geometrical params).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size for the histogram (width, height) (default: (6, 6)) - (geometrical params).
 	binsize : int, float
-		Bin size of the histogram bins - (geometrical params).
+		Bin size in [ms] of the histogram bins - (geometrical params).
 	legend : bool
 		If True, highlights D(X) marker to the plot to be added to the legends (default=True) - (geometrical params).
-
-	**kwargs
-	--------
-	full : bool, optional
-		If True, returns last segment, even if the cumulative sum of NNI does not reach the 300s (default: False).
-	overlap : bool, optional
-		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
-	duration : int, optional
-		Maximum duration duration per segment in (s) (default: 300s).
 
 	Returns
 	-------
@@ -994,37 +997,32 @@ def time_domain(signal=None,
 
 	Returned Parameters
 	-------------------
-	..	NNI parameters (# of NNI, mean, min, max) (keys: 'nn_counter', 'nn_mean', 'nn_min', 'nn_max')
-	..	NNI differences (mean, min, max, standard deviation) (keys: 'nn_diff_mean', 'nn_diff_min', 'nn_diff_max',
-		'nn_diff_std')
-	..	HR parameters (mean, min, max, standard deviation) (keys: 'hr_mean', 'hr_min', 'hr_max', 'hr_std')
-	..	SDNN (key: 'sdnn')
-	..	SDNN index (key: 'sdnn_index')
-	..	SDANN (key: 'sdann')
-	..	RMSSD (key: 'rmssd')
-	..	SDSD (key: 'sdsd')
-	..	nn50 & pNN50 (keys: 'nn50', 'pnn50')
-	..	nn20 & pNN20 (keys: 'nn20', 'pnn20')
+	..	NNI parameters (# of NNI, mean, min, max) in [count] and [ms] (keys: 'nni_counter', 'nni_mean', 'nni_min',
+		'nni_max')
+	..	NNI differences (mean, min, max, standard deviation) in [ms] (keys: 'nni_diff_mean', 'nni_diff_min',
+		'nn_diff_max')
+	..	HR parameters (mean, min, max, standard deviation) in [BPM] (keys: 'hr_mean', 'hr_min', 'hr_max', 'hr_std')
+	..	SDNN in [ms] (key: 'sdnn')
+	..	SDNN index in [ms] (key: 'sdnn_index')
+	..	SDANN in [ms] (key: 'sdann')
+	..	RMSSD in [ms] (key: 'rmssd')
+	..	SDSD in [ms] (key: 'sdsd')
+	..	nn50 in [count] & pNN50 in [%] (keys: 'nn50', 'pnn50')
+	..	nn20 in [count] & pNN20 in [%] (keys: 'nn20', 'pnn20')
 	..	nnXX (XX = custom threshold) if specified (keys: 'nnXX', 'pnnXX')
-	..	Triangular Index (key: 'tri_index')
-	.. 	TINN (key: 'tinn', 'tinn_n', 'tinn_m')
-	..	NNI histogram (key: 'nn_histogram')
+	..	Triangular Index [-] (key: 'tri_index')
+	.. 	TINN in [ms] (key: 'tinn', 'tinn_n', 'tinn_m')
+	..	NNI histogram (key: 'nni_histogram')
 
 	Notes
 	-----
 	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
-		done with dictionaries (see list of parameters and keys above)
-	..	Provide at least one type of input data (ecg_signal, nn, or rpeaks).
-	..	Input data will be prioritized in the following order: 1. ecg_signal, 2. nn, 3. rpeaks.
-	..	SDNN Index and SDANN: In some cases, the NN interval may start in a segment (or time interval) N and end only
-		in the successive segment N+1. In this case, use the 'overlap' parameter to select if the first element of the
-		segment should be dropped or not:
-		..	If True: overlap allowed, returns all NNI but the cumulative sum of the NNI in a segment can be greater
-			than the specified duration.
-		..	If False: no overlap allowed, first NNI will be dropped and the cumulative sum of the NNI in a segment
-			will always be < specified duration.
+		done with dictionaries (see list of parameters and keys above).
+	..	Only one type of input data is required (signal, nni, or rpeaks).
+	..	Input data will be prioritized in the following order: 1. signal, 2. nni, 3. rpeaks.
+	..	SDNN Index and SDANN: In some cases, the NN interval may start in a segment (or
 	..	Default bin size set to recommended bin size of 1/128 (with 128Hz being the minimum recommended sampling
-		frequency) as recommended by the HRV guidelines REFERENCE.
+		frequency) as recommended by the HRV guidelines.
 	..	'show' has only effect if 'plot' is also True.
 	.. 	'legend' has only effect if 'plot' is also True.
 	..	'figsize' has only effect if 'plot' is also True.
@@ -1032,25 +1030,25 @@ def time_domain(signal=None,
 	Raises
 	------
 	TypeError
-		If no input data for 'nn', 'rpeaks', and 'signal' provided.
+		If no input data for 'nni', 'rpeaks', and 'signal' provided.
 
 	"""
 	# Check input
 	if signal is not None:
 		rpeaks = ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
-	elif nn is None and rpeaks is None:
+	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	# Call time domain functions & wrap results in a single biosspy.utils.ReturnTuple object
-	results = nn_parameters(nn)
+	results = nni_parameters(nn)
 	results = tools.join_tuples(results, hr_parameters(nn))
-	results = tools.join_tuples(results, nn_differences_parameters(nn))
+	results = tools.join_tuples(results, nni_differences_parameters(nn))
 	results = tools.join_tuples(results, sdnn(nn))
-	results = tools.join_tuples(results, sdnn_index(nn, **kwargs))
-	results = tools.join_tuples(results, sdann(nn, **kwargs))
+	results = tools.join_tuples(results, sdnn_index(nn))
+	results = tools.join_tuples(results, sdann(nn))
 	results = tools.join_tuples(results, rmssd(nn))
 	results = tools.join_tuples(results, sdsd(nn))
 	results = tools.join_tuples(results, nn50(nn))
@@ -1070,16 +1068,8 @@ if __name__ == "__main__":
 	"""
 	Example Script - HRV Time Domain Analysis
 	"""
-	from opensignalsreader import OpenSignalsReader
-	from tools import nn_intervals
-
-	# Load OpenSignals (r)evolution ECG sample file
-	acq = OpenSignalsReader('./samples/SampleECG.txt')
-	signal = acq.signal('ECG')
-
-	# Filter data & get r-peak locations (ms)
-	signal, rpeaks = ecg(signal, sampling_rate=acq.sampling_rate, show=False)[1:3]
-	nni = nn_intervals(rpeaks)
+	# Load sample NNI series
+	nni = np.load('./files/SampleNNISeries.npy')
 
 	# Time Domain results
 	print("=========================")
@@ -1088,45 +1078,44 @@ if __name__ == "__main__":
 
 	hr_ = hr_parameters(nni)
 	print("HR Results")
-	print("> Mean HR:			%f (bpm)" % hr_['hr_mean'])
-	print("> Min HR:			%f (bpm)" % hr_['hr_min'])
-	print("> Max HR:			%f (bpm)" % hr_['hr_max'])
-	print("> Std. Dev. HR:		%f (bpm)" % hr_['hr_std'])
+	print("> Mean HR:			%f [bpm]" % hr_['hr_mean'])
+	print("> Min HR:			%f [bpm]" % hr_['hr_min'])
+	print("> Max HR:			%f [bpm]" % hr_['hr_max'])
+	print("> Std. Dev. HR:		%f [bpm]" % hr_['hr_std'])
 
-	nn_para_ = nn_parameters(nni)
+	nni_para_ = nni_parameters(nni)
 	print("NN Results")
-	print("> Mean NN:			%f (ms)" % nn_para_['nn_mean'])
-	print("> Min NN:			%f (ms)" % nn_para_['nn_min'])
-	print("> Max NN:			%f (ms)" % nn_para_['nn_max'])
+	print("> Mean NN:			%f [ms]" % nni_para_['nni_mean'])
+	print("> Min NN:			%f [ms]" % nni_para_['nni_min'])
+	print("> Max NN:			%f [ms]" % nni_para_['nni_max'])
 
-	nn_diff_ = nn_differences_parameters(nni)
+	nni_diff_ = nni_differences_parameters(nni)
 	print("∆NN Results")
-	print("> Mean ∆NN:			%f (ms)" % nn_diff_['nn_diff_mean'])
-	print("> Min ∆NN:			%f (ms)" % nn_diff_['nn_diff_min'])
-	print("> Max ∆NN:			%f (ms)" % nn_diff_['nn_diff_max'])
-	print("> Std. Dev. ∆NN:	%f (ms)" % nn_diff_['nn_diff_std'])
+	print("> Mean ∆NN:			%f [ms]" % nni_diff_['nni_diff_mean'])
+	print("> Min ∆NN:			%f [ms]" % nni_diff_['nni_diff_min'])
+	print("> Max ∆NN:			%f [ms]" % nni_diff_['nni_diff_max'])
 
-	print("SDNN:				%f (ms)" % sdnn(nni)['sdnn'])
-	print("SDNN Index:			%f (ms)" % sdnn_index(nni)['sdnn_index'])
-	print("SDANN:				%f (ms)" % sdann(nni)['sdann'])
-	print("RMMSD:				%f (ms)" % rmssd(nni)['rmssd'])
-	print("SDSD:				%f (ms)" % sdsd(nni)['sdsd'])
-	print("NN50:				%i (-)" % nn50(nni)['nn50'])
-	print("pNN50: 				%f (%%)" % nn50(nni)['pnn50'])
-	print("NN20:				%i (-)" % nn20(nni)['nn20'])
-	print("pNN20: 				%f (%%)" % nn20(nni)['pnn20'])
+	print("SDNN:				%f [ms]" % sdnn(nni)['sdnn'])
+	print("SDNN Index:			%f [ms]" % sdnn_index(nni)['sdnn_index'])
+	print("SDANN:				%f [ms]" % sdann(nni)['sdann'])
+	print("RMMSD:				%f [ms]" % rmssd(nni)['rmssd'])
+	print("SDSD:				%f [ms]" % sdsd(nni)['sdsd'])
+	print("NN50:				%i [-]" % nn50(nni)['nn50'])
+	print("pNN50: 				%f [%%]" % nn50(nni)['pnn50'])
+	print("NN20:				%i [-]" % nn20(nni)['nn20'])
+	print("pNN20: 				%f [%%]" % nn20(nni)['pnn20'])
 
 	# Compute geometrical parameters (without plot)
 	print("=== Geometrical Parameters")
 	geo = geometrical_parameters(nni, plot=True, show=True)
-	print("Triangular Index: 	%f (-)" % geo['tri_index'])
-	print("TINN:				%f (ms)" % geo['tinn'])
-	print("> N:				%f (ms)" % geo['tinn_n'])
-	print("> M:				%f (ms)" % geo['tinn_m'])
+	print("Triangular Index: 	%f [-]" % geo['tri_index'])
+	print("TINN:				%f [ms]" % geo['tinn'])
+	print("> N:				%f [ms]" % geo['tinn_n'])
+	print("> M:				%f [ms]" % geo['tinn_m'])
 
 	# Alternatively use the individual geometrical parameter functions
 	geo = triangular_index(nni, plot=False)
 	geo = tinn(nni, plot=False)
 
 	# Alternatively use the time_domain() function to compute all time domain parameters using a single function
-	time_domain(signal=signal)
+	time_domain(nni=nni)

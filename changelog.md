@@ -1,3 +1,14 @@
+Update Version 0.3
+------------------
+- added ReadTheDocs documentation
+- added new frequency domain method (Autoregressive)
+- fixed missing histogram figure visualization under macOS
+- fixed 'pyhrv.tools.check_input()' function where input parameter was changed during the computation
+- updated docstrings and added documentation
+- added references
+- improved hrv() function
+- improved nonlinear() function
+
 Update Version 0.2
 ------------------
 - changed toolbox name to 'pyhrv'
@@ -12,6 +23,7 @@ Update Version 0.2
 - minor bug fixes
 - added 50 sample NNI series extracted from the [MIT-BIH NSRDB](https://physionet.org/physiobank/database/nsrdb/) database
 - updated sample HRV report and exports
+- fixed bug in `pyhrv.tools.segmentation()` function where NNI overlapping from one segment to the other got dropped
 
 Update Version 0.1.2
 --------------------

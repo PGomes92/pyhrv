@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Heart Rate Variability
-----------------------
+pyHRV - Heart Rate Variability
+------------------------------
 
 This module contains the hrv() functions which allows a full HRV parameter computation using only a single line
 function.
@@ -22,51 +22,36 @@ Thesis Supervisors
 ..  Hugo Silva, PhD, Instituto de Telecomunicacoes, PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
-References (all submodules (will be updated soon))
---------------------------------------------------
-..  Task Force of the European Society of Cardiology and the North American Society of Pacing and Electrophysiology,
-	"Heart rate variability - Standards of measurement, physiological interpretation, and clinical use."
-	European Heart Journal 17, pp. 354-381, 1996
-	[Electrophysiology1996]
-..  T.P. Hutchinson, "Statistics and graphs for heart rate variability: pNN50 or pNN20?" Physiological Measurement
-	24, N9 - N14, 2003
-	[Hutchinson2003]
-.. 	J. Mietus, C. Peng, I. Henry, L. Goldsmith, and A. Goldberger, “The pNNx files: re-examining a widely used
-	heart rate variability measure,” Heart, vol. 88, no. 4, pp. 378–380, 2002.
-	[Mietus2002]
-..	M. B. Tayel and E. I. Alsaba, “Poincaré Plot for Heart Rate Variability,”
-	Int. J. Medical, Heal. Biomed. Bioeng. Pharm. Eng., vol. 9, no. 9, pp. 708–711, 2015.
-	[Tayel2015]
-..	F. Shaffer and J. P. Ginsberg, “An Overview of Heart Rate Variability Metrics and Norms,”
-	Front. Public Heal., vol. 5, no. September, pp. 1–17, 2017.
-	[Shaffer2017]
-
 Last Update
 -----------
-13-10-2018
+21-10-2018
 
 :copyright: (c) 2018 by Pedro Gomes (HAW Hamburg)
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import absolute_import
 
+# Imports
+import warnings
+
 # BioSppy import
-import biosppy
+from biosppy.signals.ecg import ecg
 from biosppy import utils
 import matplotlib.pyplot as plt
 
 # Import toolbox functions
 import pyhrv
 import pyhrv.tools as tools
-from pyhrv.time_domain import time_domain
-from pyhrv.frequency_domain import frequency_domain
-from pyhrv.nonlinear import nonlinear
+import pyhrv.time_domain as td
+import pyhrv.frequency_domain as fd
+import pyhrv.nonlinear as nl
 
 
-def hrv(signal=None,
-		nn=None,
+def hrv(nni=None,
 		rpeaks=None,
+		signal=None,
 		sampling_rate=1000.,
 		interval=[0, 10],
 		plot_ecg=True,
@@ -74,21 +59,24 @@ def hrv(signal=None,
 		show=False,
 		fbands=None,
 		kwargs_ecg_plot={},
-		kwargs_tachogram={},
-		kwargs_time={},
-		kwargs_nonlinear={},
+		kwargs_tachogram=None,
+		kwargs_time=None,
+		kwargs_nonlinear=None,
 		kwargs_welch=None,
-		kwargs_lomb=None):
-	"""Computes all HRV parameters of the HRV toolkit (see list below).
+		kwargs_lomb=None,
+		kwargs_ar=None):
+	"""Computes all HRV parameters of the pyHRV toolkit (see list below).
+
+	References:	See 'references.txt' for the full list of references
 
 	Parameters
 	----------
-	signal : array_like
-		ECG signal.
-	nn : array_like
+	nni : array
 		NN intervals in (ms) or (s).
-	rpeaks : array_like
+	rpeaks : array
 		R-peak times in (ms) or (s).
+	signal : array
+		ECG signal.
 	sampling_rate : int, float
 		Sampling rate used for the ECG acquisition in (Hz).
 	plot_ecg : bool, optional
@@ -104,18 +92,74 @@ def hrv(signal=None,
 				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
 	show : bool, optional
 		If true, shows all plots (default: True).
+
 	kwargs_ecg_plot : dict, optional
-		**kwargs for the plot_ecg() function (see 'tools.py' module)
-	kwargs_tachogram={} : dict, optional
-		**kwargs for the plot_tachogram() function (see 'tools.py' module)
-	kwargs_time : dict
-		**kwargs for the time_domain() function (see 'time_domain.py' module)
+		**kwargs for the plot_ecg() function (see 'tools.py' module):
+			..	rpeaks : bool, optional
+					If True, marks R-peaks in ECG signal (default: True).
+			..	title : str, optional
+					Plot figure title (default: None).
+
+	kwargs_tachogram : dict, optional
+		**kwargs for the plot_tachogram() function (see 'tools.py' module):
+			..	hr : bool, optional
+					If True, plots series of heart rate data in [bpm] (default: True).
+			..	title : str, optional
+					Plot figure title (default: None).
+
+	kwargs_time : dict, optional
+		**kwargs for the time_domain() function (see 'time_domain()' function)
+			..	threshold : int, optional
+					Custom threshold in [ms] for the NNXX and pNNXX parameters (default: None).
+			..	plot : bool
+					If True, creates histogram plot using matplotlib, else uses numpy (data only, no plot) -
+					(geometrical params).
+			..	binsize : int, float
+					Bin size in [ms] of the histogram bins - (geometrical params).
+
 	kwargs_welch : dict, optional
-		Dictionary containing the kwargs for the 'welch_psd' function (see docstring of the 'welch_psd' for more
-		information)
+		**kwargs for the 'welch_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the FFT result (default: 2**12).
+			..	detrend : bool optional
+					If True, detrend NNI series by subtracting the mean NNI (default: True).
+			..	window : scipy window function, optional
+					Window function used for PSD estimation (default: 'hamming').
+
 	kwargs_lomb : dict, optional
-		Dictionary containing the kwargs for the 'lomb_psd' function (see docstring of the 'lomb_psd' for more
-		information)
+		**kwargs for the 'lomb_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the FFT result (default: 2**8).
+			..	ma_size : int, optional
+					Window size of the optional moving average filter (default: None).
+
+	kwargs_ar : dict, optional
+		**kwargs for the 'ar_psd()' function:
+			..	nfft : int, optional
+					Number of points computed for the entire AR result (default: 2**12).
+			..	order : int, optional
+					Autoregressive model order (default: 16).
+
+	kwargs_nonlinear : dict, optional
+		**kwargs for the nonlinear functions (poincare(), sample_enntropy(), dfa()):
+			..	ellipse : bool, optional
+					If true, shows fitted ellipse in plot (default: True).
+			..	vectors : bool, optional
+					If true, shows SD1 and SD2 vectors in plot (default: True).
+			..	legend : bool, optional
+					If True, adds legend to the Poincaré plot (default: True).
+			..	marker : character, optional
+					NNI marker in plot (default: 'o').
+			..	short : array, 2 elements
+					Interval limits of the short term fluctuations (default: None: [4, 16]).
+			..	long : array, 2 elements
+					Interval limits of the long term fluctuations (default: None: [17, 64]).
+			..	legend : bool
+					If True, adds legend with alpha1 and alpha2 values to the DFA plot (default: True).
+			..	dim : int, optional
+					Entropy embedding dimension (default: 2).
+			..	tolerance : int, float, optional
+					Tolerance distance for which the vectors to be considered equal (default: std(NNI) * 0.2).
 
 	Returns
 	-------
@@ -124,27 +168,31 @@ def hrv(signal=None,
 
 	Returned Parameters - Time Domain
 	---------------------------------
-	..	NNI parameters (# of NNI, mean, min, max) (keys: 'nn_counter', 'nn_mean', 'nn_min', 'nn_max')
-	..	NNI differences (mean, min, max, standard deviation) (keys: 'nn_diff_mean', 'nn_diff_min', 'nn_diff_max',
-		'nn_diff_std')
-	..	HR parameters (mean, min, max, standard deviation) (keys: 'hr_mean', 'hr_min', 'hr_max', 'hr_std')
-	..	SDNN (key: 'sdnn')
-	..	SDNN index (key: 'sdnn_index')
-	..	SDANN (key: 'sdann')
-	..	RMSSD (key: 'rmssd')
-	..	SDSD (key: 'sdsd')
-	..	nn50 & pNN50 (keys: 'nn50', 'pnn50')
+	..	NNI parameters (# of NNI, mean, min, max) in [count] and [ms] (keys: 'nni_counter', 'nni_mean', 'nni_min',
+		'nni_max')
+	..	NNI differences (mean, min, max, standard deviation) in [ms] (keys: 'nni_diff_mean', 'nni_diff_min',
+		'nn_diff_max')
+	..	HR parameters (mean, min, max, standard deviation) in [BPM] (keys: 'hr_mean', 'hr_min', 'hr_max', 'hr_std')
+	..	SDNN in [ms] (key: 'sdnn')
+	..	SDNN index in [ms] (key: 'sdnn_index')
+	..	SDANN in [ms] (key: 'sdann')
+	..	RMSSD in [ms] (key: 'rmssd')
+	..	SDSD in [ms] (key: 'sdsd')
+	..	nn50 in [count] & pNN50 in [%] (keys: 'nn50', 'pnn50')
+	..	nn20 in [count] & pNN20 in [%] (keys: 'nn20', 'pnn20')
 	..	nnXX (XX = custom threshold) if specified (keys: 'nnXX', 'pnnXX')
+	..	Triangular Index [-] (key: 'tri_index')
+	.. 	TINN in [ms] (key: 'tinn', 'tinn_n', 'tinn_m')
 
 	Returned Parameters - Frequency Domain
 	--------------------------------------
 	(below, X = one of the methods 'fft' or 'lomb')
-	..	Peak frequencies of all frequency bands (key: 'X_peak')
-	..	Absolute frequencies of all frequency bands (key: 'X_abs')
-	..	Relative frequencies of all frequency bands (key: 'X_rel')
-	..	Logarithmic frequencies of all frequency bands (key: 'X_log')
-	..	Normalized frequencies of all frequency bands (key: 'X_norms')
-	..	LF/HF ratio (key: 'X_ratio')
+	..	Peak frequencies of all frequency bands in [Hz] (key: 'X_peak')
+	..	Absolute powers of all frequency bands in [ms^2] (key: 'X_abs')
+	..	Relative powers of all frequency bands in [%] (key: 'X_rel')
+	..	Logarithmic powers of all frequency bands [-] (key: 'X_log')
+	..	Normalized powers of the LF and HF frequency bands [-] (key: 'X_norms')
+	..	LF/HF ratio [-] (key: 'X_ratio')
 	..	Total power over all frequency bands (key: 'X_total')
 	..	Interpolation method used for NNI interpolation (FFT/Welch's method only) (key: 'fft_interpolation')
 	..	Resampling frequency used for NNI interpolation (FFT/Welch's method only) (key: 'fft_resampling_frequency')
@@ -153,23 +201,28 @@ def hrv(signal=None,
 
 	Returned Parameters - Nonlinear
 	-------------------------------
-	..	SD1	(key: 'sd1')
-	..	SD2 (key: 'sd2')
-	..	SD2/SD1 (key: 'sd_ratio')
-	..	Area of the fitted ellipse (key: 'ellipse_area')
-	..	Sample Entropy (key: 'sampen')
-	..	Detrended Fluctuations Analysis (short and long term fluctuations (key: 'dfa_short', 'dfa_long')
+	..	SD1	in [ms] (key: 'sd1')
+	..	SD2 in [ms] (key: 'sd2')
+	..	SD2/SD1 [-] (key: 'sd_ratio')
+	..	Area of the fitted ellipse in [ms^2] (key: 'ellipse_area')
+	..	Sample Entropy [-] (key: 'sampen')
+	..	Detrended Fluctuations Analysis [-] (short and long term fluctuations) (key: 'dfa_short', 'dfa_long')
 
 	Returned Figures
 	----------------
-	..	ECG plot (key: 'ecg_plot')
+	..	ECG plot (key: 'ecg_plot') (only if ECG signal is provided)
 	..	Tachogram (key: 'tachogram_plot')
 	..	Poincaré plot (key: 'poincare_plot')
+	..	NNI Histogram (key: 'nn_histogram')
+	..	Welch PSD (key: 'fft_plot')
+	..	Lomb PSD (key: 'lomb_plot')
+	..	AR PSD (key: 'ar_plot')
+	.. 	Poincaré (key: 'pincare_plot')
 
 	Notes
 	-----
 	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
-		done with dictionaries (see list of parameters and keys above)
+		done with dictionaries (see list of parameters and keys above).
 	..	Provide at least one type of input data (ecg_signal, nn, or rpeaks).
 	..	Input data will be prioritized in the following order: 1. ecg_signal, 2. nn, 3. rpeaks.
 	..	SDNN Index and SDANN: In some cases, the NN interval may start in a segment (or time interval) N and end only
@@ -189,33 +242,152 @@ def hrv(signal=None,
 	# Check input
 	if signal is not None:
 		signal, rpeaks = biosppy.signals.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[1:3]
-	elif nn is None and rpeaks is None:
+	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
 	version = utils.ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
 
-	# Compute time domain results
-	t_results = time_domain(nn=nn, show=False, **kwargs_time)
+	# COMPUTE TIME DOMAIN PARAMETERS
+	# Check for kwargs for the 'kwargs_time'
+	if kwargs_time is not None:
+		if type(kwargs_time) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_time' must be a dictionary containing "
+							"parameters (keys) and values for the 'time_domain()' function." % type(kwargs_time))
 
-	# Compute frequency domain results
-	f_results = frequency_domain(nn=nn, fbands=fbands, kwargs_welch=kwargs_welch, kwargs_lomb=kwargs_lomb, show=False)
+		# Supported kwargs
+		available_kwargs = ['threshold', 'binsize', 'plot']
 
-	# Compute nonlinear parameters
-	n_results = nonlinear(nn=nn, show=False, **kwargs_nonlinear)
+		# Unwrwap kwargs dictionary
+		threshold = kwargs_time['threshold'] if 'threshold' in kwargs_time.keys() else None
+		binsize = kwargs_time['binsize'] if 'binsize' in kwargs_time.keys() else 7.8125
+		plot = kwargs_time['plot'] if 'plot' in kwargs_time.keys() else True
+
+		unsupported_kwargs = []
+		for args in kwargs_time.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'time_domain()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute Time Domain Parameters
+		t_results = td.time_domain(nni=nn, show=False, threshold=threshold, plot=plot)
+
+	else:
+		# Compute Welch's PSD with default values
+		t_results = td.time_domain(nni=nn, show=False)
+
+	# COMPUTE FREQUENCY DOMAIN RESULTS (kwargs are verified by the frequency_domain() function)
+	f_results = fd.frequency_domain(nni=nn, fbands=fbands, kwargs_welch=kwargs_welch, kwargs_lomb=kwargs_lomb,
+								 kwargs_ar=kwargs_ar, show=False)
+
+	# COMPUTE NONLINEAR PARAMETERS
+	if kwargs_nonlinear is not None:
+		if type(kwargs_nonlinear) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_nonlinear' must be a dictionary containing "
+							"parameters (keys) and values for the 'nonlinear()' function." % type(kwargs_time))
+
+		# Supported kwargs
+		available_kwargs = ['ellipse', 'vectors', 'legend', 'marker', 'dim', 'tolerance', 'short', 'long', 'legend']
+		kwargs_poincare = {}
+		kwargs_sampen = {}
+		kwargs_dfa = {}
+
+		# Unwrwap kwargs dictionaries
+		kwargs_poincare['ellipse'] = kwargs_nonlinear['ellipse'] if 'ellipse' in kwargs_nonlinear.keys() else True
+		kwargs_poincare['vectors'] = kwargs_nonlinear['vectors'] if 'vectors' in kwargs_nonlinear.keys() else True
+		kwargs_poincare['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
+		kwargs_poincare['marker'] = kwargs_nonlinear['marker'] if 'marker' in kwargs_nonlinear.keys() else 'o'
+		kwargs_sampen['dim'] = kwargs_nonlinear['dim'] if 'dim' in kwargs_nonlinear.keys() else 2
+		kwargs_sampen['tolerance'] = kwargs_nonlinear['tolerance'] if 'tolerance' in kwargs_nonlinear.keys() else None
+		kwargs_dfa['short'] = kwargs_nonlinear['short'] if 'short' in kwargs_nonlinear.keys() else None
+		kwargs_dfa['long'] = kwargs_nonlinear['long'] if 'long' in kwargs_nonlinear.keys() else None
+		kwargs_dfa['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
+
+		unsupported_kwargs = []
+		for args in kwargs_nonlinear.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'nonlinear()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		n_results = nl.nonlinear(nni=nn, show=False, kwargs_poincare=kwargs_poincare, kwargs_sampen=kwargs_sampen,
+								 kwargs_dfa=kwargs_dfa)
+	else:
+		n_results = nl.nonlinear(nni=nn, show=False)
 
 	# Prepare output
 	results = tools.join_tuples(t_results, f_results, n_results)
 
 	# Plot ECG signal
 	if plot_ecg and signal is not None:
-		ecg_plot = tools.plot_ecg(signal, show=False, interval=interval, **kwargs_ecg_plot)
+		# COMPUTE NONLINEAR PARAMETERS
+		if kwargs_ecg_plot is not None:
+			if type(kwargs_ecg_plot) is not dict:
+				raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_ecg_plot' must be a dictionary containing "
+								"parameters (keys) and values for the 'plot_ecg()' function." % type(kwargs_ecg_plot))
+
+			# Supported kwargs
+			available_kwargs = ['rpeaks', 'title']
+
+			# Unwrwap kwargs dictionaries
+			show_rpeaks = kwargs_ecg_plot['rpeaks'] if 'rpeaks' in kwargs_ecg_plot.keys() else True
+			title = kwargs_ecg_plot['title'] if 'title' in kwargs_ecg_plot.keys() else None
+
+			unsupported_kwargs = []
+			for args in kwargs_ecg_plot.keys():
+				if args not in available_kwargs:
+					unsupported_kwargs.append(args)
+
+			# Throw warning if additional unsupported kwargs have been provided
+			if unsupported_kwargs:
+				warnings.warn("Unknown kwargs for 'plot_ecg()': %s. These kwargs have no effect."
+							  % unsupported_kwargs, stacklevel=2)
+
+			ecg_plot = tools.plot_ecg(signal=signal, show=False, rpeaks=show_rpeaks, title=title, interval=interval,
+									  sampling_rate=sampling_rate)
+		else:
+			ecg_plot = tools.plot_ecg(signal=signal, sampling_rate=sampling_rate, show=False, interval=interval)
+
 		results = tools.join_tuples(results, ecg_plot)
 
 	# Plot Tachogram
 	if plot_tachogram:
-		tachogram_plot = tools.tachogram(nn=nn, show=False, interval=interval, **kwargs_tachogram)
+		# COMPUTE NONLINEAR PARAMETERS
+		if kwargs_tachogram is not None:
+			if type(kwargs_tachogram) is not dict:
+				raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_tachogram' must be a dictionary containing "
+								"parameters (keys) and values for the 'tachogram()' function." % type(kwargs_tachogram))
+
+			# Supported kwargs
+			available_kwargs = ['hr', 'title']
+
+			# Unwrwap kwargs dictionaries
+			hr = kwargs_tachogram['hr'] if 'hr' in kwargs_tachogram.keys() else True
+			title = kwargs_tachogram['title'] if 'title' in kwargs_tachogram.keys() else None
+
+			unsupported_kwargs = []
+			for args in kwargs_tachogram.keys():
+				if args not in available_kwargs:
+					unsupported_kwargs.append(args)
+
+			# Throw warning if additional unsupported kwargs have been provided
+			if unsupported_kwargs:
+				warnings.warn("Unknown kwargs for 'tachogram()': %s. These kwargs have no effect."
+							  % unsupported_kwargs, stacklevel=2)
+
+			tachogram_plot = tools.tachogram(nni=nn, sampling_rate=sampling_rate, hr=hr, interval=interval,
+										title=title, show=False)
+		else:
+			tachogram_plot = tools.tachogram(nni=nn, show=False, interval=interval)
+
 		results = tools.join_tuples(results, tachogram_plot)
 
 	if show:
@@ -226,16 +398,16 @@ def hrv(signal=None,
 
 if __name__ == '__main__':
 	"""
-	Example Script - Computing all HRV parameters of this toolbox u
+	Example Script - Computing all HRV parameters of pyHRV
 	"""
 	# Import
 	import numpy as np
 
 	# Load sample NNI series
-	nni = np.load('./samples/series_1.npy')
+	nni = np.load('./files/SampleNNISeries.npy')
 
 	# Compute HRV results using all the default values
-	hrv_results = hrv(nn=nni)
+	hrv_results = hrv(nn=nni, show=True)
 
 	# Print results to the console
 	for key in hrv_results.keys():

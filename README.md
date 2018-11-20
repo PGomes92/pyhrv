@@ -4,7 +4,7 @@ This repository contains the HRV toolbox (Python package) developed within the s
 
 The HRV algorithms have been developed and implemented according to the [Heart Rate Variability - Sandards of Measurement, Physiological Interpretation, and Clinical Use](http://circ.ahajournals.org/content/93/5/1043) guidelines and other references which are notes in the code itself (will be entirely updated soon).
 
-Below follows a list of the parameters and features. Major updates will be listed in the [changelog](changelog.md).
+Below follows as list of the parameters and features. Major updates will be listed in the [changelog](changelog.md).
 
 ## Getting Started
 
@@ -14,10 +14,23 @@ This package can be installed using the ```pip``` tool:
 pip install pyhrv
 ```
 
-### Documentation & Tutorials
-An overview of all the available functions and short quickstart tutorials can be found in the [README](./pyhrv/README.md) file found in the `pyhrv` package.
+The current pyHRV has been primarily developed for the Python 2.7 programming language. Running the pip command above may cause
+errors when trying to install the package using Python 3. In this case, try to install the pyHRV dependencies first:
 
-The official **pyHRV** Documentation is now available on ReadTheDocs (currently still a work in progress):
+```python
+pip install biosppy
+pip install matplotlib
+pip install numpy
+pip install scipy
+pip install nolds
+pip install spectrum
+pip install pyhrv
+```
+
+### Documentation & Tutorials
+An overview of all the available functions and short quickstart tutorials can be found in the [README](./pyhrv/README.md) file found within the `pyhrv` package.
+
+The official **pyHRV** Documentation is now available on ReadTheDocs:
 
 https://pyhrv.readthedocs.io
 
@@ -34,13 +47,12 @@ The following HRV parameters can be computed with this toolbox.
 - Standard Deviation of NNI (SDNN)
 - Mean of the SD of 5min segments (SDNN Index)
 - SD of the Mean of 5min segments (SDANN)
-- Root Mean Squared of Successive Differences (RMSSD)
+- Root Mean Square of Successive Differences (RMSSD)
 - SD of Successive Differences (SDSD)
 - NN50 (NNI > 50ms) and pNN50 (% of NNI > 50ms)
-- NN20 (NNI > 20ms) and pNN20 (% of NNI > 50ms)
 - NNX (NNI > Xms) and pNN50 (% of NNI > Xms)
 - Triangular Index
-- Baseline Width of the Histogram based on Triangular Interpolation (TINN, N, M)
+- Baseline Width of the Histogram based on Triangular Interpolation (TINN) (TINN, N, M)
 
 ### Frequency Domain Parameters
 Computes the following PSD parameters from the Welch's Method and the Lomb-Scargle periodogram (with default or custom frequency bands):
@@ -52,7 +64,7 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 - LF/HF ratio
 
 ### Nonlinear Parameters
-- Poincaré Plot (SD1, SD2, fitted ellipse area, SD2/SD1 ratio)
+- Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio)
 - Sample Entropy
 - Detrended Fluctuation Analysis (short-term and long-term)
 
@@ -79,7 +91,7 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 ### Frequency Domain - Welch's Periodogram
 ![Image](./SampleFigures/SampleWelch.png)
 
-### Frequency Domain - Lomb-Scargle Periodogram
+### Frequency Daomain - Lomb-Scargle Periodogram
 ![Image](./SampleFigures/SampleLomb.png)
 
 ### Nonlinear - Poincaré & Detrended Fluctuation Analysis
@@ -95,7 +107,7 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 ## Context of this Work
 This package is under development within the scope of my master thesis _"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.
 
-## Other Support Packages Developed within the Scope of this Work
+## Other Support Packages Developed within the Skope of this Work
 ### OpenSignalsReader
 Python package to read [OpenSignals (r)evolution](http://bitalino.com/en/software) files and automatic sensor data conversion for [BITalino (r)evolution](http://bitalino.com) sensor data.
 
@@ -104,6 +116,8 @@ This package has been developed to facilitate the import of ECG sensor data acqu
 Visit the repository for more detailed information:
 
 https://github.com/PGomes92/opensignalsreader
+
+_([OpenSignals (r)evolution](http://bitalino.com/en/software) (by [PLUX wireless biosignals S.A.](http://plux.info)) is the official software for the [BITalino](http://bitalino.com) and [biosignalsplux](http://biosignalsplux.com) biosignal acquisition platforms._)
 
 ### KUBIOS
 Python package to export NN/RR interval series in [KUBIOS HRV](https://www.kubios.com) readable format and to import HRV results from KUBIOS report files in .txt format.
@@ -115,12 +129,12 @@ https://github.com/PGomes92/kubios
 ## Citing
 Please use the citation format below if you need to cite this package in any of your work:
 
-- Gomes P, Silva H, Margaritoff P**pyHRV - Open-Source Python Toolbox for Heart Rate Variability**, 2018-,
+- Gomes P, **pyHRV - Open-Source Python Toolbox for Heart Rate Variability**, 2018-,
   https://github.com/PGomes92/hrv-toolkit/ [Online; accessed ```<year>-<month>-<day>```].
 
 ```latex
 @Misc{,
-  author = {Pedro Gomes and Hugo Silva and Petra Margaritoff},
+  author = {Pedro Gomes},
   title = {{pyHRV} - Open-Source Python Toolbox for Heart Rate Variability},
   year = {2018--},
   url = "https://github.com/PGomes92/hrv-toolkit/",

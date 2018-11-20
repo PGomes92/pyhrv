@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Heart Rate Variability Toolbox - Nonlinear Parameters
------------------------------------------------------
+pyHRV - Nonlinear Parameters
+----------------------------
 
 This module provides functions to compute HRV nonlinear domain parameters using R-peak locations
-and/or NN interval series extracted from an ECG lead I-like signl (e.g. ECG, SpO2 or BVP sensor data).
-
+and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, SpO2 or BVP sensor data).
 
 Notes
 -----
@@ -51,17 +50,17 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 	"""Creates Poincaré plot from a series of NN intervals or R-peak locations and derives the Poincaré related
 	parameters SD1, SD2, SD1/SD2 ratio, and area of the Poincaré ellipse.
 
-	References: [Tayel2015]
+	References: [Tayel2015][Brennan2001]
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nn : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	show : bool, optional
 		If true, shows Poincaré plot (default: True).
-	figsize : array_like, optional
+	figsize : array, optional
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	ellipse : bool, optional
 		If true, shows fitted ellipse in plot (default: True).
@@ -77,20 +76,16 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 	[key : format]
 		Description.
 	poincare_plot : matplotlib figure object
-		Poincaré plot figure.
+		Poincaré plot figure
 	sd1 : float
-		SD1 value.
+		Standard deviation (SD1) of the major axis
 	sd2 : float, key: 'sd2'
-		SD2 value.
+		Standard deviation (SD2) of the minor axis
 	sd_ratio: float
-		Ratio between SD2 and SD1 (SD2/SD1).
-	ellipse_area : float, key
-		Area of the fitted ellipse.
+		Ratio between SD2 and SD1 (SD2/SD1)
+	ellipse_area : float
+		Area of the fitted ellipse
 
-	Raises
-	------
-	TypeError
-		If no input data for 'rpeaks' or 'nn' provided.
 	"""
 	# Check input values
 	nn = tools.check_input(nn, rpeaks)
@@ -115,8 +110,8 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 
 	# Plot
 	ax.set_title(r'$Poincar\acute{e}$')
-	ax.set_ylabel('$RR_{i+1}$ [ms]')
-	ax.set_xlabel('$RR_i$ [ms]')
+	ax.set_ylabel('$NNI_{i+1}$ [ms]')
+	ax.set_xlabel('$NNI_i$ [ms]')
 	ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
 	ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
 	ax.grid()
@@ -175,14 +170,14 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
+	nn : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
 	dim : int, optional
-		Entropy embedding dimension (defaults: 2).
+		Entropy embedding dimension (default: 2).
 	tolerance : int, float, optional
-		Tolerance distance for two vectors to be considered equal (default: std(NNI) * 0.2).
+		Tolerance distance for which the vectors to be considered equal (default: std(NNI) * 0.2).
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -218,29 +213,37 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 	return utils.ReturnTuple(args, names)
 
 
-def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None):
-	"""Conducts detrended fluctuation analysis for short and long-term fluctuations.
+def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True):
+	"""Conducts Detrended Fluctuation Analysis for short and long-term fluctuation of an NNI series.
+
+	References: [Joshua2008][Kuusela2014][Fred2017]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/nonlinear.html#sample-entropy-sample-entropy
 
 	Parameters
 	----------
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
-	short : array_like, 2 elements
-		Interval limits of the short term fluctuations (default: [4, 16]).
-	long : array_like, 2 elements
-		Interval limits of the long term fluctuations (default: [17, 64]).
-	show : true
+	nn : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
+	short : array, 2 elements
+		Interval limits of the short term fluctuations (default: None: [4, 16]).
+	long : array, 2 elements
+		Interval limits of the long term fluctuations (default: None: [17, 64]).
+	show : bool
+		If True, shows DFA plot (default: True)
+	legend : bool
+		If True, adds legend with alpha1 and alpha2 values to the DFA plot (default: True)
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
 	dfa_short : float
-		Alpha value of the short term fluctuations.
+		Alpha value of the short term fluctuations
 	dfa_long : float
-		Alpha value of the long term fluctuations.
+		Alpha value of the long term fluctuations
+	dfa_plot : matplotlib plot figure
+		Matplotlib plot figure of the DFA
 
 	"""
 	# Check input values
@@ -290,7 +293,8 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None):
 		ax.plot(vals, poly, 'g', label=label, alpha=0.7)
 
 		# Add legend
-		ax.legend()
+		if legend:
+			ax.legend()
 		ax.grid()
 
 	# Plot axis
@@ -302,65 +306,58 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None):
 	return utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', ))
 
 
-def nonlinear(signal=None,
-			  nn=None,
+def nonlinear(nni=None,
 			  rpeaks=None,
+			  signal=None,
 			  sampling_rate=1000.,
 			  show=False,
-			  kwargs_poincare={},
-			  kwargs_sampen={},
-			  kwargs_dfa={}):
+			  kwargs_poincare=None,
+			  kwargs_sampen=None,
+			  kwargs_dfa=None):
 	"""Computes all time domain parameters of the HRV time domain module
 		and returns them in a ReturnTuple object.
 
+	References: [Peng1995][Willson2002]
+
 	Parameters
 	----------
-	ecg_signal : array_like
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
+	signal : array
 		ECG signal.
-	nn : array_like
-		NN intervals in (ms) or (s).
-	rpeaks : array_like
-		R-peak times in (ms) or (s).
 	sampling_rate : int, float
 		Sampling rate used for the ECG acquisition in (Hz).
 	show : bool, optional
 		If True, shows DFA plot.
+
 	kwargs_poincare : dict, optional
-		**kwargs for the 'poincare()' function.
-	kwargs_sampen : dict, optional
-		**kwargs for the 'sampen()' Sample Entropy function.
+		Dictionary containing the kwargs for the nonlinear 'poincare()' function:
+			..	ellipse : bool, optional
+					If true, shows fitted ellipse in plot (default: True).
+			..	vectors : bool, optional
+					If true, shows SD1 and SD2 vectors in plot (default: True).
+			..	legend : bool, optional
+					If True, adds legend to the Poincaré plot (default: True).
+			..	marker : character, optional
+					NNI marker in plot (default: 'o').
+
 	kwargs_dfa : dict, optional
-		**kwargs for the 'dfa()' function.
+		Dictionary containing the kwargs for the nonlinear 'dfa()' function:
+			..	short : array, 2 elements
+					Interval limits of the short term fluctuations (default: None: [4, 16]).
+			..	long : array, 2 elements
+					Interval limits of the long term fluctuations (default: None: [17, 64]).
+			..	legend : bool
+					If True, adds legend with alpha1 and alpha2 values to the DFA plot (default: True)
 
-	**kwargs_poincare
-	-----------------
-	show : bool, optional
-		If true, shows Poincaré plot (default: True).
-	figsize : array_like, optional
-		Matplotlib figure size (width, height) (default: (5, 5)).
-	ellipse : bool, optional
-		If true, shows fitted ellipse in plot (default: True).
-	vectors : bool, optional
-		If true, shows SD1 and SD2 vectors in plot (default: True).
-	legend : bool, optional
-		If True, adds legend to the Poincaré plot (default: True).
-	marker : character, optional
-		NNI marker in plot (default: 'o').
-
-	**kwargs_sampen
-	---------------
-	dim : int, optional
-		Entropy embedding dimension (defaults: 2).
-	tolerance : int, float, optional
-		Tolerance distance for two vectors to be considered equal (default: std(NNI) * 0.2).
-
-	**kwargs_dfa
-	------------
-	short : array_like, 2 elements
-		Interval limits of the short term fluctuations (default: [4, 12]).
-	long : array_like, 2 elements
-		Interval limits of the long term fluctuations (default: [13, 64]).
-	figsize : array_like, 2 elements
+	kwargs_sampen : dict, optional
+		Dictionary containing the kwargs for the nonlinear 'sample_entropy()' function:
+			..	dim : int, optional
+					Entropy embedding dimension (default: 2).
+			..	tolerance : int, float, optional
+					Tolerance distance for which the vectors to be considered equal (default: std(NNI) * 0.2).
 
 	Returns
 	-------
@@ -369,12 +366,12 @@ def nonlinear(signal=None,
 
 	Returned Parameters
 	-------------------
-	..	SD1	(key: 'sd1')
-	..	SD2 (key: 'sd2')
-	..	SD2/SD1 (key: 'sd_ratio')
-	..	Area of the fitted ellipse (key: 'ellipse_area')
-	..	Sample Entropy (key: 'sampen')
-	..	Detrended Fluctuations Analysis (short and long term fluctuations (key: 'dfa_short', 'dfa_long')
+	..	SD1	in [ms] (key: 'sd1')
+	..	SD2 in [ms] (key: 'sd2')
+	..	SD2/SD1 [-] (key: 'sd_ratio')
+	..	Area of the fitted ellipse in [ms^2] (key: 'ellipse_area')
+	..	Sample Entropy [-] (key: 'sampen')
+	..	Detrended Fluctuations Analysis [-] (short and long term fluctuations (key: 'dfa_short', 'dfa_long')
 
 	Returned Figures
 	----------------
@@ -384,9 +381,9 @@ def nonlinear(signal=None,
 	-----
 	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
 		done with dictionaries (see list of parameters and keys above)
-	..	Provide at least one type of input data (ecg_signal, nn, or rpeaks).
-	..	Input data will be prioritized in the following order: 1. ecg_signal, 2. nn, 3. rpeaks.
-	..	NN and R-peak series provided in (s) format will be converted to (ms) format.
+	..	Provide at least one type of input data (signal, nn, or rpeaks).
+	..	Input data will be prioritized in the following order: 1. signal, 2. nn, 3. rpeaks.
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
 	..	Currently only calls the poincare() function.
 
 	Raises
@@ -398,16 +395,108 @@ def nonlinear(signal=None,
 	# Check input
 	if signal is not None:
 		rpeaks = ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
-	elif nn is None and rpeaks is None:
+	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
-	# Call all nonlinear parameter functions (currently only Poincaré)
-	results = poincare(nn, show=show, **kwargs_poincare)
-	results = tools.join_tuples(results, sample_entropy(nn, **kwargs_sampen))
-	results = tools.join_tuples(results, dfa(nn, show=show, **kwargs_dfa))
+	# Unwrap kwargs_poincare dictionary & compute Poincaré
+	if kwargs_poincare is not None:
+		if type(kwargs_poincare) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_poincare' must be a dictionary containing "
+							"parameters (keys) and values for the 'poincare()' function." % type(kwargs_poincare))
+
+		# Supported kwargs
+		available_kwargs = ['ellipse', 'vectors', 'legend', 'marker']
+
+		# Unwrwap kwargs dictionaries
+		ellipse = kwargs_poincare['ellipse'] if 'ellipse' in kwargs_poincare.keys() else True
+		vectors = kwargs_poincare['vectors'] if 'vectors' in kwargs_poincare.keys() else True
+		legend = kwargs_poincare['legend'] if 'legend' in kwargs_poincare.keys() else True
+		marker = kwargs_poincare['marker'] if 'marker' in kwargs_poincare.keys() else 'o'
+
+		unsupported_kwargs = []
+		for args in kwargs_poincare.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'poincare()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute Poincaré plot with custom configuration
+		p_results = poincare(nn, show=False, ellipse=ellipse, vectors=vectors, legend=legend, marker=marker)
+	else:
+		# Compute Poincaré plot with default values
+		p_results = poincare(nn, show=False)
+
+	# Unwrap kwargs_sampen dictionary & compute Sample Entropy
+	if kwargs_sampen is not None:
+		if type(kwargs_sampen) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_sampen' must be a dictionary containing "
+							"parameters (keys) and values for the 'sample_entropy()' function." % type(kwargs_sampen))
+
+		# Supported kwargs
+		available_kwargs = ['dim', 'tolerance']
+
+		# Unwrwap kwargs dictionaries
+		dim = kwargs_sampen['dim'] if 'dim' in kwargs_sampen.keys() else 2
+		tolerance = kwargs_sampen['tolerance'] if 'tolerance' in kwargs_sampen.keys() else None
+
+		unsupported_kwargs = []
+		for args in kwargs_sampen.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'sample_entropy()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute Poincaré plot with custom configuration
+		s_results = sample_entropy(nn, dim=dim, tolerance=tolerance)
+	else:
+		# Compute Poincaré plot with default values
+		s_results = sample_entropy(nn)
+
+	# Unwrap kwargs_dfa dictionary & compute Poincaré
+	if kwargs_dfa is not None:
+		if type(kwargs_dfa) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_dfa' must be a dictionary containing "
+							"parameters (keys) and values for the 'dfa()' function." % type(kwargs_dfa))
+
+		# Supported kwargs
+		available_kwargs = ['short', 'legend', 'long']
+
+		# Unwrwap kwargs dictionaries
+		short = kwargs_dfa['short'] if 'short' in kwargs_dfa.keys() else None
+		long = kwargs_dfa['long'] if 'long' in kwargs_dfa.keys() else None
+		legend = kwargs_dfa['legend'] if 'legend' in kwargs_dfa.keys() else True
+
+		unsupported_kwargs = []
+		for args in kwargs_dfa.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'dfa()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute Poincaré plot with custom configuration
+		d_results = dfa(nn, show=False, short=short, long=long, legend=legend)
+	else:
+		# Compute Poincaré plot with default values
+		d_results = dfa(nn, show=False)
+
+	# Join Results
+	results = tools.join_tuples(p_results, s_results, d_results)
+
+	# Plot
+	if show:
+		plt.show()
 
 	# Output
 	return results
@@ -417,19 +506,11 @@ if __name__ == "__main__":
 	"""
 	Example Script - Nonlinear Parameters
 	"""
-	from opensignalsreader import OpenSignalsReader
-	from biosppy.signals.ecg import ecg
+	import numpy as np
 
-	# Load OpenSignals (r)evolution ECG sample file
-	acq = OpenSignalsReader('./files/SampleECG.txt')
-	signal = acq.signal('ECG')
+	# Get Sample Data
+	nni = np.load('./files/SampleNNISeries.npy')
 
-	# # Filter data & get r-peak locations (ms)
-	r_peaks = ecg(signal, sampling_rate=acq.sampling_rate, show=False)[2]
-	nni = tools.nn_intervals(r_peaks)
-	nni = np.load('./samples/series_1.npy')
-
-	# Compute HRV parameters
 	# Compute Poincaré
 	res1 = poincare(nni, show=False)
 
@@ -447,12 +528,12 @@ if __name__ == "__main__":
 	print("NONLINEAR ANALYSIS")
 	print("=========================")
 	print("Poincaré Plot")
-	print("SD1:		%f (ms)" % results['sd1'])
-	print("SD2:		%f (ms)" % results['sd2'])
-	print("SD2/SD1: 	%f (ms)" % results['sd_ratio'])
-	print("Area S:		%f (ms)" % results['ellipse_area'])
-	print("Sample Entropy:	%" % results['sampen'])
-	print("DFA:			%f	(ms)")
+	print("SD1:		%f [ms]" % results['sd1'])
+	print("SD2:		%f [ms]" % results['sd2'])
+	print("SD2/SD1: 	%f [ms]" % results['sd_ratio'])
+	print("Area S:		%f [ms]" % results['ellipse_area'])
+	print("Sample Entropy:	%f" % results['sampen'])
+	print("DFA:			%f	[ms]")
 
-	# Alternatively use the nonlinear() function to compute all the nonlinear parameters using a single function
-	nonlinear(nn=nni, show=True)
+	# Alternatively use the nonlinear() function to compute all the nonlinear parameters at once
+	nonlinear(nni=nni)
