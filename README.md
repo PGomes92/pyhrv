@@ -129,12 +129,12 @@ https://github.com/PGomes92/kubios
 ## Citing
 Please use the citation format below if you need to cite this package in any of your work:
 
-- Gomes P, **pyHRV - Open-Source Python Toolbox for Heart Rate Variability**, 2018-,
+- Gomes P, Silva H, Margaritoff P, **pyHRV - Open-Source Python Toolbox for Heart Rate Variability**, 2018-,
   https://github.com/PGomes92/hrv-toolkit/ [Online; accessed ```<year>-<month>-<day>```].
 
 ```latex
 @Misc{,
-  author = {Pedro Gomes},
+  author = {Pedro Gomes, Hugo Silva, Petra Margaritoff},
   title = {{pyHRV} - Open-Source Python Toolbox for Heart Rate Variability},
   year = {2018--},
   url = "https://github.com/PGomes92/hrv-toolkit/",
