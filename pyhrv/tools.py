@@ -702,8 +702,6 @@ def segmentation(nni=None, full=True, overlap=False, duration=300):
 
 	# Check if signal is longer than maximum segment duration
 	if np.sum(nni) > duration:
-		# Compute maximum number of segments
-		n_segments = int(max_time / duration) + 1
 
 		# Compute limits for each segment
 		segments = []
@@ -711,17 +709,18 @@ def segmentation(nni=None, full=True, overlap=False, duration=300):
 
 		# Current index
 		cindex = 0
+
 		# Segment signals
 		for i, _ in enumerate(range(0, limits.size - 1)):
 			csegment = []
 			while np.sum(csegment) < duration:
 				csegment.append(nni[cindex])
-				if not cindex > nni.size:
+				if cindex < nni.size - 1:
 					cindex += 1
 				else:
-					continue
+					break
 
-			# Check if overlap exists (just do be sure)
+			# Check if overlap exists (just to be sure)
 			if np.sum(csegment) > duration:
 				csegment = csegment[:-1]
 				cindex -= 1

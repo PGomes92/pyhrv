@@ -207,7 +207,7 @@ def sdnn(nni=None, rpeaks=None):
 	return utils.ReturnTuple(args, names)
 
 
-def sdnn_index(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
+def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	"""Computes the mean of the SDNN values of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996]
@@ -253,7 +253,7 @@ def sdnn_index(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
 	segments, seg = tools.segmentation(nn,  full=full, overlap=overlap, duration=duration)
 
 	if seg:
-		sdnn_values = [sdnn(x) for x in segments]
+		sdnn_values = [sdnn(x)['sdnn'] for x in segments]
 		sdnn_index = np.mean(sdnn_values)
 	else:
 		sdnn_index = float('nan')
@@ -266,7 +266,7 @@ def sdnn_index(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
 	return utils.ReturnTuple(args, names)
 
 
-def sdann(nni=None, rpeaks=None, full=False, overlap=False, duration=300):
+def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	"""Computes the standard deviation of the mean NNI value of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996], [Lohninger2017]

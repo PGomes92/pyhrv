@@ -37,7 +37,7 @@ from __future__ import absolute_import
 import warnings
 
 # BioSppy import
-from biosppy.signals.ecg import ecg
+import biosppy
 from biosppy import utils
 import matplotlib.pyplot as plt
 

@@ -91,8 +91,11 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 ### Frequency Domain - Welch's Periodogram
 ![Image](./SampleFigures/SampleWelch.png)
 
-### Frequency Daomain - Lomb-Scargle Periodogram
+### Frequency Domain - Lomb-Scargle Periodogram
 ![Image](./SampleFigures/SampleLomb.png)
+
+### Frequency Domain - Autoregressive Method
+![Image](./SampleFigures/SampleAR.png)
 
 ### Nonlinear - Poincaré & Detrended Fluctuation Analysis
 ![Image](./SampleFigures/SampleNonlinear.png)
@@ -103,9 +106,10 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 - [scipy](http://scipy.org)
 - [matplotlib](https://matplotlib.org)
 - [nolds](https://github.com/CSchoel/nolds)
+- [spectrum](https://github.com/cokelaer/spectrum)
 
 ## Context of this Work
-This package is under development within the scope of my master thesis _"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.
+This package has initially been developed within the scope of my master thesis _"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.
 
 ## Other Support Packages Developed within the Skope of this Work
 ### OpenSignalsReader

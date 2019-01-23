@@ -1,3 +1,8 @@
+Update Version 0.3.1
+--------------------
+- fixes index out of range error in tools.segmentation() function
+- fixes BioSPPy import in hrv.py
+
 Update Version 0.3
 ------------------
 - added ReadTheDocs documentation
