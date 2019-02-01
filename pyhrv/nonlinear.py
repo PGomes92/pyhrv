@@ -45,8 +45,9 @@ from biosppy import utils
 # Local imports/HRV toolbox imports
 import pyhrv.tools as tools
 
-
-def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vectors=True, legend=True, marker='o'):
+# TODO add plot argument to docstring
+def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=True, vectors=True, legend=True, \
+																									   marker='o'):
 	"""Creates Poincaré plot from a series of NN intervals or R-peak locations and derives the Poincaré related
 	parameters SD1, SD2, SD1/SD2 ratio, and area of the Poincaré ellipse.
 
@@ -54,7 +55,7 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 
 	Parameters
 	----------
-	nn : array
+	nni : array
 		NN intervals in [ms] or [s].
 	rpeaks : array
 		R-peak times in [ms] or [s].
@@ -88,15 +89,8 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = tools.check_input(nni, rpeaks)
 
-	# Prepare figure
-	if figsize is None:
-		figsize = (6, 6)
-	fig = plt.figure(figsize=figsize)
-	fig.tight_layout()
-	ax = fig.add_subplot(111)
-	
 	# Prepare Poincaré data
 	x1 = np.asarray(nn[:-1])
 	x2 = np.asarray(nn[1:])
@@ -108,56 +102,66 @@ def poincare(nn=None, rpeaks=None, show=True, figsize=None, ellipse=True, vector
 	# Area of ellipse
 	area = np.pi * sd1 * sd2
 
-	# Plot
-	ax.set_title(r'$Poincar\acute{e}$')
-	ax.set_ylabel('$NNI_{i+1}$ [ms]')
-	ax.set_xlabel('$NNI_i$ [ms]')
-	ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
-	ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
-	ax.grid()
-	ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
+	# if plot is wanted
+	if plot:
+		# Prepare figure
+		if figsize is None:
+			figsize = (6, 6)
+		fig = plt.figure(figsize=figsize)
+		fig.tight_layout()
+		ax = fig.add_subplot(111)
 
-	# Compute mean NNI (center of the Poincaré plot)
-	nn_mean = np.mean(nn)
+		ax.set_title(r'$Poincar\acute{e}$')
+		ax.set_ylabel('$NNI_{i+1}$ [ms]')
+		ax.set_xlabel('$NNI_i$ [ms]')
+		ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
+		ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
+		ax.grid()
+		ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
 
-	# Draw poincaré ellipse
-	if ellipse:
-		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
-		ax.add_artist(ellipse_)
-		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
-		ax.add_artist(ellipse_)
+		# Compute mean NNI (center of the Poincaré plot)
+		nn_mean = np.mean(nn)
 
-	# Add poincaré vectors (SD1 & SD2)
-	if vectors:
-		arrow_head_size = 3
-		na = 4
-		a1 = ax.arrow(
-			nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
-			head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
-		a2 = ax.arrow(
-			nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
-			head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
-		a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-		a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-		ax.add_line(mpl.lines.Line2D(
-			(min(nn), max(nn)),
-			(min(nn), max(nn)),
-			c='b', ls=':', alpha=0.6))
-		ax.add_line(mpl.lines.Line2D(
-			(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
-			(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
-			c='g', ls=':', alpha=0.6))
+		# Draw poincaré ellipse
+		if ellipse:
+			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
+			ax.add_artist(ellipse_)
+			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
+			ax.add_artist(ellipse_)
 
-		# Add legend
-		if legend:
-			ax.legend(
-				[a1, a2, a3, a4],
-				['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
-				framealpha=1)
+		# Add poincaré vectors (SD1 & SD2)
+		if vectors:
+			arrow_head_size = 3
+			na = 4
+			a1 = ax.arrow(
+				nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
+				head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
+			a2 = ax.arrow(
+				nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
+				head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
+			a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+			a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+			ax.add_line(mpl.lines.Line2D(
+				(min(nn), max(nn)),
+				(min(nn), max(nn)),
+				c='b', ls=':', alpha=0.6))
+			ax.add_line(mpl.lines.Line2D(
+				(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
+				(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
+				c='g', ls=':', alpha=0.6))
 
-	# Show plot
-	if show:
-		plt.show()
+			# Add legend
+			if legend:
+				ax.legend(
+					[a1, a2, a3, a4],
+					['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
+					framealpha=1)
+
+		# Show plot
+		if show:
+			plt.show()
+	else:
+		fig = None
 
 	# Output
 	args = (fig, sd1, sd2, sd2/sd1, area)

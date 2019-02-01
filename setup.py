@@ -2,7 +2,8 @@
 
 import setuptools
 from pyhrv import __author__, __version__, __email__, name, description
-
+# import matplotlib
+# matplotlib.use('TkAgg')
 with open("README.md", "r") as fh:
 	long_description = fh.read()
 
@@ -47,8 +48,7 @@ setuptools.setup(
 		'License :: OSI Approved :: BSD License',
 		'Programming Language :: Python',
 		'Programming Language :: Python :: 2.7',
-		'Programming Language :: Python :: Implementation :: CPython',
-		'Programming Language :: Python :: Implementation :: PyPy',
+		'Programming Language :: Python :: 3',
 		'Operating System :: OS Independent',
 	],
 )

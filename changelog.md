@@ -1,3 +1,8 @@
+Update Version 0.3.2
+--------------------
+- IMPORTANT: fixes installation issues under Python3 using pip install (full support must yet be tested)
+- prepared mode-dependent returns for functions with plotting features
+
 Update Version 0.3.1
 --------------------
 - fixes index out of range error in tools.segmentation() function

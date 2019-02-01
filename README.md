@@ -6,26 +6,18 @@ The HRV algorithms have been developed and implemented according to the [Heart R
 
 Below follows as list of the parameters and features. Major updates will be listed in the [changelog](changelog.md).
 
+> IMPORTANT: pyHRV had some installation issues under Python3 which have been fixed in v.0.3.2
+
 ## Getting Started
 
 ### Installation
-This package can be installed using the ```pip``` tool:
+This toolbox can be installed using the ```pip``` tool (works for Python 2 and 3):
 ```python
 pip install pyhrv
 ```
 
-The current pyHRV has been primarily developed for the Python 2.7 programming language. Running the pip command above may cause
-errors when trying to install the package using Python 3. In this case, try to install the pyHRV dependencies first:
+> NOTE: Python 3 installation issues using pip install have now been fixed with v.0.3.2
 
-```python
-pip install biosppy
-pip install matplotlib
-pip install numpy
-pip install scipy
-pip install nolds
-pip install spectrum
-pip install pyhrv
-```
 
 ### Documentation & Tutorials
 An overview of all the available functions and short quickstart tutorials can be found in the [README](./pyhrv/README.md) file found within the `pyhrv` package.

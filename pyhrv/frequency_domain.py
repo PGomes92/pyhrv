@@ -45,6 +45,8 @@ import warnings
 import spectrum
 import numpy as np
 import scipy as sp
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.collections import LineCollection
 import matplotlib as mpl
 from scipy.signal import welch, lombscargle
 from matplotlib import pyplot as plt
@@ -68,19 +70,20 @@ def welch_psd(nni=None,
 			  window='hamming',
 			  show=True,
 			  show_param=True,
-			  legend=True):
+			  legend=True,
+			  mode='normal'):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Welch’s method
 	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
 
 	References: [Electrophysiology1996], [Umberto2017], [Welch2017]
-	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#welch-s-method-welch-psd
+	Docs:		https://pyhrv.readthedocs.io/en/latest kwa/_pages/api/frequency.html#welch-s-method-welch-psd
 
 	Parameters
 	----------
-	rpeaks : array
-		R-peak locations in [ms] or [s]
 	nni : array
 		NN-Intervals in [ms] or [s]
+	rpeaks : array
+		R-peak locations in [ms] or [s]
 	fbands : dict, optional
 		Dictionary with frequency bands (2-element tuples or list)
 		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
@@ -176,21 +179,49 @@ def welch_psd(nni=None,
 		scaling='density'
 	)
 
-	# Compute frequency parameters
-	params, freq_i = _compute_parameters('fft', frequencies, powers, fbands)
-
-	# Plot PSD
-	figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend)
-	figure = utils.ReturnTuple((figure, ), ('fft_plot', ))
-
 	# Metadata
 	args = (nfft, window, fs, 'cubic')
-	names = ('fft_nfft', 'fft_window', 'fft_resampling_frequency', 'fft_interpolation', )
+	names = ('fft_nfft', 'fft_window', 'fft_resampling_frequency', 'fft_interpolation',)
 	meta = utils.ReturnTuple(args, names)
 
-	# Output
-	return tools.join_tuples(params, figure, meta)
+	if mode not in ['normal', 'dev', 'devplot']:
+		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
+		mode = 'normal'
 
+	# Normal Mode:
+	# Returns frequency parameters, PSD plot figure and no frequency & power series/arrays
+	if mode == 'normal':
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('fft', frequencies, powers, fbands)
+
+		# Plot PSD
+		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('fft_plot', ))
+
+		# Output
+		return tools.join_tuples(params, figure, meta)
+
+	# Dev Mode:
+	# Returns frequency parameters and frequency & power series/array; does not create a plot figure nor plot the data
+	elif mode == 'dev':
+		# Compute frequency parameters
+		params, _ = _compute_parameters('fft', frequencies, powers, fbands)
+
+		# Output
+		return tools.join_tuples(params, meta), frequencies, (powers / 10 ** 6)
+
+	# Devplot Mode:
+	# Returns frequency parameters, PSD plot figure, and frequency & power series/arrays
+	elif mode == 'devplot':
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('fft', frequencies, powers, fbands)
+
+		# Plot PSD
+		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('fft_plot', ))
+
+		# Output
+		return tools.join_tuples(params, figure, meta), frequencies, (powers / 10 ** 6)
 
 def lomb_psd(
 		nni=None,
@@ -200,7 +231,8 @@ def lomb_psd(
 		ma_size=None,
 		show=True,
 		show_param=True,
-		legend=True
+		legend=True,
+		mode='normal'
 	):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Lomb-Scargle Periodogram
 	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
@@ -285,8 +317,6 @@ def lomb_psd(
 	# Compute angular frequencies
 	a_frequencies = np.asarray(2 * np.pi / frequencies)
 	powers = np.asarray(lombscargle(t, nn, a_frequencies, normalize=True))
-	# ms^2 to s^2
-	powers = powers * 10**6
 
 	# Fix power = inf at f=0
 	powers[0] = 2
@@ -295,20 +325,56 @@ def lomb_psd(
 	if ma_size is not None:
 		powers = biosppy.signals.tools.smoother(powers, size=ma_size)['signal']
 
-	# Compute frequency parameters
-	params, freq_i = _compute_parameters('lomb', frequencies, powers, fbands)
-
-	# Plot parameters
-	figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend)
-	figure = utils.ReturnTuple((figure, ), ('lomb_plot', ))
-
 	# Define metadata
 	meta = utils.ReturnTuple((nfft, ma_size, ), ('lomb_nfft', 'lomb_ma'))
 
-	# Complete output
-	return tools.join_tuples(params, figure, meta)
+	if mode not in ['normal', 'dev', 'devplot']:
+		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
+		mode = 'normal'
+
+	# Normal Mode:
+	# Returns frequency parameters, PSD plot figure and no frequency & power series/arrays
+	if mode == 'normal':
+		# ms^2 to s^2
+		powers = powers * 10 ** 6
+
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('lomb', frequencies, powers, fbands)
+
+		# Plot parameters
+		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('lomb_plot', ))
+
+		# Complete output
+		return tools.join_tuples(params, figure, meta)
+
+	# Dev Mode:
+	# Returns frequency parameters and frequency & power series/array; does not create a plot figure nor plot the data
+	elif mode == 'dev':
+		# Compute frequency parameters
+		params, _ = _compute_parameters('lomb', frequencies, powers, fbands)
+
+		# Complete output
+		return tools.join_tuples(params, meta), frequencies, powers
+
+	# Devplot Mode:
+	# Returns frequency parameters, PSD plot figure, and frequency & power series/arrays
+	elif mode == 'devplot':
+		# ms^2 to s^2
+		powers = powers * 10**6
+
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('lomb', frequencies, powers, fbands)
+
+		# Plot parameters
+		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('lomb_plot', ))
+
+		# Complete output
+		return tools.join_tuples(params, figure, meta), frequencies, powers
 
 
+# TODO update docstring
 def ar_psd(nni=None,
 		   rpeaks=None,
 		   fbands=None,
@@ -316,7 +382,8 @@ def ar_psd(nni=None,
 		   order=16,
 		   show=True,
 		   show_param=True,
-		   legend=True):
+		   legend=True,
+		   mode='normal'):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Autoregressive method
 	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
 
@@ -414,20 +481,48 @@ def ar_psd(nni=None,
 	powers = np.asarray(10 * np.log10(psd) * 10**3) 	# * 10**3 to compensate with ms^2 to s^2 conversion
 														# in the upcoming steps
 
-	# Compute frequency parameters
-	params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
-
 	# Define metadata
 	meta = utils.ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
 														  'ar_interpolation'))
-	params = tools.join_tuples(params, meta)
 
-	# Plot PSD
-	figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
-	figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+	if mode not in ['normal', 'dev', 'devplot']:
+		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
+		mode = 'normal'
 
-	# Complete output
-	return tools.join_tuples(params, figure)
+	# Normal Mode:
+	# Returns frequency parameters, PSD plot figure and no frequency & power series/arrays
+	if mode == 'normal':
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
+
+		# Plot PSD
+		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+
+		# Complete output
+		return tools.join_tuples(params, figure)
+
+	# Dev Mode:
+	# Returns frequency parameters and frequency & power series/array; does not create a plot figure nor plot the data
+	elif mode == 'dev':
+		# Compute frequency parameters
+		params, _ = _compute_parameters('ar', frequencies, powers, fbands)
+
+		# Output
+		return tools.join_tuples(params, meta), frequencies, (powers / 10 ** 6)
+
+	# Devplot Mode:
+	# Returns frequency parameters, PSD plot figure, and frequency & power series/arrays
+	elif mode == 'devplot':
+		# Compute frequency parameters
+		params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
+
+		# Plot PSD
+		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
+		figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+
+		# Complete output
+		return tools.join_tuples(params, figure, meta), frequencies, (powers / 10 ** 6)
 
 
 def _compute_parameters(method, frequencies, power, freq_bands):
@@ -642,10 +737,10 @@ def _get_frequency_indices(freq, freq_bands):
 		else:
 			indices.append(np.where((freq_bands[key][0] <= freq) & (freq <= freq_bands[key][1])))
 
-	if len(indices) == 3:
-		return None, indices[0], indices[1], indices[2]
+	if indices[0] is None or len(indices) == 3:
+		return None, indices[1][0], indices[2][0], indices[3][0]
 	else:
-		return indices
+		return indices[0][0], indices[1][0], indices[2][0], indices[3][0]
 
 
 def _get_frequency_arrays(freq, ulf_i, vlf_i, lf_i, hf_i):
