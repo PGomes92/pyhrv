@@ -536,7 +536,7 @@ def nn20(nni=None, rpeaks=None):
 	return nnXX(nni=nni, rpeaks=rpeaks, threshold=20)
 
 
-def tinn(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
+def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
 	"""Computes TINN based on the NN intervals histogram.
 
 	References:	[Electrophysiology1996]
@@ -687,7 +687,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=Non
 	return utils.ReturnTuple(args, names)
 
 
-def triangular_index(nni=None, rpeaks=None, binsize=7.815, plot=True, show=True, figsize=None, legend=True):
+def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
 	"""Computes triangular index based on the NN intervals histogram.
 
 	References:	[Electrophysiology1996]
