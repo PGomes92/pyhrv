@@ -46,8 +46,15 @@ from biosppy import utils
 import pyhrv.tools as tools
 
 # TODO add plot argument to docstring
-def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=True, vectors=True, legend=True, \
-																									   marker='o'):
+def poincare(nni=None,
+			 rpeaks=None,
+			 show=True,
+			 plot=True,
+			 figsize=None,
+			 ellipse=True,
+			 vectors=True,
+			 legend=True,
+			 marker='o'):
 	"""Creates Poincaré plot from a series of NN intervals or R-peak locations and derives the Poincaré related
 	parameters SD1, SD2, SD1/SD2 ratio, and area of the Poincaré ellipse.
 
@@ -306,8 +313,8 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 		plt.show()
 
 	# Output
-	args = (fig, alpha1, alpha2,)
-	return utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', ))
+	args = (fig, alpha1, alpha2, short, long)
+	return utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 
 def nonlinear(nni=None,

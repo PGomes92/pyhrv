@@ -1,0 +1,54 @@
+\newpage
+\subsection{Time Domain Results}
+    \begin{table}[h!]
+        \begin{tabular}{*{2}{L{3cm}C{3cm}C{1cm}}}
+            % Basic NNI Parameters
+            % --------------------------------------------------------------------------------------
+            \hline
+            \rowcolor{LightBlue}
+            \textbf{Parameter}                      & \textbf{Value}    & \textbf{Unit} &
+            \textbf{Parameter}                      & \textbf{Value}    & \textbf{Unit} \\\hline
+            % --------------------------------------------------------------------------------------
+            \multicolumn{6}{l}{\gcell{}\textbf{NNI Parameters}}                                 \\
+            \gcell{NNI}                             & \nnicounter       & -             &
+            \gcell{}$\overline{\text{NNI}}$         & \nnimean          & ms            \\
+            \gcell{}\text{$NNI_{min}$}              & \nnimin           & ms            &
+            \gcell{}\text{$NNI_{max}$}              & \nnimax           & ms            \\
+            \gcell{}SDNN                            & \sdnn             & ms            & 
+            \gcell{}RMSSD                           & \rmssd            & ms            \\
+            \gcell{}SDANN                           & \sdann            & ms            &
+            \gcell{}\text{$SDNN_{index}$}           & \sdnnindex        & ms            \\
+            \gcell{}NN20                            & \nntwenty         & -             &
+            \gcell{}pNN20                           & \pnntwenty        & -             \\
+            \gcell{}NN50                            & \nnfifty          & -             &
+            \gcell{}pNN50                           & \pnnfifty         & -             \\
+            \hline
+            % Delta NNI
+            % --------------------------------------------------------------------------------------
+            \multicolumn{6}{l}{\gcell{}\textbf{NNI Differences Parameters}}             \\
+            \gcell{}\text{$\overline{\Delta NNI}$}       & \nnidiffmean      & ms            &
+            \gcell{}\text{$\Delta NNI_{min}$}            & \nnidiffmin       & ms            \\
+            \gcell{}\text{$\Delta NNI_{max}$}            & \nnidiffmax       & ms            &
+            \gcell{}SDSD                                 & \sdsd             & ms       \\\hline
+            % HR Parameters
+            % --------------------------------------------------------------------------------------
+            \multicolumn{6}{l}{\gcell{}\textbf{HR Parameters}}                          \\
+            \gcell{}\text{$\overline{HR}$}          & \hrmean           & bpm           &
+            \gcell{}\text{$HR_{min}$}               & \hrmin            & bpm           \\
+            \gcell{}\text{$HR_{max}$}               & \hrmax            & bpm           &
+            \gcell{}\text{$\sigma(HR)$}                  & \hrstd            & bpm           \\\hline
+            % HR Parameters
+            % --------------------------------------------------------------------------------------
+            \multicolumn{6}{l}{\gcell{}\textbf{Geometrical Parameters}}                 \\
+            \gcell{}Triangular Index                & \triindex         & ms            &
+            \gcell{}TINN                            & n/a$^1$ & -            \\\hline
+            \multicolumn{6}{l}{}
+        \end{tabular}
+    \end{table}
+    \vspace{-5mm}
+    \footnotesize{$^1$TINN function is not working properly in the current pyHRV version and computes incorrect results, reason for which it is not shown in this report}
+    \begin{figure}[h!]
+        \includegraphics[width=\textwidth]{figures/histogram.png}
+        \caption{Histogram of the NNI series.}
+    \end{figure}
+    \vfill

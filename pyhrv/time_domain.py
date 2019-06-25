@@ -43,11 +43,13 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 # BioSppy imports
+import biosppy
 from biosppy.signals.ecg import ecg
-from biosppy import utils
+
 
 # Local imports/HRV toolbox imports
-import pyhrv.tools as tools
+from pyhrv import utils
+from pyhrv import tools
 
 
 def nni_parameters(nni=None, rpeaks=None):
@@ -81,12 +83,12 @@ def nni_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# output
 	args = (int(nn.size), nn.mean(), nn.min(), nn.max())
 	names = ('nni_counter', 'nni_mean', 'nni_min', 'nni_max')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nni_differences_parameters(nni=None, rpeaks=None):
@@ -118,7 +120,7 @@ def nni_differences_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Get NN interval differences
 	nnd = tools.nni_diff(nn)
@@ -126,7 +128,7 @@ def nni_differences_parameters(nni=None, rpeaks=None):
 	# output
 	args = (float(nnd.mean()), int(nnd.min()), int(nnd.max()), )
 	names = ('nni_diff_mean', 'nni_diff_min', 'nni_diff_max', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def hr_parameters(nni=None, rpeaks=None):
@@ -160,7 +162,7 @@ def hr_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Get heart rate series
 	hr = tools.heart_rate(nn)
@@ -168,7 +170,7 @@ def hr_parameters(nni=None, rpeaks=None):
 	# Output
 	args = (hr.mean(), hr.min(), hr.max(), hr.std(ddof=1))
 	names = ('hr_mean', 'hr_min', 'hr_max', 'hr_std')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdnn(nni=None, rpeaks=None):
@@ -199,12 +201,12 @@ def sdnn(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Computation of SDNN & Output
-	args = [tools.std(nn)]
+	args = [utils.std(nn)]
 	names = ['sdnn']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
@@ -247,23 +249,22 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 			will always be < specified duration.
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
-	segments, seg = tools.segmentation(nn,  full=full, overlap=overlap, duration=duration)
+	segments, seg = utils.segmentation(nn,  full=full, overlap=overlap, duration=duration)
 
 	if seg:
 		sdnn_values = [sdnn(x)['sdnn'] for x in segments]
 		sdnn_index = np.mean(sdnn_values)
 	else:
 		sdnn_index = float('nan')
-		if tools.WARN:
-			warnings.warn("Signal duration too short for SDNN index computation.")
+		warnings.warn("Signal duration too short for SDNN index computation.")
 
 	# Output
 	args = [sdnn_index]
 	names = ['sdnn_index']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
@@ -305,23 +306,22 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 			will always be < specified duration.
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
-	segments, seg = tools.segmentation(nn, full=full, overlap=overlap, duration=duration)
+	segments, seg = utils.segmentation(nn, full=full, overlap=overlap, duration=duration)
 
 	if seg:
 		mean_values = [np.mean(x) for x in segments]
-		sdann_ = tools.std(mean_values)
+		sdann_ = utils.std(mean_values)
 	else:
 		sdann_ = float('nan')
-		if tools.WARN:
-			warnings.warn("Signal duration too short for SDANN computation.")
+		warnings.warn("Signal duration too short for SDANN computation.")
 
 	# Output
 	args = [sdann_]
 	names = ['sdann']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def rmssd(nni=None, rpeaks=None):
@@ -352,7 +352,7 @@ def rmssd(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Compute RMSSD
 	nnd = tools.nni_diff(nn)
@@ -362,7 +362,7 @@ def rmssd(nni=None, rpeaks=None):
 	# Output
 	args = (rmssd_, )
 	names = ('rmssd', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdsd(nni=None, rpeaks=None):
@@ -393,18 +393,18 @@ def sdsd(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Compute NN differences
 	nnd = tools.nni_diff(nn)
 
 	# Computation of SDNN
-	sdsd_ = tools.std(nnd)
+	sdsd_ = utils.std(nnd)
 
 	# Output
 	args = [sdsd_]
 	names = ['sdsd']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nnXX(nni=None, rpeaks=None, threshold=None):
@@ -444,7 +444,7 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Check threshold
 	if threshold is None:
@@ -460,7 +460,7 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 	# Output
 	args = (nnxx, pnnxx)
 	names = ('nn%i' % threshold, 'pnn%i' % threshold)
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nn50(nni=None, rpeaks=None):
@@ -589,7 +589,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Get Histogram data (with or without histogram plot figure)
 	if plot:
@@ -684,7 +684,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		args = (N, M, tinn,)
 		names = ('tinn_n', 'tinn_m', 'tinn',)
 
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
@@ -734,7 +734,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# If histogram should be plotted
 	if plot:
@@ -776,7 +776,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 		args = (tri_index, )
 		names = ('tri_index', )
 
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
@@ -916,7 +916,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	"""
 
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Get Histogram data & plot (optional)
 	if plot:
@@ -956,7 +956,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	# Output
 	args = (fig, tinn_vals['tinn_n'], tinn_vals['tinn_m'], tinn_vals['tinn'], trindex)
 	names = ('nni_histogram', 'tinn_n', 'tinn_m', 'tinn', 'tri_index')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def time_domain(nni=None,
@@ -1040,26 +1040,26 @@ def time_domain(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
-	# Call time domain functions & wrap results in a single biosspy.utils.ReturnTuple object
+	# Call time domain functions & wrap results in a single biosppy.utils.ReturnTuple object
 	results = nni_parameters(nn)
-	results = tools.join_tuples(results, hr_parameters(nn))
-	results = tools.join_tuples(results, nni_differences_parameters(nn))
-	results = tools.join_tuples(results, sdnn(nn))
-	results = tools.join_tuples(results, sdnn_index(nn))
-	results = tools.join_tuples(results, sdann(nn))
-	results = tools.join_tuples(results, rmssd(nn))
-	results = tools.join_tuples(results, sdsd(nn))
-	results = tools.join_tuples(results, nn50(nn))
-	results = tools.join_tuples(results, nn20(nn))
+	results = utils.join_tuples(results, hr_parameters(nn))
+	results = utils.join_tuples(results, nni_differences_parameters(nn))
+	results = utils.join_tuples(results, sdnn(nn))
+	results = utils.join_tuples(results, sdnn_index(nn))
+	results = utils.join_tuples(results, sdann(nn))
+	results = utils.join_tuples(results, rmssd(nn))
+	results = utils.join_tuples(results, sdsd(nn))
+	results = utils.join_tuples(results, nn50(nn))
+	results = utils.join_tuples(results, nn20(nn))
 
 	# Compute custom threshold if required
 	if threshold is not None:
-		results = tools.join_tuples(results, nnXX(nn, threshold=int(threshold)))
+		results = utils.join_tuples(results, nnXX(nn, threshold=int(threshold)))
 
 	# Compute geometrical parameters
-	results = tools.join_tuples(results, geometrical_parameters(nn, plot=plot, show=show, binsize=binsize))
+	results = utils.join_tuples(results, geometrical_parameters(nn, plot=plot, show=show, binsize=binsize))
 
 	# Output
 	return results

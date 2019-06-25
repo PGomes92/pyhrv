@@ -32,7 +32,7 @@ Last Update
 # Imports
 from __future__ import absolute_import
 from pyhrv.__version__ import __version__
-from pyhrv.hrv import hrv
+# from pyhrv.hrv import hrv
 
 # Metadata
 __author__ = "Pedro Gomes"

@@ -1,53 +1,123 @@
-![Image](SampleFigures/pyhrv.png)
+![Image](./SampleFigures/pyhrv.png)
 
-This repository contains the HRV toolbox (Python package) developed within the scope of my master thesis *"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"*).
+![GitHub Version](https://img.shields.io/badge/GitHub-v.0.4.0-orange.svg)
+[![PyPi Version](https://img.shields.io/pypi/v/pyhrv.svg)](https://pypi.org/project/pyhrv/)
+![Python Versions](https://img.shields.io/pypi/pyversions/pyhrv.svg)
+[![Issues](https://img.shields.io/github/issues/PGomes92/pyhrv.svg)](https://github.com/PGomes92/pyhrv/issues)
+![Development](https://img.shields.io/badge/development-active-green.svg)
+[![Documentation Status](https://readthedocs.org/projects/pyhrv/badge/?version=latest)](https://pyhrv.readthedocs.io/en/latest/)
+![Downloads](https://img.shields.io/pypi/dm/pyhrv.svg)
+![License](https://img.shields.io/pypi/l/pyhrv.svg)
 
-The HRV algorithms have been developed and implemented according to the [Heart Rate Variability - Sandards of Measurement, Physiological Interpretation, and Clinical Use](http://circ.ahajournals.org/content/93/5/1043) guidelines and other references which are notes in the code itself (will be entirely updated soon).
+pyHRV is an open-source Python toolbox that computes state-of-the-art Heart Rate Variability (HRV) parameters from Electrocardiography (ECG), SpO2, Blood Volume Pulse (BVP), or other signals with heart rate indicators.
 
-Below follows as list of the parameters and features. Major updates will be listed in the [changelog](changelog.md).
+With pyHRV, we aim to provide a user-friendly and versatile Python toolbox for HRV dedicated education, research, and application development.
 
-> IMPORTANT: pyHRV had some installation issues under Python3 which have been fixed in v.0.3.2
-
-## Getting Started
+It provides provides comprehensible source code to help beginners understand the fundamentals of HRV parameter computation, while providing the most important HRV analysis functionalities for developers and publication-quality plots of the results for researchers.
+# Getting Started
 
 ### Installation
 This toolbox can be installed using the ```pip``` tool (works for Python 2 and 3):
+
 ```python
 pip install pyhrv
 ```
 
-> NOTE: Python 3 installation issues using pip install have now been fixed with v.0.3.2
-
+Dependencies: [biosppy](https://github.com/PIA-Group/BioSPPy) | [numpy](http://www.numpy.org) | [scipy](http://scipy.org) | [matplotlib](https://matplotlib.org) | [nolds](https://github.com/CSchoel/nolds) | [spectrum](https://github.com/cokelaer/spectrum)
 
 ### Documentation & Tutorials
-An overview of all the available functions and short quickstart tutorials can be found in the [README](./pyhrv/README.md) file found within the `pyhrv` package.
+Detailed pyHRV documentation is available on ReadTheDocs:
 
-The official **pyHRV** Documentation is now available on ReadTheDocs:
+[pyHRV API Reference](https://pyhrv.readthedocs.io)
 
-https://pyhrv.readthedocs.io
+Additional tutorials can be found here:
 
-## HRV Parameter List
+[pyHRV Quickstart Guide](./pyhrv/README.md)<br>
+[Tutorial: From ECG acquisition to HRV analysis with pyHRV](https://pyhrv.readthedocs.io/en/latest/_pages/tutorials.html)
 
-The following HRV parameters can be computed with this toolbox. 
+### Scientific Background
+The HRV algorithms have been developed and implemented according to the [Heart Rate Variability - Sandards of 
+Measurement, Physiological Interpretation, and Clinical Use Guidelines](https://www.ahajournals.org/doi/full/10.1161/01.CIR.93.5.1043). Other references are noted in the code and in the [pyHRV references](./pyhrv/references.txt).
 
-(NNI: Normal-to-Normal Interval, HR: Heart Rate, SD: Standard deviation, PSD: Power Spectral Density)
+### Citing pyHRV
+Please use the following conference paper to cite pyHRV in your work:
+
+*P. Gomes, P. Margaritoff, and H. P. da Silva, “pyHRV: Development and evaluation of an open-source python toolbox for
+ heart rate variability (HRV),” in Proc. Int’l Conf. on Electrical, Electronic and Computing Engineering (IcETRAN), pp. –, 2019*
+
+```latex
+@inproceedings{Gomes2019,
+   author = {Gomes, Pedro and Margaritoff, Petra and Silva, Hugo},
+   booktitle = {Proc. Int'l Conf. on Electrical, Electronic and Computing Engineering (IcETRAN)},
+   pages = {X-X},
+   title = {{pyHRV: Development and evaluation of an open-source python toolbox for heart rate variability (HRV)}},
+   year = {2019}
+}
+```
+<sup>Note: The conference paper has not been made publicly available. The missing page indication will updated once 
+the paper is available</sup>
+
+# pyHRV Core Features & HRV Parameter List
+
+With pyHRV, you can compute up to 78 HRV parameters while using other useful non-parameter-specific tools to support 
+your HRV research.
+
+### Basic Tools & Features
+
+- Computation of NNI series
+- Computation of ∆NNI series
+- Computation of HR series
+- Signal segmentation into segments of specified durations
+- ECG plotting on medical-grade-like ECG paper layout
+- Tachogram plotting
+- HRV result export and import(.json format)
+- HRV report generation (.txt and .csv format)
+
+![Image](./SampleFigures/SampleECG.png)
+![Image](./SampleFigures/SampleTachogram.png)
+
+New in version 0.4:
+- LaTeX powered HRV PDF report generation (BETA) ([SampleReport](./SampleFigures/SampleReport.pdf))
+- Heart Rate Heatplot - Visualization & classification of HR performance based on normal HR ranges by age and gender
+
+![Image](./SampleFigures/SampleHRHeatplot.png)
 
 ### Time Domain Parameters
-- Basic statistical parameters of an NNI series (min, max, mean)
-- Basic statistical parameters of an NNI differences series (min, max, mean, max difference)
-- Basic statistical parameters of an HR series (min, max, mean, SD)
-- Standard Deviation of NNI (SDNN)
-- Mean of the SD of 5min segments (SDNN Index)
-- SD of the Mean of 5min segments (SDANN)
-- Root Mean Square of Successive Differences (RMSSD)
-- SD of Successive Differences (SDSD)
-- NN50 (NNI > 50ms) and pNN50 (% of NNI > 50ms)
-- NNX (NNI > Xms) and pNN50 (% of NNI > Xms)
-- Triangular Index
-- Baseline Width of the Histogram based on Triangular Interpolation (TINN) (TINN, N, M)
+
+|  Time Domain Parameter     		         |  Description |
+|  ---                     |  ---         |
+|  NNI<sub>min</sub><br>NNI<sub>max</sub><br>NNI<sub>mean</sub> | Basic statistical parameters of a NNI series  |
+|  ΔNNI<sub>min</sub><br>ΔNNI<sub>max</sub><br>ΔNNI<sub>mean</sub><br>ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> | Basic statistical parameters of a ΔNNI series |
+|  HR<sub>min</sub><br>HR<sub>max</sub><br>HR<sub>mean</sub><br>σ(HR) | Basic statistical parameters of an HR series |
+|  SDNN                    |  Standard deviation of a NNI series  |
+|  SDNN<sub>index</sub>    |  Mean of the SDNN of 5 successive 5 minute segments extracted from long-term NNI series |
+|  SDANN                   |  Standard deviation of the mean of 5 minute segments extracted from long-term NNI series |
+|  RMSSD                   |  Root mean square of successive differences   |
+|  SDSD                    |  Standard deviation of successive differences |
+|  NNx<sup>1</sup>         |  Number of NNI > x ms |
+|  pNNx<sup>1</sup>        |  Ratio between the NNx value and the total number of NNI |
+<sup><sup>1</sup> function available with selectable threshold; functions for traditional 50ms (NN50 & pNN50) and 
+20ms 
+(NN20 & pNN20) are also available</sup>
+
+pyHRV also provides functions for the computation of the geometrical parameters of the Time Domain including the 
+NNI Histogram plot as shown below.
+
+|  Geometrical Parameters  |  Description       |
+|  ---                     |  ---               |
+|  TRI                     |  Triangular index  (Maximum of the Histogram / Width of the Histogram)|
+|  TINN<sup>2</sup>        |  Baseline width of the NNI Histogram based on a triangular interpolation function |
+
+<sup><sup>2</sup> the current version of pyHRV has some bug which causes misleading and false results for the TINN 
+function. [An issue has already been open for this purpose...](https://github.com/PGomes92/pyhrv/issues/5)
+
+![Image](./SampleFigures/SampleHistogram.png)
+
 
 ### Frequency Domain Parameters
-Computes the following PSD parameters from the Welch's Method and the Lomb-Scargle periodogram (with default or custom frequency bands):
+Computes the following Frequency Domain parameters from the Power Spectral Density (PSD) of a NNI series computed 
+using the Welch's, Autoregressive and/or Lomb-Scargle PSD estimation methods:
+
 - Peak Frequencies
 - Absolute Powers
 - Logarithmic Powers
@@ -55,116 +125,35 @@ Computes the following PSD parameters from the Welch's Method and the Lomb-Scarg
 - Normalized Powers (LF and HF only)
 - LF/HF ratio
 
-### Nonlinear Parameters
+The parameters are computed for the Very Low Frequency (VLF), Low Frequency (LF), and High Frequency (HF) bands. The 
+Frequency Bands can be customized and specified, including an Ultra Low Frequency (ULF) band.
+
+Sample plots of the resulting PSD plots and Frequency Domain parameters using pyHRV functions can be seen below:
+
+![Image](./SampleFigures/SampleWelch.png)
+![Image](./SampleFigures/SampleAR.png)
+![Image](./SampleFigures/SampleLomb.png)
+
+## Nonlinear Parameters
 - Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio)
 - Sample Entropy
 - Detrended Fluctuation Analysis (short-term and long-term)
 
-### Additional HRV Tools
-- Computation of NNI series
-- Computation of ∆NNI series
-- Computation of HR series
-- Signal segmentation
-- ECG plotting on medical-grade-like ECG paper layout
-- Tachogram plotting
-- HRV report generation (.txt and .csv format)
-- HRV result exportation and importion (.json format)
 
 ## Sample Figures
-### ECG Plot
-![Image](./SampleFigures/SampleECG.png)
-
-### Tachogram
-![Image](./SampleFigures/SampleTachogram.png)
-
-### Histogram & Geometrical Parameters
-![Image](./SampleFigures/SampleHistogram.png)
-
-### Frequency Domain - Welch's Periodogram
-![Image](./SampleFigures/SampleWelch.png)
-
-### Frequency Domain - Lomb-Scargle Periodogram
-![Image](./SampleFigures/SampleLomb.png)
 
 ### Frequency Domain - Autoregressive Method
-![Image](./SampleFigures/SampleAR.png)
 
 ### Nonlinear - Poincaré & Detrended Fluctuation Analysis
 ![Image](./SampleFigures/SampleNonlinear.png)
 
-## Dependencies
-- [biosppy](https://github.com/PIA-Group/BioSPPy)
-- [numpy](http://www.numpy.org)
-- [scipy](http://scipy.org)
-- [matplotlib](https://matplotlib.org)
-- [nolds](https://github.com/CSchoel/nolds)
-- [spectrum](https://github.com/cokelaer/spectrum)
+### Comparison & Analysis support features
+![Image](./SampleFigures/SampleRadarChart8.png)
+![Image](./SampleFigures/SampleRadarChart5.png)
 
-## Context of this Work
-This package has initially been developed within the scope of my master thesis _"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.
-
-## Other Support Packages Developed within the Skope of this Work
-### OpenSignalsReader
-Python package to read [OpenSignals (r)evolution](http://bitalino.com/en/software) files and automatic sensor data conversion for [BITalino (r)evolution](http://bitalino.com) sensor data.
-
-This package has been developed to facilitate the import of ECG sensor data acquired with BITalino (r)evolution to conduct HRV analysis.
-
-Visit the repository for more detailed information:
-
-https://github.com/PGomes92/opensignalsreader
-
-_([OpenSignals (r)evolution](http://bitalino.com/en/software) (by [PLUX wireless biosignals S.A.](http://plux.info)) is the official software for the [BITalino](http://bitalino.com) and [biosignalsplux](http://biosignalsplux.com) biosignal acquisition platforms._)
-
-### KUBIOS
-Python package to export NN/RR interval series in [KUBIOS HRV](https://www.kubios.com) readable format and to import HRV results from KUBIOS report files in .txt format.
-
-Visit the repository for more detailed information:
-
-https://github.com/PGomes92/kubios
-
-## Citing
-Please use the citation format below if you need to cite this package in any of your work:
-
-- Gomes P, Silva H, Margaritoff P, **pyHRV - Open-Source Python Toolbox for Heart Rate Variability**, 2018-,
-  https://github.com/PGomes92/hrv-toolkit/ [Online; accessed ```<year>-<month>-<day>```].
-
-```latex
-@Misc{,
-  author = {Pedro Gomes, Hugo Silva, Petra Margaritoff},
-  title = {{pyHRV} - Open-Source Python Toolbox for Heart Rate Variability},
-  year = {2018--},
-  url = "https://github.com/PGomes92/hrv-toolkit/",
-  note = {[Online; accessed <today>]}
-}
-```
-
-## Repository Structure Info
-    .
-    ├── pyhrv                           # HRV toolbox/package (where the magic happens)
-    |   └──files                        # Sample files & HRV keys
-    |   |   ├── hrv_keys.json           # HRV keys to access the parameter results stored in
-    |   |   |                           # biosspy.utils.ReturnTuple objects & parameter labels
-    |   |   ├── SampleExport.json       # Sample export file generated with pyhrv.tools.hrv_export()
-    |   |   ├── SampleReport.txt        # Sample export file generated with pyhrv.tools.hrv_report()
-    |   |   └── SampleECG.txt           # BITalino (r)evolution sample ECG acquistion
-    |   |
-    |   ├── samples                     # 50 sample NNI series
-    |   |
-    |   ├── README.md                   # Package overview & quick start guide/examples
-    |   ├── references.txt              # References used in the in-code documentation
-    |   ├── __init__.py                 # Package initialitation file
-    |   ├── __version__.py              # Package version file
-    |   ├── tools.py                    # HRV tools (nni, segmentation, reports, ...)
-    |   ├── hrv.py                      # HRV package level function
-    |   ├── time_domain.py              # Time domain parameter functions
-    |   ├── frequency_domain.py         # Frequency domain parameter functions
-    |   └── noninear.py                 # Nonlinear parameter functions
-    |
-    ├── SampleFigures                   # Sample figures of plots
-    |   └──readmefigures                # readmefigures
-    ├── changelog.md                    # Changelog
-    ├── LICENSE.txt                     # License information
-    └── README.py                       # <- you are here
-
-## Disclaimer
+# Disclaimer
 This program is distributed in the hope it will be useful and provided to you "as is", but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This program is NOT intended for medical diagnosis. We expressly disclaim any liability whatsoever for any direct, indirect, consequential, incidental or special damages, including, without limitation, lost revenues, lost profits, losses resulting from business interruption or loss of data, regardless of the form of action or legal theory under which the liability may be asserted, even if advised of the possibility of such damages.
+
+
+This package has initially (up to version 0.3) been developed within the scope of my master thesis _"Development of an 
+Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.

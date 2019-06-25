@@ -32,7 +32,7 @@ Thesis Supervisors
 
 Last Update
 -----------
-19-11-2018
+16-06-2019
 
 :copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
@@ -41,24 +41,24 @@ Last Update
 from __future__ import absolute_import, division, print_function
 
 # Imports
+import time
 import warnings
 import spectrum
 import numpy as np
 import scipy as sp
+import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import LineCollection
-import matplotlib as mpl
 from scipy.signal import welch, lombscargle
 from matplotlib import pyplot as plt
 
 # biosppy imports
 import biosppy
-from biosppy import utils
 
 # Local imports/HRV toolbox imports
-import pyhrv.tools as tools
+from pyhrv import tools
 
-# Surpress Lapack bug 0038 warning from scipy (may occur with older versions of the packages above)
+# Suppress Lapack bug 0038 warning from scipy (may occur with older versions of the packages above)
 warnings.filterwarnings(action="ignore", module="scipy")
 
 
@@ -71,6 +71,7 @@ def welch_psd(nni=None,
 			  show=True,
 			  show_param=True,
 			  legend=True,
+			  figsize=None,
 			  mode='normal'):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Welch’s method
 	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
@@ -103,6 +104,13 @@ def welch_psd(nni=None,
 		If true, list all computed PSD parameters next to the plot (default: True)
 	legend : bool, optional
 		If true, add a legend with frequency bands to the plot (default: True)
+	figsize : tuple, optional
+		Matplotlib figure size (width, height) (default: None: (12, 4))
+	mode : string, optional
+		Return mode of the function; available modes:
+		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
+		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
+		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
 	Returns
 	-------
@@ -159,7 +167,7 @@ def welch_psd(nni=None,
 	t_interpol = np.arange(t[0], t[-1], 1000./fs)
 	nn_interpol = f_interpol(t_interpol)
 
-	# Subtract mean value from each sample for surpression of DC-offsets
+	# Subtract mean value from each sample for suppression of DC-offsets
 	if detrend:
 		nn_interpol = nn_interpol - np.mean(nn_interpol)
 
@@ -182,7 +190,7 @@ def welch_psd(nni=None,
 	# Metadata
 	args = (nfft, window, fs, 'cubic')
 	names = ('fft_nfft', 'fft_window', 'fft_resampling_frequency', 'fft_interpolation',)
-	meta = utils.ReturnTuple(args, names)
+	meta = biosppy.utils.ReturnTuple(args, names)
 
 	if mode not in ['normal', 'dev', 'devplot']:
 		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
@@ -195,8 +203,8 @@ def welch_psd(nni=None,
 		params, freq_i = _compute_parameters('fft', frequencies, powers, fbands)
 
 		# Plot PSD
-		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('fft_plot', ))
+		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('fft_plot', ))
 
 		# Output
 		return tools.join_tuples(params, figure, meta)
@@ -208,7 +216,7 @@ def welch_psd(nni=None,
 		params, _ = _compute_parameters('fft', frequencies, powers, fbands)
 
 		# Output
-		return tools.join_tuples(params, meta), frequencies, (powers / 10 ** 6)
+		return tools.join_tuples(params, meta), frequencies, np.asarray((powers / 10 ** 6))
 
 	# Devplot Mode:
 	# Returns frequency parameters, PSD plot figure, and frequency & power series/arrays
@@ -217,11 +225,12 @@ def welch_psd(nni=None,
 		params, freq_i = _compute_parameters('fft', frequencies, powers, fbands)
 
 		# Plot PSD
-		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('fft_plot', ))
+		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('fft_plot', ))
 
 		# Output
-		return tools.join_tuples(params, figure, meta), frequencies, (powers / 10 ** 6)
+		return tools.join_tuples(params, figure, meta), frequencies, np.asarray((powers / 10 ** 6))
+
 
 def lomb_psd(
 		nni=None,
@@ -232,6 +241,7 @@ def lomb_psd(
 		show=True,
 		show_param=True,
 		legend=True,
+		figsize=None,
 		mode='normal'
 	):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Lomb-Scargle Periodogram
@@ -263,6 +273,13 @@ def lomb_psd(
 		If true, list all computed PSD parameters next to the plot (default: True)
 	legend : bool, optional
 		If true, add a legend with frequency bands to the plot (default: True)
+	figsize : tuple, optional
+		Matplotlib figure size (width, height) (default: None: (12, 4))
+	mode : string, optional
+		Return mode of the function; available modes:
+		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
+		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
+		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
 	Returns
 	-------
@@ -319,14 +336,14 @@ def lomb_psd(
 	powers = np.asarray(lombscargle(t, nn, a_frequencies, normalize=True))
 
 	# Fix power = inf at f=0
-	powers[0] = 2
+	powers[0] = 0
 
 	# Apply moving average filter
 	if ma_size is not None:
 		powers = biosppy.signals.tools.smoother(powers, size=ma_size)['signal']
 
 	# Define metadata
-	meta = utils.ReturnTuple((nfft, ma_size, ), ('lomb_nfft', 'lomb_ma'))
+	meta = biosppy.utils.ReturnTuple((nfft, ma_size, ), ('lomb_nfft', 'lomb_ma'))
 
 	if mode not in ['normal', 'dev', 'devplot']:
 		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
@@ -342,8 +359,8 @@ def lomb_psd(
 		params, freq_i = _compute_parameters('lomb', frequencies, powers, fbands)
 
 		# Plot parameters
-		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('lomb_plot', ))
+		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('lomb_plot', ))
 
 		# Complete output
 		return tools.join_tuples(params, figure, meta)
@@ -367,14 +384,13 @@ def lomb_psd(
 		params, freq_i = _compute_parameters('lomb', frequencies, powers, fbands)
 
 		# Plot parameters
-		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('lomb_plot', ))
+		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('lomb_plot', ))
 
 		# Complete output
 		return tools.join_tuples(params, figure, meta), frequencies, powers
 
 
-# TODO update docstring
 def ar_psd(nni=None,
 		   rpeaks=None,
 		   fbands=None,
@@ -383,6 +399,7 @@ def ar_psd(nni=None,
 		   show=True,
 		   show_param=True,
 		   legend=True,
+		   figsize=None,
 		   mode='normal'):
 	"""Computes a Power Spectral Density (PSD) estimation from the NNI series using the Autoregressive method
 	and computes all frequency domain parameters from this PSD according to the specified frequency bands.
@@ -414,6 +431,13 @@ def ar_psd(nni=None,
 		If true, list all computed PSD parameters next to the plot (default: True)
 	legend : bool, optional
 		If true, add a legend with frequency bands to the plot (default: True)
+	figsize : tuple, optional
+		Matplotlib figure size (width, height) (default: None: (12, 4))
+	mode : string, optional
+		Return mode of the function; available modes:
+		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
+		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
+		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
 	Returns
 	-------
@@ -482,7 +506,7 @@ def ar_psd(nni=None,
 														# in the upcoming steps
 
 	# Define metadata
-	meta = utils.ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
+	meta = biosppy.utils.ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
 														  'ar_interpolation'))
 
 	if mode not in ['normal', 'dev', 'devplot']:
@@ -494,10 +518,11 @@ def ar_psd(nni=None,
 	if mode == 'normal':
 		# Compute frequency parameters
 		params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
+		params = tools.join_tuples(params, meta)
 
 		# Plot PSD
-		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('ar_plot', ))
 
 		# Complete output
 		return tools.join_tuples(params, figure)
@@ -518,8 +543,8 @@ def ar_psd(nni=None,
 		params, freq_i = _compute_parameters('ar', frequencies, powers, fbands)
 
 		# Plot PSD
-		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend)
-		figure = utils.ReturnTuple((figure, ), ('ar_plot', ))
+		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
+		figure = biosppy.utils.ReturnTuple((figure, ), ('ar_plot', ))
 
 		# Complete output
 		return tools.join_tuples(params, figure, meta), frequencies, (powers / 10 ** 6)
@@ -619,8 +644,8 @@ def _compute_parameters(method, frequencies, power, freq_bands):
 		'%s_ratio' % method, '%s_total' % method)
 
 	# Output
-	params = utils.ReturnTuple(args, names)
-	freq_i = utils.ReturnTuple((ulf_i, vlf_i, lf_i, hf_i), ('ulf', 'vlf', 'lf', 'hf'))
+	params = biosppy.utils.ReturnTuple(args, names)
+	freq_i = biosppy.utils.ReturnTuple((ulf_i, vlf_i, lf_i, hf_i), ('ulf', 'vlf', 'lf', 'hf'))
 	return params, freq_i
 
 
@@ -667,7 +692,11 @@ def _check_freq_bands(freq_bands):
 		names_ = []
 
 		# ULF band
-		ulf = freq_bands['ulf'] if 'ulf' in freq_bands.keys() else (0, 0)
+		if 'ulf' in freq_bands.keys():
+			if freq_bands['ulf'] is not None:
+				ulf = freq_bands['ulf']
+			else:
+				ulf = (0, 0)
 		args_.append(ulf)
 		names_.append('ulf')
 
@@ -707,7 +736,7 @@ def _check_freq_bands(freq_bands):
 		args = args_
 		names = names_
 
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def _get_frequency_indices(freq, freq_bands):
@@ -751,13 +780,13 @@ def _get_frequency_arrays(freq, ulf_i, vlf_i, lf_i, hf_i):
 	freq : array
 		Frequencies of the PSD.
 	ulf_i : array
-		Indices of all freuquencies within the ULF band.
+		Indices of all frequencies within the ULF band.
 	vlf_i : array
-		Indices of all freuquencies within the ULF band.
+		Indices of all frequencies within the ULF band.
 	lf_i : array
-		Indices of all freuquencies within the ULF band.
+		Indices of all frequencies within the ULF band.
 	hf_i : array
-		Indices of all freuquencies within the ULF band.
+		Indices of all frequencies within the ULF band.
 
 	Returns
 	-------
@@ -778,7 +807,7 @@ def _get_frequency_arrays(freq, ulf_i, vlf_i, lf_i, hf_i):
 	return ulf_f, vlf_f, lf_f, hf_f
 
 
-def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, legend):
+def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, legend, figsize):
 	"""Plots the PSD graph from a series of frequencies and power values.
 
 	Parameters
@@ -817,8 +846,10 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 	df = freq[1] - freq[0]
 
 	if show_param:
+		figsize = (12, 5) if figsize is None else figsize
+
 		# Add second subplot with all computed parameters
-		fig_psd = plt.figure(figsize=(12, 5))
+		fig_psd = plt.figure(figsize=figsize)
 
 		ax = fig_psd.add_subplot(121)
 		ax2 = fig_psd.add_subplot(122)
@@ -868,7 +899,7 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 					data.append(mpl.patches.Patch(facecolor='white', label=''))
 					data.append(mpl.patches.Patch(facecolor='white', label=''))
 
-				if (fbands['ulf'] is not None and  band == 'vlf') or (fbands['ulf'] is None and  band == 'lf'):
+				if (fbands['ulf'] is not None and band == 'vlf') or (fbands['ulf'] is None and  band == 'lf'):
 					data.append(mpl.patches.Patch(fc='white', label='Total Power: %.3f [$ms^2$]' % parameters[
 						'%s_total' % method]))
 					data.append(mpl.patches.Patch(fc='white', label='LF/HF: %.3f [-]' %
@@ -877,7 +908,10 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 		ax2.legend(handles=data, ncol=2, frameon=False)
 		ax2.axis('off')
 	else:
-		fig_psd = plt.figure()
+		if figsize is not None:
+			fig_psd = plt.figure(figsize=figsize)
+		else:
+			fig_psd = plt.figure()
 		ax = fig_psd.add_subplot(111)
 
 	# Highlight the individual frequency bands
@@ -917,6 +951,610 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 
 	return fig_psd
 
+
+############################
+# PSD COMPARISON FUNCTIONS #
+############################
+
+PSD_METHODS = {
+	'welch': welch_psd,
+	'ar': ar_psd,
+	'lomb': lomb_psd
+}
+
+
+def psd_comparison(nni=None,
+				   rpeaks=None,
+				   segments=None,
+				   method='welch',
+				   fbands=None,
+				   duration=300,
+				   show=True,
+				   kwargs=None):
+	"""Computes a series of PSDs from NNI segments extracted from a NNI/R-Peak input series or a series of input
+	NNI segments and plots the result in a single plot.
+
+	This function aims to facilitate the visualization, comparison, and analysis of PSD evolution over time.
+
+	Docs: https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#d-psd-comparison-plot-psd-comparison
+
+	Parameters
+	----------
+	nni : array
+		NN-Intervals in [ms] or [s]
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	segments : nested arrays
+		Array containing pre-selected segments for the PSD computation in [ms] or [s]
+	method : string, optional
+		PSD estimation method (default: 'fft')
+			'welch' Welch's Method      pyhrv.frequency_domain.welch_psd()
+			'ar'    Autoregressive      pyhrv.frequency_domain.ar_psd()
+			'lomb'  Lomb-Scargle        pyhrv.frequency_domain.lomb_psd()
+	fbands : dict, optional
+		Dictionary with frequency bands (2-element tuples or list)
+		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
+		Keys:	'ulf'	Ultra low frequency		(default: none) optional
+				'vlf'	Very low frequency		(default: (0.000Hz, 0.04Hz))
+				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
+				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
+	duration : int, optional
+		Maximum duration duration per segment in [s] (default: 300s).
+	show : bool, optional
+		If true, show PSDs plot (default: True)
+	kwargs : dict
+		Dictionary of kwargs for the PSD computation functions 'welch_psd()', 'ar_psd()' or 'lomb_psd()'.
+
+	Returns
+	-------
+	psd_data : nested ReturnTuple object(s)
+		Nested ReturnTuple object with PSD parameters, frequency, and power series. Each segment is accessible via a
+		incremented key 'seg1', 'seg2', 'seg3', ..., 'segN', with N being the maximum number of available NNI segments
+
+		Output Example of a 2-segment output
+		------------------------------------
+		psd_data = {
+			'seg1': {
+				'params': Tuple containing all the frequency domain parameters of this NNI segment/PSD,
+				'f': Array of PSD frequencies,
+				'p': Array of PSD powers
+			}
+			'seg2': {
+				'params': Tuple containing all the frequency domain parameters of this NNI segment/PSD,
+				'f': Array of PSD frequencies,
+				'p': Array of PSD powers
+			}
+			'psd_comparison_2D_figure': matplotlib figure of the comparison plot
+		}
+
+	Raises
+	------
+	ValueError:
+		If an unknown PSD method has been selected.
+
+	Notes
+	-----
+	..  'duration' does only have effect if input data for 'segments' is also provided
+
+	"""
+	# Check input values
+	if segments is None:
+		nn = tools.check_input(nni, rpeaks)
+		segments, _ = tools.segmentation(nn, full=False, overlap=False, duration=duration)
+	else:
+		# Remove duration in case a series of pre-selected segments are provided
+		duration = None
+
+	# Check the input method
+	if type(method) is not str:
+		raise TypeError("Input parameter method is of '%s' but it must be a string ('fft', 'ar' or 'lomb')."
+						% str(type(method)))
+	else:
+		method = method.lower()
+		method = 'welch' if method == 'fft' else method
+		if method not in PSD_METHODS.keys():
+			raise ValueError("Unknown PSD method '%s'. Please select 'welch', 'ar' or 'lomb'." % str(method))
+
+	# Compute all PSDs and frequency domain parameters of each segment
+	psd_data = _compute_psds(segments, method=method, fbands=fbands, kwargs=kwargs)
+
+	# Create 2D comparison plot
+	fig = _2d_plot(psd_data, fbands=_check_freq_bands(fbands), method=method, show=show, duration=duration)
+
+	# Output
+	fig = biosppy.utils.ReturnTuple((fig,), ('psd_comparison_2D_figure',))
+	return tools.join_tuples(fig, psd_data)
+
+
+def _compute_psds(segments, method, fbands, kwargs={}):
+	"""Iterates through a series of NNI segments and computes the respective PSDs.
+
+	Parameters
+	----------
+	segments : nested arrays
+		Array containing the NN intervals of each segment
+	method : string, optional
+		PSD estimation method (default: 'fft')
+			'fft'   Welch's Method      pyhrv.frequency_domain.welch_psd()
+			'ar'    Autoregressive      pyhrv.frequency_domain.ar_psd()
+			'lomb'  Lomb-Scargle        pyhrv.frequency_domain.lomb_psd()
+	fbands : dict, optional
+		Dictionary with frequency bands (2-element tuples or list)
+		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
+		Keys:	'ulf'	Ultra low frequency		(default: none) optional
+				'vlf'	Very low frequency		(default: (0.000Hz, 0.04Hz))
+				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
+				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
+	kwargs : dict
+		Dictionary of kwargs for the PSD computation functions 'welch_psd()', 'ar_psd()' or 'lomb_psd()'.
+
+	Returns
+	-------
+	psd_data : nested ReturnTuple object(s)
+		Nested ReturnTuple object with PSD parameters, frequency, and power series. Each segment is accessible via a
+		incremented key 'seg1', 'seg2', 'seg3', ..., 'segN', with N being the maximum number of available NNI segments
+
+		Output Example of a 2-segment output
+		------------------------------------
+		psd_data = {
+			'seg1': {
+				'params': Tuple containing all the frequency domain parameters of this NNI segment/PSD,
+				'f': Array of PSD frequencies,
+				'p': Array of PSD powers
+			}
+			'seg2': {
+				'params': Tuple containing all the frequency domain parameters of this NNI segment/PSD,
+				'f': Array of PSD frequencies,
+				'p': Array of PSD powers
+			}
+		}
+
+	Raises
+	------
+	TypeError
+		If input parameter 'method' is not a string.
+	TypeError
+		If 'kwargs' is not a dictionary.
+	"""
+
+	# Helper function:
+	def _compute_psds(segs, **kwargs):
+		"""Sets kwargs for the PSD function of the selected method, computes all PSDs for all provided segments, and
+		returns results in a nested biosspy.utils.ReturnTuple object.
+		"""
+		args, names = (), ()
+		psd_method = PSD_METHODS[method]
+		for i, seg in enumerate(segs):
+			params, f, p = psd_method(nni=seg, fbands=fbands, mode='dev', **kwargs)
+			args += (biosppy.utils.ReturnTuple((params, f, p,), ("params", "f", "p",)),)
+			names += ("seg%i" % (i + 1),)
+		return biosppy.utils.ReturnTuple(args, names)
+
+	# Check input data
+	kwargs = kwargs if kwargs is not None else {}
+	if type(kwargs) is not dict:
+		raise TypeError("Expected <type 'dict'>, got %s: 'kwargs' must be a dictionary containing "
+						"parameters (keys) and values for the 'kwargs' function." % type(kwargs))
+
+	# Compute PSDs
+	if method == 'welch':
+		# Check for kwargs for the 'welch_psd' function and compute the PSDs & set default values for invalid kwargs
+
+		# Supported kwargs
+		available_kwargs = ['fbands', 'detrend', 'show', 'show_param', 'legend', 'window', 'nfft']
+
+		# Unwrwap kwargs dictionary for Welch specific parameters
+		detrend = kwargs['detrend'] if 'detrend' in kwargs.keys() else True
+		window = kwargs['window'] if 'window' in kwargs.keys() else 'hamming'
+		nfft = kwargs['nfft'] if 'nfft' in kwargs.keys() else 2 ** 12
+
+		unsupported_kwargs = []
+		for args in kwargs.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'welch_psd': %s. These kwargs have no effect." %
+						  unsupported_kwargs, stacklevel=2)
+
+		# Compute and return PSDs
+		return _compute_psds(segments, detrend=detrend, window=window, nfft=nfft)
+
+	elif method == 'lomb':
+		# Check for kwargs for the 'lomb_psd' function and compute the PSD  & set default values for invalid kwargs
+
+		# Supported kwargs
+		available_kwargs = ['fbands', 'ma_size', 'show', 'show_param', 'legend', 'nfft', '']
+
+		# Unwrwap kwargs dictionary
+		nfft = kwargs['nfft'] if 'nfft' in kwargs.keys() else 2 ** 8
+		ma_size = kwargs['ma_size'] if 'ma_size' in kwargs.keys() else None
+
+		unsupported_kwargs = []
+		for args in kwargs.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'lomb_psd': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute and return the PSDs
+		return _compute_psds(segments, nfft=nfft, ma_size=ma_size)
+
+	elif method == 'ar':
+		# Check for kwargs for the 'ar_psd' function and compute the PSD & set default values for invalid kwargs
+
+		# Supported kwargs
+		available_kwargs = ['fbands', 'show', 'order', 'show_param', 'legend', 'window', 'nfft']
+
+		# Unwrwap kwargs dictionary for Welch specific parameters
+		nfft = kwargs['nfft'] if 'nfft' in kwargs.keys() else 2 ** 12
+		order = kwargs['order'] if 'order' in kwargs.keys() else 16
+
+		unsupported_kwargs = []
+		for args in kwargs.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'welch_psd': %s. These kwargs have no effect." %
+						  unsupported_kwargs, stacklevel=2)
+
+		# Compute and return the PSDs
+		return _compute_psds(segments, nfft=nfft, order=order)
+
+
+def _2d_plot(data, method, show, fbands, duration):
+	"""Creates the 2D comparison plot of multiple PSDs extracted from NNI segments for the psd_comparison() function.
+
+	Parameters
+	----------
+	data : array or arrays
+		NNI segments.
+	method : str
+		Selected PSD method, 'fft', 'ar', 'lomb'.
+	show : bool
+		If true, shows PSD comparison plot.
+	fbands : dict, optional
+		Dictionary with frequency bands (2-element tuples or list)
+		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
+		Keys:	'ulf'	Ultra low frequency		(default: none) optional
+				'vlf'	Very low frequency		(default: (0.000Hz, 0.04Hz))
+				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
+				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
+	duration : int, optional
+		Maximum duration duration per segment in [s] (default: 300s).
+
+	Returns
+	-------
+	fig : matplotlib figure
+		PSD comparison plot figure.
+
+	"""
+	legend = []
+
+	def _add_legend(label, fc="white"):
+		return legend.append(mpl.patches.Patch(fc=fc, label=label))
+
+	# Prepare figure
+	fig, (ax, ax_l) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]}, figsize=(8, 5))
+	_add_legend(r"$\bf{Segments:}$")
+	_max_val = 0
+
+	for seg in data.keys():
+		p = ax.plot(data[seg]["f"], data[seg]["p"], linewidth=0.6)
+		_add_legend("Segment %s" % seg[3:], p[0].get_color())
+		if max(data[seg]["p"]) > _max_val:
+			_max_val = max(data[seg]["p"])
+
+	if duration is not None:
+		_add_legend("\n" + r"$\bf{Seg. Duration:}$")
+		_add_legend(r"%is / %smin" % (duration, time.strftime("%M:%S", time.gmtime(duration))))
+
+	# Finalize plot customization
+	plot_title = "PSD Comparison Plot"
+	if method == 'fft':
+		ax.set_title("%s - Welch's Method" % plot_title)
+	elif method == 'ar':
+		ax.set_title("%s - Autoregressive (Order %i)" % (plot_title, data["seg1"]["params"]["ar_order"]))
+	elif method == 'lomb':
+		ax.set_title("%s - Lomb-Scargle Periodogram" % plot_title)
+
+	# Axis configuration
+	ax.grid(alpha=0.3)
+	ax.set_xlabel('Frequency [$Hz$]')
+	ax.set_ylabel('PSD [$s^2/Hz$]')
+	ax.set_xlim([0, 0.4])
+	ax.set_ylim([0, _max_val * 1.2])
+
+	# Add frequency bands
+	_add_legend("\n" + r"$\bf{Freq. Bands:}$")
+	for band in fbands.keys():
+		if fbands[band] is not None:
+			ax.vlines(fbands[band][1], 0, 1, linewidth=0.3, linestyles="--")
+			_add_legend("%s: %.3f-%.3f" % (band.upper(), fbands[band][0], fbands[band][1]))
+
+	# Add legends
+	ax_l.legend(handles=legend, ncol=1, frameon=False)
+	ax_l.axis('off')
+
+	# Show plot
+	if show:
+		plt.show()
+
+	return fig
+
+######################
+# WATERFALL PSD PLOT #
+######################
+
+
+def psd_waterfall(nni=None,
+				  rpeaks=None,
+				  segments=None,
+				  method='welch',
+				  fbands=None,
+				  kwargs_method={},
+				  duration=300,
+				  show=True,
+				  legend=True):
+	"""Creates 3D waterfall plot of PSD plots computed from a series of NNI segments.
+
+	Can be used to create a plot for comparison of multiple of PSD plots.
+
+	Docs: https://pyhrv.readthedocs.io/en/latest/_pages/api/frequency.html#d-psd-waterfall-plot-psd-waterfall
+
+	Parameters
+	----------
+	nni : array
+		NN-Intervals in [ms] or [s]
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	segments : array of arrays
+		Array with series of NNI from which the PSD plots should be computed.
+	method : string, optional
+		PSD computation method (default: 'welch'):
+			'ar':		Autoregressive 				ar_psd()
+			'welch':	Welch Method 				welch_psd()
+			'lomb':		Lomb-Scargle periodogram 	lomb_psd()
+	fbands : dict, optional
+		Dictionary with frequency bands (2-element tuples or list)
+		Value format:	(lower_freq_band_boundary, upper_freq_band_boundary)
+		Keys:	'ulf'	Ultra low frequency		(default: none) optional
+				'vlf'	Very low frequency		(default: (0.000Hz, 0.04Hz))
+				'lf'	Low frequency			(default: (0.04Hz - 0.15Hz))
+				'hf'	High frequency			(default: (0.15Hz - 0.4Hz))
+	kwargs_method : dictionary, optional
+		Dictionary with input parameters for the 'welch_psd()', 'ar_psd()' or 'lomb_psd()' method (default: {}).
+	duration : int, optional
+		Duration of NNI segments from which the PSD are computed (default: 30)
+	show : bool, optional
+		If true, show PSD plot (default: True)
+	legend : bool, optional
+		If true, add a legend with frequency bands to the plot (default: True)
+
+	Returns (biosppy.utils.ReturnTuple Object)
+	------------------------------------------
+	[key : format]
+		Description.
+	psd_waterfall_plot : matplotlib figure
+		3D waterfall plot figure.
+	psd_data : array of ReturnTuple objects
+		Array of ReturnTuple objects containing the frequency domain parameters for each NNI segment
+		(1st ReturnTuple object = parameters of the first NNI segment, 2nd ReturnTuple object = parameters of the
+		second NNI segment, ...)
+
+	Raises
+	------
+	ValueError
+		If an unknown method other than 'welch', 'ar', or 'lomb' is provided
+
+	Notes
+	-----
+	..	Only one type of input data is required (nni, rpeaks or segments)
+	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
+	..  Segments will be chosen over 'nni' or 'rpeaks'
+	..	NN and R-peak series provided in [s] format will be converted to [ms] format
+	..	If a segmentation of the input NNI series cannot be conducted with the specified segment duration (e.g.
+		segment duration > entire duration of the NNI series), the regular PSD plot will be returned
+
+	"""
+	# Check input values
+	if segments is None:
+		nn = tools.check_input(nni, rpeaks)
+		y_unit_time = True
+		segments, worked = tools.segmentation(nn, duration=duration, full=False)
+	else:
+		y_unit_time = False
+		worked = True
+
+	# If segmentation is not possible, raise a warning and return the regular PSD plot
+	if not worked:
+
+		# Return Autoregressive plot
+		if method == 'ar':
+			# Unwrap kwargs dictionary
+			nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2 ** 12
+			order = kwargs_method['order'] if 'order' in kwargs_method.keys() else 16
+
+			return ar_psd(nni=nn, show=show, nfft=nfft, order=order)
+			# Compute PSD of current segment
+			result = ar_psd(nni=nn, show=show, nfft=nfft, order=order)
+			return biosppy.utils.ReturnTuple((result['ar_plot'], result, ), ('ar_plot', 'seg1', ))
+
+		# Return Welch PSD plot
+		elif method == 'welch':
+			# Unwrap kwargs dictionary
+			nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2 ** 12
+			detrend = kwargs_method['detrend'] if 'detrend' in kwargs_method.keys() else True
+			window = kwargs_method['window'] if 'window' in kwargs_method.keys() else 'hamming'
+
+			# Compute PSD of current segment
+			result = welch_psd(nni=nn, nfft=nfft, detrend=detrend, window=window, show=show)
+			return biosppy.utils.ReturnTuple((result['fft_plot'], result, ), ('fft_plot', 'seg1', ))
+
+		# Return Lomb PSD plot
+		elif method == 'lomb':
+			# Unwrap kwargs dictionary
+			nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2 ** 8
+			ma_size = kwargs_method['ma_size'] if 'ma_size' in kwargs_method.keys() else None
+
+			# Compute PSD of current segment
+			result = lomb_psd(nni=nn, nfft=nfft, ma_size=ma_size, show=show)
+			return biosppy.utils.ReturnTuple((result['lomb_plot'], result, ), ('lomb_plot', 'seg1', ))
+
+	# If segmentation worked, proceed with plot
+	else:
+		# Verify or set default frequency bands
+		fbands = _check_freq_bands(fbands)
+
+		# Vars
+		z_axis, plot_data, powers, freqs, segment_parameters = [], [], [], [], []
+
+		# Create multiple Welch's plot from each segment
+		for i, segment in enumerate(segments):
+			# Get to PSD methods
+			if method == 'ar':
+				method_name = 'Autoregressive'
+
+				# Unwrwap kwargs dictionary
+				nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2 ** 12
+				order = kwargs_method['order'] if 'order' in kwargs_method.keys() else 16
+
+				# Compute PSD of current segment
+				params, f, p = ar_psd(nni=segment, mode='dev', order=order, nfft=nfft, show=False, legend=False)
+
+			elif method == 'welch':
+				method_name = 'Welch\'s Method'
+
+				# Unwrap kwargs dictionary
+				nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2**12
+				detrend = kwargs_method['detrend'] if 'detrend' in kwargs_method.keys() else True
+				window = kwargs_method['window'] if 'window' in kwargs_method.keys() else 'hamming'
+
+				# Compute PSD of current segment
+				params, f, p = welch_psd(nni=segment, mode='dev', nfft=nfft, detrend=detrend, window=window, show=False)
+
+			elif method == 'lomb':
+				method_name = 'Lomb Scargle'
+
+				# Unwrap kwargs dictionary
+				nfft = kwargs_method['nfft'] if 'nfft' in kwargs_method.keys() else 2**8
+				ma_size = kwargs_method['ma_size'] if 'ma_size' in kwargs_method.keys() else None
+
+				params, f, p = lomb_psd(nni=segment, mode='dev', nfft=nfft, ma_size=ma_size, show=False)
+				p[0] = 0
+			else:
+				raise ValueError("Unknown method '%s' selected. Please select a valid PSD estimation method (welch, "
+								 "ar or lomb)." % method)
+
+			# Store parameter results
+			segment_parameters.append(params)
+
+			# Get intervals between 0 and upper interval of the HF band
+			f = np.asarray([float(fval) for fval in f if fval <= fbands['hf'][1]])
+			p = np.asarray(p[:len(f)])
+
+			# Normalize data
+			p = np.asarray([(p_val - p.min())/(p.max() - p.min()) for p_val in p])
+
+			# Store values
+			freqs.append(f)
+			powers.append(p)
+
+			# Zip data
+			if y_unit_time:
+				z_axis.append((i + 1) * float(duration)/60)
+			else:
+				z_axis.append(i+1)
+
+		# Create 3D figure object
+		fig = plt.figure(figsize=(10, 4))
+		wf_ax = Axes3D(fig)
+		alpha = np.linspace(0.5, 1, len(freqs))
+		colors = {'ulf': 'b', 'vlf': 'yellowgreen', 'lf': 'salmon', 'hf': 'lightskyblue'}
+
+		# Add fbands
+		for band in ['vlf', 'lf', 'hf']:
+			wf_ax.plot([fbands[band][-1], fbands[band][-1]], [0, z_axis[-1]], [0, 0],
+					   linestyle='--', linewidth=0.5, color='k')
+			wf_ax.plot([fbands[band][-1], fbands[band][-1]], [z_axis[-1], z_axis[-1]], [0, 1],
+					   linestyle='--', linewidth=0.5, color='k')
+		# Plot segments
+		for i, f_array in enumerate(freqs):
+			f_array = np.asarray(f_array)
+
+			# Get band specific frequencies
+			_, vlf_i, lf_i, hf_i = _get_frequency_indices(f_array, fbands)
+
+			# NOTE: Plottig frequency bands over each other reduces the amount of visualization artifacts
+			fband_dict = {
+				'vlf': np.append(vlf_i, np.append(lf_i, hf_i)),
+				'lf': np.append(lf_i, hf_i),
+				'hf': hf_i
+			}
+
+			# Plot the
+			for band in ['vlf', 'lf', 'hf']:
+				verts = []
+				# NOTE: do not try plot each plot each frequency band through loops, as this will cause visualization
+				# artifacts!
+
+				# Plot VLF band
+				f = np.asarray(f_array[fband_dict[band]])
+				p = np.asarray(powers[i][fband_dict[band]])
+
+				# Set values at 0Hz and 0.4Hz (upper limit of HF band) to 0 to prevent plotting visualization errors
+				p[0], p[-1] = 0, 0
+
+				# Prepare Plot data & plot it!
+				line = list(zip(f, p))
+				verts.append(line)
+				poly_poly = LineCollection(verts, facecolors=[colors[band]], linewidths=0.7, alpha=alpha[i])
+				wf_ax.add_collection3d(poly_poly, zs=z_axis[i], zdir='y')
+
+		# Axis settings & title
+		if method == 'ar':
+			wf_ax.set_title('3D Waterfall Plot - Autoregressive (Order: %i)' % order)
+		else:
+			wf_ax.set_title('3D Waterfall Plot - %s' % method_name)
+		wf_ax.set_xlim([0, fbands['hf'][-1]])
+		wf_ax.set_xlabel("Frequency [$Hz$]")
+		wf_ax.set_ylim([0, z_axis[-1]])
+		y_label = "Time [$min$]" if y_unit_time else "Segment [-]"
+		wf_ax.set_ylabel(y_label)
+		wf_ax.set_zlim([0, 1])
+		wf_ax.set_zlabel("Power [$ms^2/Hz$]")
+		wf_ax.view_init(elev=25, azim=-55)
+
+		# Add legend
+		if legend:
+			legend = []
+			legend.append(mpl.patches.Patch(facecolor=colors['vlf'], label='VLF'))
+			legend.append(mpl.patches.Patch(facecolor=colors['lf'], label='LF'))
+			legend.append(mpl.patches.Patch(facecolor=colors['hf'], label='HF'))
+			wf_ax.legend(handles=legend, loc=6)
+
+		# Show
+		if show:
+			plt.show()
+
+		# Output
+		psd_data = {}
+		for i in range(len(segment_parameters)):
+			psd_data['seg%i' % (i+0)] = segment_parameters[i]
+		args = (fig, psd_data)
+		names = ('psd_waterfall_plot', 'psd_data')
+		return biosppy.utils.ReturnTuple(args, names)
+
+
+#############################
+# FREQUENCY DOMAIN FUNCTION #
+#############################
 
 def frequency_domain(nni=None,
 					 rpeaks=None,
@@ -1067,7 +1705,7 @@ def frequency_domain(nni=None,
 		# Compute Welch's PSD with default values
 		welch_results = welch_psd(nn, show=False, fbands=fbands, legend=legend, show_param=show_param)
 
-	# Check for kwargs for the 'welch_psd' function and compute the PSD
+	# Check for kwargs for the 'lomb_psd' function and compute the PSD
 	if kwargs_lomb is not None:
 		if type(kwargs_lomb) is not dict:
 			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_lomb' must be a dictionary containing "
@@ -1134,48 +1772,70 @@ def frequency_domain(nni=None,
 	return tools.join_tuples(welch_results, lomb_results, ar_results)
 
 
+
+
+
 if __name__ == "__main__":
-	"""
-	Example Script - HRV Frequency Domain Analysis
-	
-	"""
-	# Load sample NNI series
+	# """
+	# Example Script - HRV Frequency Domain Analysis
+	#
+	# """
+	# from pyhrv import tools
+	#
+	# # Load sample NNI series
+	# nni = tools.load_sample_nni()
+	#
+	# # Compute all frequency domain parameters and all methods
+	# results = frequency_domain(nni=nni)
+	#
+	# # Print results
+	# print("===========================")
+	# print("FREQUENCY DOMAIN PARAMETERS")
+	# print("===========================")
+	#
+	# print("Peak Frequencies:")
+	# print("VLF:		%f [Hz]" % results['fft_peak'][0])
+	# print("LF :		%f [Hz]" % results['fft_peak'][1])
+	# print("HLF:		%f [Hz]" % results['fft_peak'][2])
+	#
+	# print("Absolute Powers:")
+	# print("VLF:		%f [ms^2]" % results['fft_abs'][0])
+	# print("LF :		%f [ms^2]" % results['fft_abs'][1])
+	# print("HLF:		%f [ms^2]" % results['fft_abs'][2])
+	#
+	# print("Relative Powers:")
+	# print("VLF:		%f [%%]" % results['fft_rel'][0])
+	# print("LF :		%f [%%]" % results['fft_rel'][1])
+	# print("HLF:		%f [%%]" % results['fft_rel'][2])
+	#
+	# print("Logarithmic Powers:")
+	# print("VLF:		%f [-]" % results['fft_log'][0])
+	# print("LF :		%f [-]" % results['fft_log'][1])
+	# print("HLF:		%f [-]" % results['fft_log'][2])
+	# print("Total Power	:	%f [ms^2]" % results['fft_total'])
+	# print("LF/HF ratio	: 	%f [-]" % results['fft_ratio'])
+	#
+	# psd_plot = results['fft_plot']
+	#
+	# # Alternatively compute the methods individually
+	# welch_psd(nni)
+	# lomb_psd(nni)
+	# ar_psd(nni)
+	#
+	# # 2D PSD Comparison: Plot a series of 5 PSDs computed from 60s segments of the NNI data
+	# # Select 'welch', 'ar' or 'lomb'
+	# psd_comparison(nni, duration=60, method='lomb')
+	#
+	# # 3D PSD Comparison Waterfall Plot): Plot
+
 	nni = np.load('./files/SampleNNISeries.npy')
-
-	# Compute all frequency domain parameters and all methods
-	results = frequency_domain(nni=nni)
-
-	# Print results
-	print("===========================")
-	print("FREQUENCY DOMAIN PARAMETERS")
-	print("===========================")
-
-	print("Peak Frequencies:")
-	print("VLF:		%f [Hz]" % results['fft_peak'][0])
-	print("LF :		%f [Hz]" % results['fft_peak'][1])
-	print("HLF:		%f [Hz]" % results['fft_peak'][2])
-
-	print("Absolute Powers:")
-	print("VLF:		%f [ms^2]" % results['fft_abs'][0])
-	print("LF :		%f [ms^2]" % results['fft_abs'][1])
-	print("HLF:		%f [ms^2]" % results['fft_abs'][2])
-
-	print("Relative Powers:")
-	print("VLF:		%f [%%]" % results['fft_rel'][0])
-	print("LF :		%f [%%]" % results['fft_rel'][1])
-	print("HLF:		%f [%%]" % results['fft_rel'][2])
-
-	print("Logarithmic Powers:")
-	print("VLF:		%f [-]" % results['fft_log'][0])
-	print("LF :		%f [-]" % results['fft_log'][1])
-	print("HLF:		%f [-]" % results['fft_log'][2])
-	print("Total Power	:	%f [ms^2]" % results['fft_total'])
-	print("LF/HF ratio	: 	%f [-]" % results['fft_ratio'])
-
-	psd_plot = results['fft_plot']
-	plt.show()
-
-	# Alternatively compute the methods individually
-	welch_psd(nni)
-	lomb_psd(nni)
-	ar_psd(nni)
+	psd_comparison(nni, duration=60)
+	psd_comparison(nni, duration=60, method='ar', kwargs={'order': 64})
+	psd_comparison(nni, duration=60, method='lomb')
+	out = psd_waterfall(nni, duration=400, method='ar', kwargs_method={'order': 64})
+	print(out)
+	out = psd_waterfall(nni, duration=60, method='ar', kwargs_method={'order': 64})
+	out = psd_waterfall(nni, duration=400, method='welch', kwargs_method={'order': 64})
+	out = psd_waterfall(nni, duration=60, method='welch', kwargs_method={'order': 64})
+	out = psd_waterfall(nni, duration=400, method='lomb', kwargs_method={'order': 64})
+	out = psd_waterfall(nni, duration=60, method='lomb', kwargs_method={'order': 64})

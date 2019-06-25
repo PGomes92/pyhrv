@@ -103,3 +103,13 @@ venv.bak/
 # mypy
 .mypy_cache/
 .DS_Store
+docs/Icon
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/pyhrv.iml
+.idea/modules.xml
+.idea/misc.xml
+.idea/markdown-navigator/profiles_settings.xml
+.idea/markdown-navigator.xml
+.idea/dictionaries/pedrogomes.xml
+.idea/codeStyles/codeStyleConfig.xml

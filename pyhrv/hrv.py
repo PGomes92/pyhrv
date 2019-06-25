@@ -407,7 +407,7 @@ if __name__ == '__main__':
 	nni = np.load('./files/SampleNNISeries.npy')
 
 	# Compute HRV results using all the default values
-	hrv_results = hrv(nn=nni, show=True)
+	hrv_results = hrv(nni=nni, show=True)
 
 	# Print results to the console
 	for key in hrv_results.keys():
