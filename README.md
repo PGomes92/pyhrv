@@ -84,36 +84,19 @@ New in version 0.4:
 
 ### Time Domain Parameters
 
-- NNI<sub>min</sub>, NNI<sub>max</sub>, NNI<sub>mean</sub> - Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
-- ΔNNI<sub>min</sub>, ΔNNI<sub>max</sub>, ΔNNI<sub>mean</sub>, ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> - Basic statistical parameters of a ΔNNI series - ```pyhrv.time_domain.nni_differences_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L99)]
-
-
-
-|  Time Domain Parameter     		         |  Description |
-|  ---                     |  ---         |
-|  ΔNNI<sub>min</sub>, ΔNNI<sub>max</sub>, ΔNNI<sub>mean</sub>, ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> | Basic statistical parameters of a ΔNNI series |
-|  HR<sub>min</sub>, HR<sub>max</sub>, HR<sub>mean</sub>, σ(HR) | Basic statistical parameters of an HR series |
-|  SDNN                    |  Standard deviation of a NNI series  |
-|  SDNN<sub>index</sub>    |  Mean of the SDNN of 5 successive 5 minute segments extracted from long-term NNI series |
-|  SDANN                   |  Standard deviation of the mean of 5 minute segments extracted from long-term NNI series |
-|  RMSSD                   |  Root mean square of successive differences   |
-|  SDSD                    |  Standard deviation of successive differences |
-|  NNx<sup>1</sup>         |  Number of NNI > x ms |
-|  pNNx<sup>1</sup>        |  Ratio between the NNx value and the total number of NNI |
-<sup><sup>1</sup> function available with selectable threshold; functions for traditional 50ms (NN50 & pNN50) and 
-20ms 
-(NN20 & pNN20) are also available</sup>
-
-pyHRV also provides functions for the computation of the geometrical parameters of the Time Domain including the 
-NNI Histogram plot as shown below.
-
-|  Geometrical Parameters  |  Description       |
-|  ---                     |  ---               |
-|  TRI                     |  Triangular index  (Maximum of the Histogram / Width of the Histogram)|
-|  TINN<sup>2</sup>        |  Baseline width of the NNI Histogram based on a triangular interpolation function |
-
-<sup><sup>2</sup> the current version of pyHRV has some bug which causes misleading and false results for the TINN 
-function. [An issue has already been open for this purpose...](https://github.com/PGomes92/pyhrv/issues/5)
+- Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
+- Basic statistical parameters of a ΔNNI series - ```pyhrv.time_domain.nni_differences_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L99)]
+- Basic statistical parameters of a Heart Rate (HR) series - ```pyhrv.time_domain.hr_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L139)]
+- Standard deviation of a NNI series (SDNN) - ```pyhrv.time_domain.sdnn()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L181)]
+- Mean of the SDNN of 5 successive 5 minute segments extracted from long-term NNI series (SDNN<sub>index</sub>)- ```pyhrv.time_domain.sdnn_index()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L217)]
+- Standard deviation of the mean of 5 minute segments extracted from long-term NNI series (SDANN) - ```pyhrv.time_domain.sdann()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L278)]
+- Root mean square of successive difference (RMSSD) - ```pyhrv.time_domain.rmssd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L337)]
+- Standard deviation of successive differences (SDSD) - ```pyhrv.time_domain.sdsd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L378)]
+- NNx & pNNx parameters - ```pyhrv.time_domain.nnXX()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L420)]
+- NN20 & pNN20 parameters - ```pyhrv.time_domain.nn20()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#514)]
+- NN50 & pNN50 parameters - ```pyhrv.time_domain.nn50()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L476)]
+- Triangular Index (Maximum of the Histogram / Width of the Histogram)<sup>1</sup> - ```pyhrv.time_domain.triangular_index()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L704)]
+- Triangular Interpolation Function (TINN) - ```pyhrv.time_domain.tinn()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L549)]
 
 ![Image](./SampleFigures/SampleHistogram.png)
 
