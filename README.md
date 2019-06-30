@@ -32,7 +32,7 @@ Detailed pyHRV documentation is available on ReadTheDocs:
 
 Additional tutorials can be found here:
 
-[pyHRV Quickstart Guide](./pyhrv/README.md)<br>
+[pyHRV Quickstart Guide](./pyhrv/README.md), 
 [Tutorial: From ECG acquisition to HRV analysis with pyHRV](https://pyhrv.readthedocs.io/en/latest/_pages/tutorials.html)
 
 ### Scientific Background
@@ -84,15 +84,15 @@ New in version 0.4:
 
 ### Time Domain Parameters
 
-- NNI<sub>min</sub><br>NNI<sub>max</sub><br>NNI<sub>mean</sub> - Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
-- ΔNNI<sub>min</sub><br>ΔNNI<sub>max</sub><br>ΔNNI<sub>mean</sub><br>ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> - Basic statistical parameters of a ΔNNI series - ```pyhrv.time_domain.nni_differences_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L99)]
+- NNI<sub>min</sub>, NNI<sub>max</sub>, NNI<sub>mean</sub> - Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
+- ΔNNI<sub>min</sub>, ΔNNI<sub>max</sub>, ΔNNI<sub>mean</sub>, ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> - Basic statistical parameters of a ΔNNI series - ```pyhrv.time_domain.nni_differences_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L99)]
 
 
 
 |  Time Domain Parameter     		         |  Description |
 |  ---                     |  ---         |
-|  ΔNNI<sub>min</sub><br>ΔNNI<sub>max</sub><br>ΔNNI<sub>mean</sub><br>ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> | Basic statistical parameters of a ΔNNI series |
-|  HR<sub>min</sub><br>HR<sub>max</sub><br>HR<sub>mean</sub><br>σ(HR) | Basic statistical parameters of an HR series |
+|  ΔNNI<sub>min</sub>, ΔNNI<sub>max</sub>, ΔNNI<sub>mean</sub>, ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> | Basic statistical parameters of a ΔNNI series |
+|  HR<sub>min</sub>, HR<sub>max</sub>, HR<sub>mean</sub>, σ(HR) | Basic statistical parameters of an HR series |
 |  SDNN                    |  Standard deviation of a NNI series  |
 |  SDNN<sub>index</sub>    |  Mean of the SDNN of 5 successive 5 minute segments extracted from long-term NNI series |
 |  SDANN                   |  Standard deviation of the mean of 5 minute segments extracted from long-term NNI series |
