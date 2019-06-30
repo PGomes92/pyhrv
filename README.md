@@ -80,13 +80,17 @@ New in version 0.4:
 - LaTeX powered HRV PDF report generation (BETA) ([SampleReport](./SampleFigures/SampleReport.pdf))
 - Heart Rate Heatplot - Visualization & classification of HR performance based on normal HR ranges by age and gender
 
-![Image](./SampleFigures/SampleHRHeatplot.png)
+![Image](./SampleFigures/SampleHRHeatplot1.png)
 
 ### Time Domain Parameters
 
+- NNI<sub>min</sub><br>NNI<sub>max</sub><br>NNI<sub>mean</sub> - Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
+- ΔNNI<sub>min</sub><br>ΔNNI<sub>max</sub><br>ΔNNI<sub>mean</sub><br>ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> - Basic statistical parameters of a ΔNNI series - ```pyhrv.time_domain.nni_differences_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L99)]
+
+
+
 |  Time Domain Parameter     		         |  Description |
 |  ---                     |  ---         |
-|  NNI<sub>min</sub><br>NNI<sub>max</sub><br>NNI<sub>mean</sub> | Basic statistical parameters of a NNI series  |
 |  ΔNNI<sub>min</sub><br>ΔNNI<sub>max</sub><br>ΔNNI<sub>mean</sub><br>ΔNNI<sub>max{ΔNNI<sub>max</sub>-ΔNNI<sub>min</sub>}</sub> | Basic statistical parameters of a ΔNNI series |
 |  HR<sub>min</sub><br>HR<sub>max</sub><br>HR<sub>mean</sub><br>σ(HR) | Basic statistical parameters of an HR series |
 |  SDNN                    |  Standard deviation of a NNI series  |
@@ -119,10 +123,8 @@ Computes the following Frequency Domain parameters from the Power Spectral Densi
 using the following PSD methods:
 
 - Welch's Method - ```pyhrv.frequency_domain.welch_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L69)]
-
-- Welch's Method - ```pyhrv.frequency_domain.ar_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L398)]
-
-- Welch's Method - ```pyhrv.frequency_domain.lomb_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L239)]
+- Autoregressive - ```pyhrv.frequency_domain.ar_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L398)]
+- Lomb-Scargle - ```pyhrv.frequency_domain.lomb_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L239)]
 
 The following parameters are computed from the PSDs:
 
@@ -145,7 +147,7 @@ Sample plots of the resulting PSD plots and Frequency Domain parameters using py
 ![Image](./SampleFigures/SampleLomb.png)
 
 #### PSD Comparison Features - 2D Comparison Plot
-Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a 3D Waterfall Plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment (function: ```pyhrv.frequency_domain.psd_comparison()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L970)]).
+Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a 3D Waterfall Plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment - ```pyhrv.frequency_domain.psd_comparison()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L970)]).
 
 ![Image](./SampleFigures/SamplePSDWaterfallWelch.png)
 
