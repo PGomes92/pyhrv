@@ -358,7 +358,7 @@ Alternatively, you can use R-peak series (``rpeaks``):
 
 SDNN Index: sdnn_index()
 ########################
-.. py:function:: pyhrv.time_domain.sdnn_index(nni=None, rpeaks=None, full=False, duration=300)
+.. py:function:: pyhrv.time_domain.sdnn_index(nni=None, rpeaks=None, full=False, overlap=False, duration=300, warn=True)
 
 **Function Description**
 
@@ -366,15 +366,19 @@ Computes the SDNN Index of an NNI series with a specified segmentation duration 
 
 **Input Parameters**
    - ``nni`` (array): NN intervals in [ms] or [s].
-   - ``rpeaks`` (array): R-peak times in [ms] or [s].
-   - ``full`` (bool, optional): If true, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].ß
+   - ``full`` (bool, optional): If True, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
+   - ``overlap`` (bool, optional): If True, allow to return NNI that go from the interval of one segment into the other (default: False)
    - ``duration`` (int, optional): Maximum duration per segment in [s] (default: 300 seconds)
+   - ``warn`` (bool, optional): If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 .. note::
 
    ``full`` is ``False`` by default which causes the last segment to be dropped.
 
    For instance, if processing an NNI series of 12.5min and the default segment duration of 5min, the segmentation function would split this series into 3 segments of 5min, 5min and 2.5min in duration. In this case, the last segment greatly alters the SDNN Index. Set the ``full`` parameter to ``False`` to drop the last segment or to ``True`` to compute the SDNN Index even with shorter segments.
+
+   Use the ``warn`` input argument to decide whether you want to see warning messages in the Python terminal, which would appear if a segmentation of the signal could not be conducted (e.g. duration > NNI duration).
 
 **Returns (ReturnTuple Object)**
 
@@ -462,15 +466,19 @@ Computes the SDANN of an NNI series with a specified segmentation duration of ``
 
 **Input Parameters**
    - ``nni`` (array): NN intervals in [ms] or [s].
-   - ``rpeaks`` (array): R-peak times in [ms] or [s].
-   - ``full`` (bool): If true, returns the last segment even if it's significantly shorter than ``duration`` (default: :code:`False`).
-   - ``duration`` (int): Maximum duration per segment in [s] (default: 300s)
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].ß
+   - ``full`` (bool, optional): If True, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
+   - ``overlap`` (bool, optional): If True, allow to return NNI that go from the interval of one segment into the other (default: False)
+   - ``duration`` (int, optional): Maximum duration per segment in [s] (default: 300 seconds)
+   - ``warn`` (bool, optional): If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 .. note::
 
    ``full`` is ``False`` by default which causes the last segment to be dropped.
 
    For instance, if processing an NNI series of 12.5min and the default segment duration of 5min, the segmentation function would split this series into 3 segments of 5min, 5min and 2.5min in duration. In this case, the last segment greatly alter the SDNN Index. Set the ``full`` parameter to ``False`` to drop the last segment or to ``True`` to compute the SDNN Index even with shorter segments.
+
+   Use the ``warn`` input argument to decide whether you want to see warning messages in the Python terminal, which would appear if a segmentation of the signal could not be conducted (e.g. duration > NNI duration).
 
 **Returns (ReturnTuple Object)**
 

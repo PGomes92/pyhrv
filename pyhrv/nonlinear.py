@@ -8,26 +8,28 @@ and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, Sp
 
 Notes
 -----
-..  This module is part of the master thesis
-	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
-	https://github.com/PIA-Group/BioSPPy
+..  Up to v.0.3 this work has been developed within the master thesis
+	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"
+..	You find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/nonlinear.html
+.. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
-Thesis Supervisors
-------------------
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
 ..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-12-09-2018
+26.06.2019
 
-:copyright: (c) 2018 by Pedro Gomes
+:copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import division, print_function, absolute_import
@@ -39,13 +41,21 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-# BioSppy imports
-from biosppy import utils
+# BioSPPy imports
+import biosppy
 
-# Local imports/HRV toolbox imports
-import pyhrv.tools as tools
+# Local imports/pyHRV toolbox imports
+try:
+	from pyhrv import tools
+except ImportError as e:
+	pass
 
-# TODO add plot argument to docstring
+try:
+	from pyhrv import utils
+except ImportError as e:
+	pass
+
+
 def poincare(nni=None,
 			 rpeaks=None,
 			 show=True,
@@ -63,21 +73,23 @@ def poincare(nni=None,
 	Parameters
 	----------
 	nni : array
-		NN intervals in [ms] or [s].
+		NN intervals in [ms] or [s]
 	rpeaks : array
-		R-peak times in [ms] or [s].
+		R-peak times in [ms] or [s]
 	show : bool, optional
-		If true, shows Poincaré plot (default: True).
+		If true, shows Poincaré plot (default: True)
+	plot : bool, optional
+		If true, generates a plot figure
 	figsize : array, optional
-		Matplotlib figure size (width, height) (default: (6, 6)).
+		Matplotlib figure size (width, height) (default: (6, 6))
 	ellipse : bool, optional
-		If true, shows fitted ellipse in plot (default: True).
+		If true, shows fitted ellipse in plot (default: True)
 	vectors : bool, optional
-		If true, shows SD1 and SD2 vectors in plot (default: True).
+		If true, shows SD1 and SD2 vectors in plot (default: True)
 	legend : bool, optional
-		If True, adds legend to the Poincaré plot (default: True).
+		If True, adds legend to the Poincaré plot (default: True)
 	marker : character, optional
-		NNI marker in plot (default: 'o').
+		NNI marker in plot (default: 'o')
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -96,7 +108,7 @@ def poincare(nni=None,
 
 	"""
 	# Check input values
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Prepare Poincaré data
 	x1 = np.asarray(nn[:-1])
@@ -173,7 +185,7 @@ def poincare(nni=None,
 	# Output
 	args = (fig, sd1, sd2, sd2/sd1, area)
 	names = ('poincare_plot', 'sd1', 'sd2', 'sd_ratio', 'ellipse_area')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
@@ -204,7 +216,7 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = utils.check_input(nn, rpeaks)
 
 	if tolerance is None:
 		tolerance = np.std(nn, ddof=-1) * 0.2
@@ -221,7 +233,7 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 	# Output
 	args = (sampen, )
 	names = ('sampen', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True):
@@ -258,11 +270,11 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = utils.check_input(nn, rpeaks)
 
 	# Check intervals
-	short = tools.check_interval(short, default=(4, 16))
-	long = tools.check_interval(long, default=(17, 64))
+	short = utils.check_interval(short, default=(4, 16))
+	long = utils.check_interval(long, default=(17, 64))
 
 	# Create arrays
 	short = range(short[0], short[1] + 1)
@@ -314,7 +326,7 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 
 	# Output
 	args = (fig, alpha1, alpha2, short, long)
-	return utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
+	return biosppy.utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 
 def nonlinear(nni=None,
@@ -410,7 +422,7 @@ def nonlinear(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Unwrap kwargs_poincare dictionary & compute Poincaré
 	if kwargs_poincare is not None:
@@ -503,7 +515,7 @@ def nonlinear(nni=None,
 		d_results = dfa(nn, show=False)
 
 	# Join Results
-	results = tools.join_tuples(p_results, s_results, d_results)
+	results = utils.join_tuples(p_results, s_results, d_results)
 
 	# Plot
 	if show:
@@ -532,19 +544,20 @@ if __name__ == "__main__":
 	res3 = dfa(nni, show=False)
 
 	# Join results
-	results = tools.join_tuples(res1, res2, res3)
+	results = utils.join_tuples(res1, res2, res3)
 
 	# Results
 	print("=========================")
 	print("NONLINEAR ANALYSIS")
 	print("=========================")
 	print("Poincaré Plot")
-	print("SD1:		%f [ms]" % results['sd1'])
-	print("SD2:		%f [ms]" % results['sd2'])
-	print("SD2/SD1: 	%f [ms]" % results['sd_ratio'])
-	print("Area S:		%f [ms]" % results['ellipse_area'])
+	print("SD1:				%f [ms]" % results['sd1'])
+	print("SD2:				%f [ms]" % results['sd2'])
+	print("SD2/SD1: 		%f [ms]" % results['sd_ratio'])
+	print("Area S:			%f [ms]" % results['ellipse_area'])
 	print("Sample Entropy:	%f" % results['sampen'])
-	print("DFA:			%f	[ms]")
+	print("DFA (alpha1):	%f	[ms]" % results['dfa_alpha1'])
+	print("DFA (alpha2):	%f	[ms]" % results['dfa_alpha2'])
 
 	# Alternatively use the nonlinear() function to compute all the nonlinear parameters at once
 	nonlinear(nni=nni)

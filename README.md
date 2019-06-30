@@ -116,7 +116,15 @@ function. [An issue has already been open for this purpose...](https://github.co
 
 ### Frequency Domain Parameters
 Computes the following Frequency Domain parameters from the Power Spectral Density (PSD) of a NNI series computed 
-using the Welch's, Autoregressive and/or Lomb-Scargle PSD estimation methods:
+using the following PSD methods:
+
+- Welch's Method - ```pyhrv.frequency_domain.welch_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L69)]
+
+- Welch's Method - ```pyhrv.frequency_domain.ar_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L398)]
+
+- Welch's Method - ```pyhrv.frequency_domain.lomb_psd()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L239)]
+
+The following parameters are computed from the PSDs:
 
 - Peak Frequencies
 - Absolute Powers
@@ -131,8 +139,26 @@ Frequency Bands can be customized and specified, including an Ultra Low Frequenc
 Sample plots of the resulting PSD plots and Frequency Domain parameters using pyHRV functions can be seen below:
 
 ![Image](./SampleFigures/SampleWelch.png)
+
 ![Image](./SampleFigures/SampleAR.png)
+
 ![Image](./SampleFigures/SampleLomb.png)
+
+#### PSD Comparison Features - 2D Comparison Plot
+Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a 3D Waterfall Plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment (function: ```pyhrv.frequency_domain.psd_comparison()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L970)]).
+
+![Image](./SampleFigures/SamplePSDWaterfallWelch.png)
+
+![Image](./SampleFigures/SamplePSDWaterfallAR.png)
+
+![Image](./SampleFigures/SamplePSDWaterfallLomb.png)
+
+#### PSD Comparison Features - 3D Waterfall Plot
+Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a single plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment (function: ```pyhrv.frequency_domain.psd_waterfall()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L1317)]).
+
+![Image](./SampleFigures/SamplePSDComparisonWelch.png)
+![Image](./SampleFigures/SamplePSDComparisonAR.png)
+![Image](./SampleFigures/SamplePSDComparisonLomb.png)
 
 ## Nonlinear Parameters
 - Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio)

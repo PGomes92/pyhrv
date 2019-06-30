@@ -8,29 +8,28 @@ and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, Sp
 
 Notes
 -----
-..  This module is part of the master thesis
+..  Up to v.0.3 this work has been developed within the master thesis
 	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
-	https://github.com/PIA-Group/BioSPPy
 ..	You find the API reference for this module here:
 	https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html
 .. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
-Thesis Supervisors
-------------------
-..  Hugo Silva, PhD, Instituto de Telecomunicoes & PLUX wireless biosignals S.A.
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
+..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-19-11-2018
+30-06-2019
 
-:copyright: (c) 2018 by Pedro Gomes
+:copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import division, print_function
@@ -46,10 +45,16 @@ from scipy.interpolate import interp1d
 import biosppy
 from biosppy.signals.ecg import ecg
 
+# Local imports/pyHRV toolbox imports
+try:
+	from pyhrv import tools
+except ImportError as e:
+	pass
 
-# Local imports/HRV toolbox imports
-from pyhrv import utils
-from pyhrv import tools
+try:
+	from pyhrv import utils
+except ImportError as e:
+	pass
 
 
 def nni_parameters(nni=None, rpeaks=None):
@@ -209,7 +214,7 @@ def sdnn(nni=None, rpeaks=None):
 	return biosppy.utils.ReturnTuple(args, names)
 
 
-def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
+def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=True):
 	"""Computes the mean of the SDNN values of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996]
@@ -227,6 +232,8 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
 		Maximum duration duration per segment in [s] (default: 300s).
+	warn : bool, optional
+		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -259,7 +266,8 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 		sdnn_index = np.mean(sdnn_values)
 	else:
 		sdnn_index = float('nan')
-		warnings.warn("Signal duration too short for SDNN index computation.")
+		if warn:
+			warnings.warn("Signal duration too short for SDNN index computation.")
 
 	# Output
 	args = [sdnn_index]
@@ -267,7 +275,7 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	return biosppy.utils.ReturnTuple(args, names)
 
 
-def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
+def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=True):
 	"""Computes the standard deviation of the mean NNI value of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996], [Lohninger2017]
@@ -284,6 +292,8 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
 		Maximum duration duration per segment in [s] (default: 300s).
+	warn : bool, optional
+		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -309,7 +319,7 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	nn = utils.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
-	segments, seg = utils.segmentation(nn, full=full, overlap=overlap, duration=duration)
+	segments, seg = utils.segmentation(nn, full=full, overlap=overlap, duration=duration, warn=warn)
 
 	if seg:
 		mean_values = [np.mean(x) for x in segments]
@@ -356,7 +366,7 @@ def rmssd(nni=None, rpeaks=None):
 
 	# Compute RMSSD
 	nnd = tools.nni_diff(nn)
-	rmssd_ = np.sum(x**2 for x in nnd)
+	rmssd_ = np.sum([x**2 for x in nnd])
 	rmssd_ = np.sqrt(1. / nnd.size * rmssd_)
 
 	# Output
@@ -588,6 +598,10 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		from the 'rpeaks'.
 
 	"""
+	# Raise a warning because this function is currently not generating correct results
+	warnings.warn('CAUTION: The TINN computation is currently providing incorrect results in the most cases due to a '
+				  'malfunction of the function. This function will be reviewed over the next updates to solve this issue')
+
 	# Check input
 	nn = utils.check_input(nni, rpeaks)
 
@@ -1064,6 +1078,7 @@ def time_domain(nni=None,
 	# Output
 	return results
 
+
 if __name__ == "__main__":
 	"""
 	Example Script - HRV Time Domain Analysis
@@ -1114,8 +1129,8 @@ if __name__ == "__main__":
 	print("> M:				%f [ms]" % geo['tinn_m'])
 
 	# Alternatively use the individual geometrical parameter functions
-	geo = triangular_index(nni, plot=False)
-	geo = tinn(nni, plot=False)
+	triangular_index(nni, plot=False)
+	tinn(nni, plot=False)
 
 	# Alternatively use the time_domain() function to compute all time domain parameters using a single function
 	time_domain(nni=nni)

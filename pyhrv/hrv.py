@@ -43,7 +43,15 @@ import matplotlib.pyplot as plt
 
 # Import toolbox functions
 import pyhrv
-import pyhrv.tools as tools
+try:
+	from pyhrv import tools
+except ImportError as e:
+	pass
+
+# try:
+# 	from pyhrv import utils
+# except ImportError as e:
+# 	pass
 import pyhrv.time_domain as td
 import pyhrv.frequency_domain as fd
 import pyhrv.nonlinear as nl

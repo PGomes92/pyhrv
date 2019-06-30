@@ -29,10 +29,11 @@ Last Update
 :copyright: (c) 2018 by Pedro Gomes (HAW Hamburg)
 :license: BSD 3-clause, see LICENSE for more details.
 """
-# Imports
-from __future__ import absolute_import
+
+# Local imports
 from pyhrv.__version__ import __version__
-# from pyhrv.hrv import hrv
+
+from pyhrv.hrv import hrv
 
 # Metadata
 __author__ = "Pedro Gomes"

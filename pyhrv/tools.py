@@ -4,8 +4,8 @@
 pyHRV - Heart Rate Variability Toolbox - Tools
 ----------------------------------------------
 
-This module provides basic tools for HRV analysis such as the computation of NN intervals, NN interval differences,
-heart rate series and other functions (ecg plotting, tachogram, signal segmentation, hrv report, hrv import & export).
+This module provides support tools for HRV analysis such as the computation of HRV relevant data series (NNI, NNI differences
+Heart Rate) and
 
 Notes
 -----
@@ -16,7 +16,7 @@ Notes
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
 Thesis Supervisors
 ------------------
@@ -30,19 +30,20 @@ Docs
 
 Last Update
 -----------
-18-06-2019
+26-06-2019
 
 :copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import absolute_import, division
 
 # Imports
 import os
+import sys
 import warnings
 import json
-import collections
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -54,9 +55,13 @@ import biosppy
 
 # Local imports
 import pyhrv
-from pyhrv import utils
-from pyhrv.__version__ import __version__
-
+try:
+	from pyhrv import utils
+except ImportError as e:
+	pass
+import pyhrv.time_domain
+import pyhrv.frequency_domain
+import pyhrv.nonlinear
 
 # TODO Add backwards compatibility of the utils/tools modules
 
@@ -112,6 +117,7 @@ def nn_intervals(rpeaks=None):
 		nn_int[i] = rpeaks[i + 1] - rpeaks[i]
 
 	return utils.nn_format(nn_int)
+
 
 def nni_diff(nni=None):
 	"""Computes the series of differences between successive NN intervals [ms].
@@ -219,13 +225,13 @@ def plot_ecg(signal=None,
 
 	# Compute time vector
 	if t is None:
-		t = time_vector(signal, sampling_rate=sampling_rate)
+		t = utils.time_vector(signal, sampling_rate=sampling_rate)
 
 	# Configure interval of visualized signal
 	if interval is 'complete':
 		interval = [0, t[-1]]
 	else:
-		interval = check_interval(interval, limits=[0, t[-1]], default=[0, 10])
+		interval = utils.check_interval(interval, limits=[0, t[-1]], default=[0, 10])
 
 	# Prepare figure
 	if figsize is None:
@@ -363,7 +369,7 @@ def tachogram(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nni = check_input(nni, rpeaks)
+	nni = utils.check_input(nni, rpeaks)
 
 	# Time vector back to ms
 	t = np.cumsum(nni) / 1000.
@@ -372,7 +378,7 @@ def tachogram(nni=None,
 	if interval is 'complete':
 		interval = [0, t[-1]]
 	else:
-		interval = check_interval(interval, limits=[0, t[-1]], default=[0, 10])
+		interval = utils.ch(interval, limits=[0, t[-1]], default=[0, 10])
 
 	# Prepare figure
 	if figsize is None:
@@ -398,7 +404,7 @@ def tachogram(nni=None,
 	try:
 		n = int(interval[1] / 10)
 		ax.set_xticks(np.arange(0, interval[1] + n, n))
-	except:
+	except Exception as e:
 		ax.grid(False)
 
 	# Y-Axis configuration (min, max set to maximum of the visualization interval)
@@ -542,7 +548,7 @@ def heart_rate_heatplot(nni=None,
 
 	Returns
 	-------
-	hr_heatplot : biosspy.biosppy.utils.ReturnTuple object
+	hr_heatplot : biosppy.utils.ReturnTuple object
 
 	Raises
 	------
@@ -569,12 +575,12 @@ def heart_rate_heatplot(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Compute HR data and
 	hr_data = heart_rate(nn)
 	t = np.cumsum(nn) / 1000
-	interval = check_interval(interval, limits=[0, t[-1]], default=[0, t[-1]])
+	interval = utils.check_interval(interval, limits=[0, t[-1]], default=[0, t[-1]])
 
 	# Prepare figure
 	if figsize is None:
@@ -713,7 +719,7 @@ def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpol
 
 	"""
 	# Check input series
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
 	# Check if parameter is on the list of invalid parameters (computational time of these parameters are too long or
 	# the parameters are input parameters for PSD functions
@@ -725,7 +731,7 @@ def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpol
 		raise TypeError("No parameter set for 'parameter'")
 	elif parameter in invalid_parameters:
 		raise ValueError("Parameter '%s' is not supported by this function. Please select another one." % parameter)
-	elif parameter not in get_pyhrv_keys().keys():
+	elif parameter not in utils.load_hrv_keys_json().keys():
 		raise ValueError("Unknown parameter '%s' (not a pyHRV parameter)." % parameter)
 
 	# Check window and decode window configuration
@@ -760,7 +766,7 @@ def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpol
 
 	# Get hrv_keys & the respective function
 	# TODO change -1 to -2 when using the updated hrv_keys json
-	hrv_keys = get_pyhrv_keys()
+	hrv_keys = utils.load_hrv_keys_json()
 	parameter_func = hrv_keys[parameter][-1]
 	parameter_label = hrv_keys[parameter][1]
 	parameter_unit = hrv_keys[parameter][2]
@@ -958,7 +964,7 @@ def radar_chart(nni=None,
 	legend : bool, optional
 		If true, add a legend with the computed results to the plot (default: True)
 
-	Returns (biosppy.biosppy.utils.ReturnTuple Object)
+	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -993,14 +999,13 @@ def radar_chart(nni=None,
 
 	"""
 	# Helper function & variables
-	para_func = get_pyhrv_keys()
+	para_func = utils.load_hrv_keys_json()
 	unknown_parameters, ref_params, comp_params = [], {}, {}
 
 	def _compute_parameter(nni_series, parameter):
 
 		# Get function name for the requested parameter
 		func = para_func[parameter][-1]
-		unit = para_func[parameter][2]
 
 		try:
 			# Try to pass the show and mode argument to to suppress PSD plots
@@ -1032,12 +1037,12 @@ def radar_chart(nni=None,
 	if nni is None and rpeaks is None:
 		raise TypeError("No input data provided for baseline or reference NNI. Please specify the reference NNI series.")
 	else:
-		nn = check_input(nni, rpeaks)
+		nn = utils.check_input(nni, rpeaks)
 
 	if comparison_nni is not None and comparison_rpeaks is not None:
 		raise TypeError("No input data provided for comparison NNI. Please specify the comarison NNI series.")
 	else:
-		comp_nn = check_input(comparison_nni, comparison_rpeaks)
+		comp_nn = utils.check_input(comparison_nni, comparison_rpeaks)
 
 	if parameters is None:
 		raise TypeError("No input list of parameters provided for 'reference'. Please specify a list of the parameters"
@@ -1076,7 +1081,7 @@ def radar_chart(nni=None,
 				warnings.warn("The parameter '%s' could not be computed and has been removed from the parameter list."
 							  % p)
 
-	# Raise warning pointing out unknwon parameters
+	# Raise warning pointing out unknown parameters
 	if unknown_parameters != []:
 		warnings.warn("Unknown parameters '%s' will not be computed." % unknown_parameters, stacklevel=2)
 
@@ -1151,7 +1156,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 
 	Parameters
 	----------
-	results : dict, biosppy.biosppy.utils.ReturnTuple object
+	results : dict, biosppy.utils.ReturnTuple object
 		Results of the HRV analysis
 	path : str
 		Absolute path of the output directory
@@ -1193,7 +1198,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 		raise TypeError("No results data provided. Please specify input data.")
 	elif results is not type(dict()) and isinstance(results, biosppy.utils.ReturnTuple) is False:
 		raise TypeError("Unsupported data format: %s. "
-						"Please provide input data as Python dictionary or biosppy.biosppy.utils.ReturnTuple object." % type(results))
+						"Please provide input data as Python dictionary or biosppy.utils.ReturnTuple object." % type(results))
 
 	if path is None:
 		raise TypeError("No file name or directory provided. Please specify at least an output directory.")
@@ -1214,7 +1219,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 		path.close()
 		path = path_
 
-	efile, _ = _check_fname(path, 'json', efile)
+	efile, _ = utils.check_fname(path, 'json', efile)
 
 	# Get HRV parameters
 	params = json.load(open(os.path.join(os.path.split(__file__)[0], './files/hrv_keys.json'), 'r'))
@@ -1251,7 +1256,7 @@ def hrv_import(hrv_file=None):
 
 	Returns
 	-------
-	output : biosppy.biosppy.utils.ReturnTuple object
+	output : biosppy.utils.ReturnTuple object
 		All imported results.
 
 	Raises
@@ -1279,12 +1284,6 @@ def hrv_import(hrv_file=None):
 
 	# Create biosppy.utils.ReturnTuple object from imported data
 	return biosppy.utils.ReturnTuple(results.values(), results.keys())
-
-
-
-
-
-
 
 
 # TODO update sample script
@@ -1324,21 +1323,24 @@ if __name__ == "__main__":
 	# # Import HRV results from exported JSON export file
 	# hrv_import(path + 'SampleExport.json')
 	#
-	# check_interval(None, default=[2, 8])
+	# utils.check_interval(None, default=[2, 8])
 
 	# nni = np.load('./files/SampleNNISeries.npy')
 	# nni = np.load('../TestData/series_2.npy')
 	# heart_rate_heatplot(nni, age=45, gender='male', interval=[0, 300])
 
 	# #
+	nni = utils.load_sample_nni()
+	# ref_nni = nni[:300]
+	# comp_nni = nni[300:]
 	# params = ['nni_mean', 'nni_mean', 'sdnn', 'rmssd', 'sdsd', 'sdnn_index', 'sdann', 'nn50', 'nn20']
 	# radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
 	# radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params[:4])
 	# radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params[-5:])
 
-	nni = load_sample_nni()
+	nni = utils.load_sample_nni()
 
-	time_varying(nni, parameter='sdnn', window='n60')
+	time_varying(nni, parameter='sdsd', window='n60')
 
 	# ref_nni = nni[:300]
 	# comp_nni = nni[300:]

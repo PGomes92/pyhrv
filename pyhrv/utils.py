@@ -1,39 +1,98 @@
+# -*- coding: utf-8 -*-
+"""
+pyHRV - Utilities (utils)
+-------------------------
+
+This module contains general purpose functions (utilities) to support the features of the pyHRV toolbox incl. loading
+NNI sample data, check input data of HRV functions, segment arrays, check for duplicate file names to avoid accidental
+overwriting of files, and other utilities.
+
+Notes
+-----
+..  Up to v.0.3 this work has been developed within the master thesis
+	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
+..	This module has been added in v.0.4
+..	You can find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/utils.html
+
+Author
+------
+..  Pedro Gomes, pgomes92@gmail.com
+
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
+..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
+..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
+
+Last Update
+-----------
+26-06-2019
+
+:copyright: (c) 2019 by Pedro Gomes
+:license: BSD 3-clause, see LICENSE for more details.
+
+"""
 # Compatibility
 from __future__ import absolute_import, division
 
 # Imports
 import os
+import sys
 import warnings
 import json
-import collections
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import datetime as dt
 from matplotlib.projections.polar import PolarAxes
 
-import os
-import warnings
-import json
-import collections
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import datetime as dt
-from matplotlib.projections import register_projection
-
+# BioSPPy import
 import biosppy
-from pyhrv import tools
 
-# TODO add this to the docs
-def load_sample_nni():
-	"""Load the Sample NNI series found in the pyhrv/files/ directory."""
+# Local import
+try:
+	from pyhrv import tools
+except ImportError as e:
+	pass
+
+
+
+# TODO add function to load either a long-term or short-term NNI Series
+def load_sample_nni(series='long'):
+	"""Returns a short-term (5min) or long-term (60min) series of sample NNI found in the pyhrv/files/ directory.
+
+	Parameters
+	----------
+	series : string, optional
+		If 'long', returns a 60min NNI series, if 'short', returns a 5min NNI series
+
+	Returns
+	-------
+	nni_series : array
+		Sample NNI series
+
+	Raises
+	------
+	ValueError
+		If an unknown value for the 'series' input parameter is provided (other than 'short' or 'long')
+
+	"""
+	# if series == 'long':
+	# 	np.load(os.path.join(os.path.split(__file__)[0], './files/SampleNNISeriesLong.npy'))
+	# elif series == 'short':
+	# 	np.load(os.path.join(os.path.split(__file__)[0], './files/SampleNNISeriesShort.npy'))
+	# else:
+	# 	raise ValueError("Unknown input value '%s'. Please select 'short' or 'long'." % series)
 	return np.load(os.path.join(os.path.split(__file__)[0], './files/SampleNNISeries.npy'))
 
 
-# TODO add docstring
 # TODO add this to the docs
-def get_pyhrv_keys():
+def load_hrv_keys_json():
+	"""Loads the content of the 'hrv_keys.json' file found in the 'pyhrv/files/' directory.
+
+	Returns
+	-------
+	hrv_keys : dict
+		Content of the pyhrv/files/hrv_keys.json file in a dictionary
+	"""
 	return json.load(open(os.path.join(os.path.split(__file__)[0], './files/hrv_keys.json'), 'r'))
 
 
@@ -238,8 +297,8 @@ def _check_limits(interval, name):
 		raise ValueError("'%f': Invalid interval limits as they are equal." % name)
 	return interval
 
-
-def segmentation(nni=None, full=True, overlap=False, duration=300):
+# TODO add new 'warn' parameter to the segmentation documentation
+def segmentation(nni=None, full=True, overlap=False, duration=300, warn=True):
 	"""Segmentation of signal peaks into individual segments of set duration.
 	(e.g. splitting R-peak locations into 5min segments for computation of SDNN index)
 
@@ -255,6 +314,8 @@ def segmentation(nni=None, full=True, overlap=False, duration=300):
 		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
 		Maximum duration duration per segment in [s] (default: 300s).
+	warn : bool, optional
+		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 	Returns
 	-------
@@ -320,7 +381,8 @@ def segmentation(nni=None, full=True, overlap=False, duration=300):
 
 		return segments, True
 	else:
-		warnings.warn("Signal duration is to short for segmentation into %is. Input data will be returned." % duration)
+		if warn:
+			warnings.warn("Signal duration is to short for segmentation into %is. Input data will be returned." % duration)
 		return nni, False
 
 
@@ -372,7 +434,7 @@ def join_tuples(*args):
 	return biosppy.utils.ReturnTuple(vals, names)
 
 
-def _check_fname(rfile, fformat='txt', name='new_file'):
+def check_fname(rfile, fformat='txt', name='new_file'):
 	"""Checks if file or path exists and creates new file with a given suffix or incrementing identifier at the end of
 	the file name to avoid overwriting existing files.
 
@@ -549,4 +611,3 @@ class pyHRVRadarAxes(PolarAxes):
 	def _gen_axes_spines(self):
 		"""Overwrite method"""
 		return PolarAxes._gen_axes_spines(self)
-
