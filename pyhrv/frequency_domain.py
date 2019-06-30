@@ -1278,7 +1278,7 @@ def _2d_plot(data, method, show, fbands, duration):
 
 	# Finalize plot customization
 	plot_title = "PSD Comparison Plot"
-	if method == 'fft':
+	if method == 'fft' or method == 'welch':
 		ax.set_title("%s - Welch's Method" % plot_title)
 	elif method == 'ar':
 		ax.set_title("%s - Autoregressive (Order %i)" % (plot_title, data["seg1"]["params"]["ar_order"]))

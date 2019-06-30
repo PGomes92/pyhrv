@@ -62,26 +62,6 @@ the paper is available</sup>
 With pyHRV, you can compute up to 78 HRV parameters while using other useful non-parameter-specific tools to support 
 your HRV research.
 
-### Basic Tools & Features
-
-- Computation of NNI series
-- Computation of ∆NNI series
-- Computation of HR series
-- Signal segmentation into segments of specified durations
-- ECG plotting on medical-grade-like ECG paper layout
-- Tachogram plotting
-- HRV result export and import(.json format)
-- HRV report generation (.txt and .csv format)
-
-![Image](./SampleFigures/SampleECG.png)
-![Image](./SampleFigures/SampleTachogram.png)
-
-New in version 0.4:
-- LaTeX powered HRV PDF report generation (BETA) ([SampleReport](./SampleFigures/SampleReport.pdf))
-- Heart Rate Heatplot - Visualization & classification of HR performance based on normal HR ranges by age and gender
-
-![Image](./SampleFigures/SampleHRHeatplot1.png)
-
 ### Time Domain Parameters
 
 - Basic statistical parameters of a NNI series - ```pyhrv.time_domain.nni_parameters()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L60)]
@@ -97,6 +77,9 @@ New in version 0.4:
 - NN50 & pNN50 parameters - ```pyhrv.time_domain.nn50()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L476)]
 - Triangular Index (Maximum of the Histogram / Width of the Histogram)<sup>1</sup> - ```pyhrv.time_domain.triangular_index()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L704)]
 - Triangular Interpolation Function (TINN) - ```pyhrv.time_domain.tinn()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/time_domain.py#L549)]
+
+<sup><sup>1</sup> the current version of pyHRV has some bug which causes misleading and false results for the TINN 
+function. [An issue has already been open for this purpose...](https://github.com/PGomes92/pyhrv/issues/5)
 
 ![Image](./SampleFigures/SampleHistogram.png)
 
@@ -124,43 +107,66 @@ Frequency Bands can be customized and specified, including an Ultra Low Frequenc
 Sample plots of the resulting PSD plots and Frequency Domain parameters using pyHRV functions can be seen below:
 
 ![Image](./SampleFigures/SampleWelch.png)
-
 ![Image](./SampleFigures/SampleAR.png)
-
 ![Image](./SampleFigures/SampleLomb.png)
 
 #### PSD Comparison Features - 2D Comparison Plot
-Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a 3D Waterfall Plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment - ```pyhrv.frequency_domain.psd_comparison()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L970)]).
-
-![Image](./SampleFigures/SamplePSDWaterfallWelch.png)
-
-![Image](./SampleFigures/SamplePSDWaterfallAR.png)
-
-![Image](./SampleFigures/SamplePSDWaterfallLomb.png)
-
-#### PSD Comparison Features - 3D Waterfall Plot
-Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a single plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment (function: ```pyhrv.frequency_domain.psd_waterfall()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L1317)]).
+Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a 3D Waterfall Plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment - ```pyhrv.frequency_domain.psd_comparison()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L970)].
 
 ![Image](./SampleFigures/SamplePSDComparisonWelch.png)
 ![Image](./SampleFigures/SamplePSDComparisonAR.png)
 ![Image](./SampleFigures/SamplePSDComparisonLomb.png)
 
+#### PSD Comparison Features - 3D Waterfall Plot
+Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute segments of a 60 minute recording) in a single plot using the Welch, Autoregressive or Lomb-Scargle method and compute the Frequency Domain parameters from each segment - ```pyhrv.frequency_domain.psd_waterfall()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/frequency_domain.py#L1317)].
+
+![Image](./SampleFigures/SamplePSDWaterfallWelch.png)
+![Image](./SampleFigures/SamplePSDWaterfallAR.png)
+![Image](./SampleFigures/SamplePSDWaterfallLomb.png)
+
 ## Nonlinear Parameters
-- Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio)
-- Sample Entropy
-- Detrended Fluctuation Analysis (short-term and long-term)
+Computes the following Nonlinear Parameters and the respective plots:
 
+- Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio) - ```pyhrv.nonlinear.poincare()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/nonlinear.py#L59)]
+- Sample Entropy - ```pyhrv.nonlinear.sample_entropy()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/nonlinear.py#L191)]
+- Detrended Fluctuation Analysis (short-term and long-term)- ```pyhrv.nonlinear.dfa()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/nonlinear.py#L239)]
 
-## Sample Figures
-
-### Frequency Domain - Autoregressive Method
-
-### Nonlinear - Poincaré & Detrended Fluctuation Analysis
 ![Image](./SampleFigures/SampleNonlinear.png)
 
-### Comparison & Analysis support features
-![Image](./SampleFigures/SampleRadarChart8.png)
+
+## HRV Support Tools & Other Features
+
+- Computation of NNI series - ```pyhrv.tools.nn_intervals()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Computation of ∆NNI series - ```pyhrv.tools.nn_diff()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Computation of HR series - ```pyhrv.tools.heart_rate()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- ECG plotting on medical-grade-like ECG paper layout - ```pyhrv.tools.plot_ecg()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- NNI Tachogram plotting - ```pyhrv.tools.tachogram()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Heart Rate Heatplot, a visualization & classification of HR performance based on normal HR ranges by age and gender- ```pyhrv.tools.heart_rate_heatplot()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Time varying plot of a HRV parameter over time - ```pyhrv.tools.time_varying()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Dynamic Radar chart of HRV parameters - ```pyhrv.tools.radar_chart()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+- Exporting HRV results into a JSON file [Sample File](./pyhrv/files/SampleExport.json)- ```pyhrv.tools.hrv_export()``` [[source](https://github.com/PGomes92/pyhrv/blob/b5c5baaa8bf1ad085dc2dfe46b477171fe153682/pyhrv/tools.py#)]
+
+![Image](./SampleFigures/SampleECG.png)
+![Image](./SampleFigures/SampleTachogram.png)
+![Image](./SampleFigures/SampleHRHeatplot1.png)
 ![Image](./SampleFigures/SampleRadarChart5.png)
+![Image](./SampleFigures/SampleHRHeatplot8.png)
+
+## HRV Reports
+Generate HRV reports in .TXT, .CSV, and .PDF format (new in v.0.4!). Read the [README]() file of the pyHRV report submodule for more information about how to generate pyHRV reports as the following:
+
+- [pyHRV .TXT report](./pyhrv/report/SampleReport.txt)
+- [pyHRV .CSV report](./pyhrv/report/SampleReport.csv)
+- [pyHRV .PDF report](./pyhrv/report/SampleReport.pdf)
+
+
+## Utilities
+Several non-HRV specific utilities and general purpose functions which are used throughout this toolbox:
+- Loading NNI sample series for testing purposes - ```pyhrv.utils.load_sample_nni()```
+- Loading pyHRV's [hrv_keys.json](./pyhrv/files/hrv_keys().json) file - ```pyhrv.utils.load_hrv_keys_json()```
+- Format NNI series (ensure numpy array and convert data provided in seconds to ms - ```pyhrv.utils.nn_format()```
+- Segmentation of time series (e.g. NNI series) - ```pyhrv.utils.segmentation()```
+- and others...
 
 # Disclaimer
 This program is distributed in the hope it will be useful and provided to you "as is", but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This program is NOT intended for medical diagnosis. We expressly disclaim any liability whatsoever for any direct, indirect, consequential, incidental or special damages, including, without limitation, lost revenues, lost profits, losses resulting from business interruption or loss of data, regardless of the form of action or legal theory under which the liability may be asserted, even if advised of the possibility of such damages.
