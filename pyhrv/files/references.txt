@@ -1,0 +1,54 @@
+"""
+	References (all submodules (will be updated soon))
+	--------------------------------------------------
+	.. [Electrophysiology1996] Task Force of the European Society of Cardiology and the North American Society of Pacing
+	   and Electrophysiology, "Heart rate variability - Standards of measurement, physiological interpretation, and
+	   clinical use." European Heart Journal 17, pp. 354-381, 1996
+	.. [Hutchinson2003] T.P. Hutchinson, "Statistics and graphs for heart rate variability: pNN50 or pNN20?"
+	   Physiological Measurement24, N9 - N14, 2003
+	.. [Mietus2002] J. Mietus, C. Peng, I. Henry, L. Goldsmith, and A. Goldberger, “The pNNx files: re-examining a widely
+	   used heart rate variability measure,” Heart, vol. 88, no. 4, pp. 378–380, 2002.
+	..	M. B. Tayel and E. I. Alsaba, “Poincaré Plot for Heart Rate Variability,”
+		Int. J. Medical, Heal. Biomed. Bioeng. Pharm. Eng., vol. 9, no. 9, pp. 708–711, 2015.
+		[Tayel2015]
+	..	F. Shaffer and J. P. Ginsberg, “An Overview of Heart Rate Variability Metrics and Norms,”
+		Front. Public Heal., vol. 5, no. September, pp. 1–17, 2017.
+		[Shaffer2017]
+   .. [Basak2014] Chandramallika Basak et al. “Interpretation of Normalized Spectral Heart Rate Variability Indices In
+      Sleep Research: A Critical Review”. In: NeuroImage 9.2 (2014), pp. 1–6.
+	.. [Umberto2017] Umberto Spagnolini. Statistical Signal Processing in Engineering. John Wiley & Sons Ltd., 2017,
+	   p. 267.
+	.. [Welch1967] Peter Welch. “The Use of Fast Fourier Transform for the Estimation of Power Spectra: A Method Based on
+	   Time Averaging Over Short, Modified Peri- odograms”. In: IEEE Transaction on Audio and Electroacuistics AU-15.2
+	   (1967), pp. 70–73.
+	.. [Kallas2012] Maya Kallas et al. “Prediction of time series using Yule-Walker equations with kernels”. In: ICASSP,
+	   IEEE International Conference on Acoustics, Speech and Signal Processing - Proceedings 1 (2012), pp. 2185–2188.
+   .. [Boardman2002] Anita Boardman et al. “A study on the optimum order of autoregressive models for heart rate
+      variability”. In: Physiological Measurement 23.2 (2002), pp. 325–336.
+   .. [Miranda2012] Eduardo Miranda Dantas et al. “Spectral analysis of heart rate variability with the autoregressive
+      method: What model order to choose?” In: Computers in Biology and Medicine 42.2 (2012), pp. 164–170.
+	.. [Kuusela2014] Tom Kuusela. “Methodological Aspects of Heart Rate Variability Analysis”. In: Heart Rate Variability
+	   (HRV) Signal Analysis: Clinical Applications (2013), pp. 9–42.
+   .. [Laguna1995] Pablo Laguna et al. “Power Spectral Density of Unevenly Sampled Heart Rate Data”. In: (1995),
+      pp. 157–158.
+   .. [Lomb1976] N. R. Lomb. “Least-Squares Frequency Analysis of Unequally Spaced Data”. In: Astrophysics and Space
+      Science 39 (1976), pp. 447–462.
+   .. [Scargle1982] J. D. Scargle. “Studies in astronomical time series analysis. II - Statistical aspects of spectral
+      analysis of unevenly spaced data”. In: The Astrophysical Journal 263 (1982), p. 835.
+   .. [Lohninger2017] Lohninger Alfred. Herzratenvariabilit ̈at - Das HRV-Praxis-Lehrbuch. Vienna: facultas
+      Universitätsverlag, 2017.
+   .. [Ewing1984] David Ewing, James Neilson, and Paul Travis. “New method for assessing car- diac parasympathetic
+      activity using 24 hour electrocardiograms”. In: British Heart Journal 52.4 (1984), pp. 396–402.
+   .. [Brennan2001] M. Brennan, M. Palaniswami, and P. Kamen. “Do existing measures of Poincare ́e plot geometry reflect
+      nonlinear features of heart rate variability?” In: IEEE Transactions on Biomedical Engineering 48.11 (2001),
+      pp. 1342– 1347.
+   .. [Joshua2008] Joshua S Richman et al. “Physiological time-series analysis using approx- imate entropy and sample
+      entropy”. In: Am J. Physiol. Hear. Circ. Physiol. (2008), pp. 2039–2049.
+   .. [Fred2017]Fred Shaffer and J. P. Ginsberg. “An Overview of Heart Rate Variability Met- rics and Norms”. In:
+      Frontiers in Public Health 5.September (2017), pp. 1– 17.
+   .. [Peng1995] C. K. Peng et al. “Quantification of scaling exponents and crossover phenom- ena in nonstationary
+      heartbeat time series”. In: Chaos 5.1 (1995), pp. 82–87.
+   .. [Willson2002] Keith Willson et al. “Relationship between detrended fluctuation analysis and spectral analysis of
+      heart-rate variability”. In: Physiological Measurement 23.2 (2002), pp. 385–40
+
+"""

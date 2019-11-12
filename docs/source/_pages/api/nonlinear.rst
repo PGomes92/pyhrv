@@ -137,11 +137,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.nonlinear as nl
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute Poincaré using NNI series
    results = nl.poincare(nni)
@@ -249,11 +249,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.nonlinear as nl
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute Sample Entropy using NNI series
    results = nl.sampen(nni)
@@ -373,11 +373,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.nonlinear as nl
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute DFA using NNI series
    results = nl.dfa(nni)
@@ -575,7 +575,6 @@ dictionaries of this function (see this functions **Application Notes** for a li
    # Import packages
    import biosppy
    import pyhrv.nonlinear as nl
-   import pyhrv.tools as tools
    from opensignalsreader import OpenSignalsReader
 
    # Load sample ECG signal stored in an OpenSignals file

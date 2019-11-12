@@ -71,11 +71,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute parameters
    results = td.nni_parameters(nni)
@@ -145,11 +145,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute parameters
    results = td.nni_differences_parameters(nni)
@@ -240,11 +240,11 @@ You can use NNI series (``nni``) to compute the parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute parameters
    results = td.hr_parameters(nni)
@@ -326,11 +326,11 @@ You can use NNI series (``nni``) to compute the SDNN parameter:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute SDNN parameter
    results = td.sdnn(nni)
@@ -358,7 +358,7 @@ Alternatively, you can use R-peak series (``rpeaks``):
 
 SDNN Index: sdnn_index()
 ########################
-.. py:function:: pyhrv.time_domain.sdnn_index(nni=None, rpeaks=None, full=False, duration=300)
+.. py:function:: pyhrv.time_domain.sdnn_index(nni=None, rpeaks=None, full=False, duration=300, warn=True)
 
 **Function Description**
 
@@ -366,15 +366,18 @@ Computes the SDNN Index of an NNI series with a specified segmentation duration 
 
 **Input Parameters**
    - ``nni`` (array): NN intervals in [ms] or [s].
-   - ``rpeaks`` (array): R-peak times in [ms] or [s].
-   - ``full`` (bool, optional): If true, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].ß
+   - ``full`` (bool, optional): If True, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
    - ``duration`` (int, optional): Maximum duration per segment in [s] (default: 300 seconds)
+   - ``warn`` (bool, optional): If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 .. note::
 
    ``full`` is ``False`` by default which causes the last segment to be dropped.
 
    For instance, if processing an NNI series of 12.5min and the default segment duration of 5min, the segmentation function would split this series into 3 segments of 5min, 5min and 2.5min in duration. In this case, the last segment greatly alters the SDNN Index. Set the ``full`` parameter to ``False`` to drop the last segment or to ``True`` to compute the SDNN Index even with shorter segments.
+
+   Use the ``warn`` input argument to decide whether you want to see warning messages in the Python terminal, which would appear if a segmentation of the signal could not be conducted (e.g. duration > NNI duration).
 
 **Returns (ReturnTuple Object)**
 
@@ -422,11 +425,11 @@ You can use NNI series (``nni``) to compute the SDNN parameter:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute SDNN Index parameter
    results = td.sdnn_index(nni)
@@ -454,7 +457,7 @@ Alternatively, you can use R-peak series (``rpeaks``) to compute the SDNN Index:
 
 SDANN: sdann()
 ##############
-.. py:function:: pyhrv.time_domain.sdann(nni=None, rpeaks=None, full=False, duration=300)
+.. py:function:: pyhrv.time_domain.sdann(nni=None, rpeaks=None, full=False, duration=300, warn=True)
 
 **Function Description**
 
@@ -462,15 +465,18 @@ Computes the SDANN of an NNI series with a specified segmentation duration of ``
 
 **Input Parameters**
    - ``nni`` (array): NN intervals in [ms] or [s].
-   - ``rpeaks`` (array): R-peak times in [ms] or [s].
-   - ``full`` (bool): If true, returns the last segment even if it's significantly shorter than ``duration`` (default: :code:`False`).
-   - ``duration`` (int): Maximum duration per segment in [s] (default: 300s)
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].ß
+   - ``full`` (bool, optional): If True, returns the last segment even if its duration is significantly shorter than ``duration`` (default: ``False``).
+   - ``duration`` (int, optional): Maximum duration per segment in [s] (default: 300 seconds)
+   - ``warn`` (bool, optional): If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 .. note::
 
    ``full`` is ``False`` by default which causes the last segment to be dropped.
 
    For instance, if processing an NNI series of 12.5min and the default segment duration of 5min, the segmentation function would split this series into 3 segments of 5min, 5min and 2.5min in duration. In this case, the last segment greatly alter the SDNN Index. Set the ``full`` parameter to ``False`` to drop the last segment or to ``True`` to compute the SDNN Index even with shorter segments.
+
+   Use the ``warn`` input argument to decide whether you want to see warning messages in the Python terminal, which would appear if a segmentation of the signal could not be conducted (e.g. duration > NNI duration).
 
 **Returns (ReturnTuple Object)**
 
@@ -518,11 +524,11 @@ You can use NNI series (``nni``) to compute the SDANN parameter:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute SDANN parameter
    results = td.sdann(nni)
@@ -602,11 +608,11 @@ You can use NNI series (``nni``) to compute the RMSSD parameter:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute RMSSD parameter
    results = td.rmssd(nni)
@@ -688,11 +694,11 @@ You can use NNI series (``nni``) to compute the SDSD parameter:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute SDSD parameter
    results = td.sdsd(nni)
@@ -809,11 +815,11 @@ You can use NNI series (``nni``) to compute the nnXX parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute NNXX parameters using the NNI series and a threshold of 30ms
    results30 = nnXX(nni, threshold=30)
@@ -914,11 +920,11 @@ You can use NNI series (``nni``) to compute the nn50 parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute NN50 parameters using the NNI series
    results30 = nn50(nni)
@@ -1013,11 +1019,11 @@ You can use NNI series (``nni``) to compute the nn20 parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute NN20 parameters using the NNI series
    results = nn20(nni)
@@ -1161,11 +1167,11 @@ You can use NNI series (``nni``) to compute the TINN parameters:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute TINN parameters using the NNI series
    results = td.tinn(nni)
@@ -1226,10 +1232,8 @@ Computes the triangular index based on the NN interval histogram.
 
 The results of this function are returned in a ``biosppy.utils.ReturnTuple`` object (see also :ref:`ref-returntuple`. Use the following keys below (on the left) to index the results.
 
-   - ``tinn_histogram`` (matplotlib figure object): Histogram plot figure (only if input parameter ``plot`` is True
-   - ``tinn_n`` (float): N value of the TINN computation (left corner of the interpolated triangle at (N, 0))
-   - ``tinn_m`` (float): M value of the TINN computation (right corner of the interpolated triangle at (M, 0))
-   - ``tinn`` (float): TINN (baseline width of the interpolated triangle) [ms]
+    - ``tri_histogram`` (matplotlib figure object): Histogram figure (only if input parameter 'plot' is True).
+    - ``tri_index`` (double): Triangular index.
 
 .. seealso::
 
@@ -1287,11 +1291,11 @@ You can use NNI series (``nni``) to compute the Triangular Index:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute Triangular Index using the NNI series
    results = td.triangular_index(nni)
@@ -1402,11 +1406,11 @@ You can use NNI series (``nni``) to compute the Triangular Index:
 .. code-block:: python
 
    # Import packages
-   import numpy as np
+   import pyhrv
    import pyhrv.time_domain as td
 
    # Load sample data
-   nni = np.load('series_1.npy')
+   nni = pyhrv.utils.load_sample_nni()
 
    # Compute Geometrical Parameters using the NNI series
    results = td.geometrical_parameters(nni)

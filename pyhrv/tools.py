@@ -4,8 +4,8 @@
 pyHRV - Heart Rate Variability Toolbox - Tools
 ----------------------------------------------
 
-This module provides basic tools for HRV analysis such as the computation of NN intervals, NN interval differences,
-heart rate series and other functions (ecg plotting, tachogram, signal segmentation, hrv report, hrv import & export).
+This module provides support tools for HRV analysis such as the computation of HRV relevant data series (NNI, NNI
+differences Heart Rate) and
 
 Notes
 -----
@@ -16,7 +16,7 @@ Notes
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
 Thesis Supervisors
 ------------------
@@ -30,30 +30,36 @@ Docs
 
 Last Update
 -----------
-12-09-2018
+12-11-2019
 
-:copyright: (c) 2018 by Pedro Gomes (HAW Hamburg)
+:copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
+# Compatibility
 from __future__ import absolute_import, division
 
-# Version
-from pyhrv.__version__ import __version__
-
+# Imports
 import os
+import sys
 import warnings
 import json
-import collections
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import datetime as dt
-import biosppy
-from biosppy import utils
+from matplotlib.projections import register_projection
 
+# BioSPPy imports
+import biosppy
+
+# Local imports
+import pyhrv
+import pyhrv.time_domain
+import pyhrv.frequency_domain
+import pyhrv.nonlinear
 
 # Turn off toolbox triggered warnings
-WARN = False
 warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 
@@ -94,8 +100,8 @@ def nn_intervals(rpeaks=None):
 	elif type(rpeaks) is not list and not np.ndarray:
 		raise TypeError("List, tuple or numpy array expected, received  %s" % type(rpeaks))
 
-	if all(isinstance(n, int) for n in rpeaks) is False and all(isinstance(n, float) for n in rpeaks) is False:
-		raise TypeError("Incompatible data type in list or numpy array detected (only int or float allowed).")
+	# if all(isinstance(n, int) for n in rpeaks) is False or all(isinstance(n, float) for n in rpeaks) is False:
+	# 	raise TypeError("Incompatible data type in list or numpy array detected (only int or float allowed).")
 
 	# Confirm numpy arrays & compute NN intervals
 	rpeaks = np.asarray(rpeaks)
@@ -104,45 +110,7 @@ def nn_intervals(rpeaks=None):
 	for i in range(nn_int.size):
 		nn_int[i] = rpeaks[i + 1] - rpeaks[i]
 
-	return nn_format(nn_int)
-
-
-def nn_format(nni=None):
-	"""Checks format of the NN intervals (seconds or milliseconds) and converts s data to ms data, if necessary.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#nn-format-nn-format
-
-	Parameters
-	----------
-	nni : array
-		Series of NN intervals in [ms] or [s]
-
-	Returns
-	-------
-	nni : array
-		Series of NN intervals in [ms]
-
-	Raises
-	------
-	TypeError
-		If no data provided for 'nni'
-
-	Notes
-	-----
-	..	You can find the documentation for this module here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#nn-format-nn-format
-
-	"""
-	# Check input
-	if nni is None:
-		raise TypeError("No input data provided for 'nn'. Please specify input data")
-	nn_ = np.asarray(nni, dtype='float64')
-
-	# Convert if data has been identified in [s], else proceed with ensuring the NumPy array format
-	if np.max(nn_) < 10:
-		nn_ = [int(x * 1000) for x in nn_]
-
-	return np.asarray(nn_)
+	return pyhrv.utils.nn_format(nn_int)
 
 
 def nni_diff(nni=None):
@@ -182,7 +150,7 @@ def nni_diff(nni=None):
 	elif all(isinstance(x, int) for x in nni) and all(isinstance(x, float) for x in nni):
 		raise TypeError("'nni' data contains non-int or non-float data.")
 	else:
-		nn = nn_format(nni)
+		nn = pyhrv.utils.nn_format(nni)
 
 	# Confirm numpy arrays & compute NN interval differences
 	nn_diff_ = np.zeros(nn.size - 1)
@@ -193,60 +161,6 @@ def nni_diff(nni=None):
 	return np.asarray(nn_diff_)
 
 
-def heart_rate(nni=None, rpeaks=None):
-	"""Computes a series of Heart Rate values in [bpm] from a series of NN intervals or R-peaks in [ms] or [s] or the HR from a single NNI.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#heart-rate-heart-rate
-
-	Parameters
-	----------
-	nni : int, float, array
-		NN intervals in [ms] or [s].
-	rpeaks : int, float, array
-		R-peak times in [ms] or [s].
-
-	Returns
-	-------
-	bpm : list, numpy array, float
-		Heart rate computation [bpm].
-		Float value if 1 NN interval has been provided
-		Float array if series of NN intervals or R-peaks are provided.
-
-	Raises
-	------
-	TypeError
-		If no input data for 'rpeaks' or 'nn_intervals provided.
-	TypeError
-		If provided NN data is not provided in float, int, list or numpy array format.
-
-	Notes
-	-----
-	..	You can find the documentation for this module here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#heart-rate-heart-rate
-
-	"""
-	# Check input
-	if nni is None and rpeaks is not None:
-		# Compute NN intervals if rpeaks array is given; only 1 interval if 2 r-peaks provided
-		nni = nn_intervals(rpeaks) if len(rpeaks) > 2 else int(np.abs(rpeaks[1] - rpeaks[0]))
-	elif nni is not None:
-		# Use given NN intervals & confirm numpy if series of NN intervals is provided
-		if type(nni) is list or type(nni) is np.ndarray:
-			nni = nn_format(nni) if len(nni) > 1 else nni[0]
-		elif type(nni) is int or float:
-			nni = int(nni) if nni > 10 else int(nni) / 1000
-	else:
-		raise TypeError("No data for R-peak locations or NN intervals provided. Please specify input data.")
-
-	# Compute heart rate data
-	if type(nni) is int:
-		return 60000. / float(nni)
-	elif type(nni) is np.ndarray:
-		return np.asarray([60000. / float(x) for x in nni])
-	else:
-		raise TypeError("Invalid data type. Please provide data in int, float, list or numpy array format.")
-
-
 def plot_ecg(signal=None,
 			 t=None,
 			 sampling_rate=1000.,
@@ -255,22 +169,22 @@ def plot_ecg(signal=None,
 			 figsize=None,
 			 title=None,
 			 show=True):
-	"""Plots ECG signal on a medical grade ECG paper-like figure layout.
+	"""Plots ECG lead-I like signal on a medical grade ECG paper-like figure layout.
 
 	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#plot-ecg-plot-ecg
 
 	Parameters
 	----------
 	signal : array
-		ECG signal (filtered or unfiltered)
+		ECG lead-I like signal (filtered or unfiltered)
 	t : array, optional
-		Time vector for the ECG signal (default: None)
+		Time vector for the ECG lead-I like signal (default: None)
 	sampling_rate : int, float, optional
 		Sampling rate of the acquired signal in [Hz] (default: 1000Hz)
 	interval : array, 2-element, optional
-		Visualization interval of the ECG signal plot (default: None: [0s, 10s]
+		Visualization interval of the ECG lead-I like signal plot (default: None: [0s, 10s]
 	rpeaks : bool, optional
-		If True, marks R-peaks in ECG signal (default: True)
+		If True, marks R-peaks in ECG lead-I like signal (default: True)
 	figsize : array, optional
 		Matplotlib figure size (width, height) (default: None: (12, 4))
 	title : str, optional
@@ -305,10 +219,13 @@ def plot_ecg(signal=None,
 
 	# Compute time vector
 	if t is None:
-		t = time_vector(signal, sampling_rate=sampling_rate)
+		t = pyhrv.utils.time_vector(signal, sampling_rate=sampling_rate)
 
 	# Configure interval of visualized signal
-	interval = check_interval(interval, limits=[0, t[-1]], default=[0, 10])
+	if interval is 'complete':
+		interval = [0, t[-1]]
+	else:
+		interval = pyhrv.utils.check_interval(interval, limits=[0, t[-1]], default=[0, 10])
 
 	# Prepare figure
 	if figsize is None:
@@ -341,14 +258,17 @@ def plot_ecg(signal=None,
 
 	# Set ticks as ECG paper (box height ~= 0.1mV; width ~= 0.1s when using default values)
 	n = int(interval[1] / 10)
-	ax.set_xticks(np.arange(0.0, interval[1] + 0.1, float(n)/5), minor=True)
-	ax.xaxis.grid(which='minor', color='salmon', lw=0.3)
-	ax.set_xticks(np.arange(0, interval[1] + 0.1, n))
-	ax.xaxis.grid(which='major', color='r', lw=0.7)
-	ax.set_yticks(y_minor, minor=True)
-	ax.yaxis.grid(which='minor', color='salmon', lw=0.3)
-	ax.set_yticks(y_major)
-	ax.yaxis.grid(which='major', color='r', lw=0.7)
+	try:
+		ax.set_xticks(np.arange(0.0, interval[1] + 0.1, float(n)/5), minor=True)
+		ax.xaxis.grid(which='minor', color='salmon', lw=0.3)
+		ax.set_xticks(np.arange(0, interval[1] + 0.1, n))
+		ax.xaxis.grid(which='major', color='r', lw=0.7)
+		ax.set_yticks(y_minor, minor=True)
+		ax.yaxis.grid(which='minor', color='salmon', lw=0.3)
+		ax.set_yticks(y_major)
+		ax.yaxis.grid(which='major', color='r', lw=0.7)
+	except:
+		ax.grid(False)
 
 	# Add legend
 	unit = '' if unit == '-' else unit
@@ -356,7 +276,7 @@ def plot_ecg(signal=None,
 	ax.text(0.88, 0.85, text_, transform=ax.transAxes, fontsize=9,
 		bbox=dict(boxstyle='round', facecolor='white', alpha=0.9))
 
-	# Plot ECG signal
+	# Plot ECG lead-I like signal
 	ax.plot(t, signal, 'r')
 	fig_ecg.tight_layout()
 
@@ -369,9 +289,9 @@ def plot_ecg(signal=None,
 
 	# Add title
 	if title is not None:
-		ax.set_title('ECG Signal - %s' % str(title))
+		ax.set_title('ECG lead-I like signal - %s' % str(title))
 	else:
-		ax.set_title('ECG Signal')
+		ax.set_title('ECG lead-I like signal')
 
 	# Show plot
 	if show:
@@ -380,7 +300,7 @@ def plot_ecg(signal=None,
 	# Output
 	args = (fig_ecg, )
 	names = ('ecg_plot', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def tachogram(nni=None,
@@ -392,7 +312,7 @@ def tachogram(nni=None,
 			  title=None,
 			  figsize=None,
 			  show=True):
-	"""Plots Tachogram (NNI & HR) of an ECG signal, NNI or R-peak series.
+	"""Plots Tachogram (NNI & HR) of an ECG lead-I like signal, NNI or R-peak series.
 
 	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#tachogram-tachogram
 
@@ -403,7 +323,7 @@ def tachogram(nni=None,
 	rpeaks : array
 		R-peak times in [ms] or [s].
 	signal : array, optional
-		ECG signal.
+		ECG lead-I like signal.
 	sampling_rate : int, float
 		Sampling rate of the acquired signal in [Hz].
 	hr : bool, optional
@@ -429,7 +349,7 @@ def tachogram(nni=None,
 
 	Notes
 	-----
-	..	NN intervals are derived from the ECG signal if 'signal' is provided.
+	..	NN intervals are derived from the ECG lead-I like signal if 'signal' is provided.
 	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nni' data will be computed
 		from the 'rpeaks'.
 	..	If both 'nni' and 'signal' are provided, 'nni' will be chosen over 'signal'.
@@ -443,13 +363,16 @@ def tachogram(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nni = check_input(nni, rpeaks)
+	nni = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Time vector back to ms
 	t = np.cumsum(nni) / 1000.
 
 	# Configure interval of visualized signal
-	interval = check_interval(interval, limits=[0, t[-1]], default=[0, 10])
+	if interval is 'complete':
+		interval = [0, t[-1]]
+	else:
+		interval = pyhrv.utils.check_interval(interval, limits=[0, t[-1]], default=[0, 10])
 
 	# Prepare figure
 	if figsize is None:
@@ -472,8 +395,11 @@ def tachogram(nni=None,
 		formatter = mpl.ticker.FuncFormatter(lambda ms, x: str(dt.timedelta(seconds=ms)))
 		ax.xaxis.set_major_formatter(formatter)
 
-	n = int(interval[1] / 10)
-	ax.set_xticks(np.arange(0, interval[1] + n, n))
+	try:
+		n = int(interval[1] / 10)
+		ax.set_xticks(np.arange(0, interval[1] + n, n))
+	except Exception as e:
+		ax.grid(False)
 
 	# Y-Axis configuration (min, max set to maximum of the visualization interval)
 	ax.set_ylabel('NN Interval [$ms$]')
@@ -521,444 +447,700 @@ def tachogram(nni=None,
 		plt.show()
 
 	# Output
-	args = (fig,)
-	names = ('tachogram_plot',)
-	return utils.ReturnTuple(args, names)
+	args = (fig, )
+	names = ('tachogram_plot', )
+	return biosppy.utils.ReturnTuple(args, names)
 
 
-def check_interval(interval=None, limits=None, default=None):
-	"""General purpose function that checks and verifies correctness of interval limits within optionally defined
-	valid interval specifications and and/or default values if no interval is specified.
+def heart_rate(nni=None, rpeaks=None):
+	"""Computes a series of Heart Rate values in [bpm] from a series of NN intervals or R-peaks in [ms] or [s] or the HR from a single NNI.
 
-	This function can be used to set visualization intervals, check overlapping frequency bands, or for other similar
-	purposes and is intended to automatically catch possible error sources due to invalid intervals.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#check-interval-check-interval
+	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#heart-rate-heart-rate
 
 	Parameters
 	----------
-	interval : array, 2-elements
-		Input interval [min, max] (default: None)
-	limits : array, 2-elements
-		Minimum and maximum allowed interval limits (default: None)
-	default : array, 2-elements
-		Specified default interval (e.g. if 'interval' is None)
+	nni : int, float, array
+		NN intervals in [ms] or [s].
+	rpeaks : int, float, array
+		R-peak times in [ms] or [s].
 
 	Returns
 	-------
-	interval : array
-		Valid interval limits.
+	bpm : list, numpy array, float
+		Heart rate computation [bpm].
+		Float value if 1 NN interval has been provided
+		Float array if series of NN intervals or R-peaks are provided.
 
 	Raises
 	------
 	TypeError
-		If no input data is specified
-	ValueError
-		If any of the input data has equal lower and upper limits
-
-	Warnings
-	--------
-	..	If overlapping limits had to be fixed.
-	..	If limits are overlapping (e.g. lower limit > upper limit)
+		If no input data for 'rpeaks' or 'nn_intervals provided.
+	TypeError
+		If provided NN data is not provided in float, int, list or numpy array format.
 
 	Notes
 	-----
-	(Warnings are only triggered if the module variable 'WARN' is set to 'True')
-	..	If 'interval[0]' is out of boundaries ('interval[0]' < 'limit[0]' or 'interval[0]' >= 'limit[1]')
-		-> sets 'interval[0] = limit[0]'
-	..	If 'interval[1]' is out of boundaries ('interval[1]' <= 'limit[0]' or 'interval[1]' > 'limit[1]')
-		-> sets 'interval[1] = limit[1]'
-	..	If limits are overlapping (e.g. lower limit > upper limit) and had to be fixed.
-	..	This thing is got unnecessarily complicated, but in the end I just went with it...
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#check-interval-check-interval
-
-	"""
-	if interval is None and limits is None and default is None:
-		raise TypeError("No input data specified. Please verify your input data.")
-
-	# Create local copy to prevent changing input variable
-	interval = list(interval) if interval is not None else None
-
-	# Check default limits
-	if default is not None:
-		default = _check_limits(default, 'default')
-
-	# Check maximum range limits
-	if limits is None and default is not None:
-		limits = default
-	elif limits is not None:
-		limits = _check_limits(limits, 'limits')
-
-	# Check interval limits
-	if interval is None:
-		if default is not None:
-			return default
-		elif default is None and limits is not None:
-			return limits
-
-	# If only interval is specified, but not 'min', 'max' or 'default' check if lower limit >= upper limit
-	elif interval is not None and limits is None:
-		return _check_limits(interval, 'interval')
-
-	# If none of the input is 'None'
-	else:
-		# Check interval
-		interval = _check_limits(interval, 'interval')
-		if not limits[0] <= interval[0]:
-			interval[0] = limits[0]
-			if WARN:
-				warnings.warn("Interval limits out of boundaries. Interval set to: %s" % interval, stacklevel=2)
-		if not limits[1] >= interval[1]:
-			interval[1] = limits[1]
-			if WARN:
-				warnings.warn("Interval limits out of boundaries. Interval set to: %s" % interval, stacklevel=2)
-		return interval
-
-
-def _check_limits(interval, name):
-	"""Checks if interval limits are not overlapping or equal.
-
-	Parameters
-	----------
-	interval : array, 2-element
-		Interval boundaries [min, max].
-	name : str
-		Variable name to be used on exceptions and warnings.
-
-	Returns
-	-------
-	interval : array, 2-element
-		Valid and corrected interval limits (if correction is necessary).
-
-	Raises
-	------
-	ValueError
-		If interval limits are equal.
-
-	Warnings
-	--------
-	..	If limits are overlapping (e.g. lower limit > upper limit) and had to be fixed.
-
-	"""
-	# upper limit < 0 or upper limit > max interval -> set upper limit to max
-	if interval[0] > interval[1]:
-		interval[0], interval[1] = interval[1], interval[0]
-		vals = (name, name, interval[0], interval[1])
-		if WARN:
-			warnings.warn("Corrected invalid '%s' limits (lower limit > upper limit).'%s' set to: %s" % vals)
-	if interval[0] == interval[1]:
-		raise ValueError("'%f': Invalid interval limits as they are equal." % name)
-	return interval
-
-
-def segmentation(nni=None, full=True, overlap=False, duration=300):
-	"""Segmentation of signal peaks into individual segments of set duration.
-	(e.g. splitting R-peak locations into 5min segments for computation of SDNN index)
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#segmentation-segmentation
-
-	Parameters
-	----------
-	nni: array
-		Series of NN intervals [ms] or [s].
-	full : bool, optional
-		If True, returns last segment, even if the sum of NNI does not reach the segment duration (default: False).
-	overlap : bool, optional
-		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
-	duration : int, optional
-		Maximum duration duration per segment in [s] (default: 300s).
-
-	Returns
-	-------
-	segments : array, array of arrays
-		NN intervals in each segment/time interval. If cumulative sum of NN input data < duration, the NN input data
-		will be returned.
-
-	Raises
-	------
-	TypeError
-		If no 'nni' data is not provided.
-
-	Warnings
-	--------
-	If signal is shorter than the specified duration.
-
-	Notes
-	----
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#segmentation-segmentation
+	..	You can find the documentation for this module here:
+		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#heart-rate-heart-rate
 
 	"""
 	# Check input
-	if nni is None:
-		raise TypeError("Please specify input data.")
-
-	# Preparations
-	nni= nn_format(nni)
-	tn = np.cumsum(nni)
-	max_time = tn[-1]
-	duration *= 1000			# convert from s to ms
-
-	# Check if signal is longer than maximum segment duration
-	if np.sum(nni) > duration:
-
-		# Compute limits for each segment
-		segments = []
-		limits = np.arange(0, max_time + duration, duration)
-
-		# Current index
-		cindex = 0
-
-		# Segment signals
-		for i, _ in enumerate(range(0, limits.size - 1)):
-			csegment = []
-			while np.sum(csegment) < duration:
-				csegment.append(nni[cindex])
-				if cindex < nni.size - 1:
-					cindex += 1
-				else:
-					break
-
-			# Check if overlap exists (just to be sure)
-			if np.sum(csegment) > duration:
-				csegment = csegment[:-1]
-				cindex -= 1
-
-			segments.append(list(csegment))
-
-		# Remove the last incomplete segment if required
-		if not full:
-			segments = segments[:-1]
-
-		return segments, True
+	if nni is None and rpeaks is not None:
+		# Compute NN intervals if rpeaks array is given; only 1 interval if 2 r-peaks provided
+		nni = nn_intervals(rpeaks) if len(rpeaks) > 2 else int(np.abs(rpeaks[1] - rpeaks[0]))
+	elif nni is not None:
+		# Use given NN intervals & confirm numpy if series of NN intervals is provided
+		if type(nni) is list or type(nni) is np.ndarray:
+			nni = pyhrv.utils.nn_format(nni) if len(nni) > 1 else nni[0]
+		elif type(nni) is int or float:
+			nni = int(nni) if nni > 10 else int(nni) / 1000
 	else:
-		if WARN:
-			warnings.warn("Signal duration is to short for segmentation into %is. "
-						  "Input data will be returned." % duration)
-		return nni, False
+		raise TypeError("No data for R-peak locations or NN intervals provided. Please specify input data.")
+
+	# Compute heart rate data
+	if type(nni) is int:
+		return 60000. / float(nni)
+	elif type(nni) is np.ndarray:
+		return np.asarray([60000. / float(x) for x in nni])
+	else:
+		raise TypeError("Invalid data type. Please provide data in int, float, list or numpy array format.")
 
 
-def hrv_report(results=None, path=None, rfile=None, nni=None, info={}, file_format='txt', delimiter=';', hide=False, plots=False):
-	"""Generates HRV report (in .txt or .csv format) of the provided HRV results.
+def heart_rate_heatplot(nni=None,
+						rpeaks=None,
+						signal=None,
+						sampling_rate=1000.,
+						age=18,
+						gender='male',
+						interval=None,
+						figsize=None,
+						show=True):
+	"""Graphical visualization & classification of HR performance based on normal HR ranges by age and gender.
 
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#hrv-reports-hrv-report
+	Docs: https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#heart-rate-heatplot-hr-heatplot
 
 	Parameters
 	----------
-	results : dict, biosppy.utils.ReturnTuple object
-		Results of the HRV parameter computations
-	rfile : str, file handler
-		Absolute path of the output directory or report file handler
-	nni : array, optional
-		NN interval series in [ms] or [s]
-	info : dict, optional
-		Dictionary with HRV metadata:
-		---------------------------------------------------------------
-		Keys		:	Description
-		---------------------------------------------------------------
-		file		:	Name of the signal acquisition file.
-		device		:	Acquisition device.
-		identifier	:	ID of the acquisition device (e.g. MAC-address)
-		fs			:	Sampling rate used during acquisition.
-		resolution	:	Resolution used during acquisition.
-		---------------------------------------------------------------
-	file_format : str, optional
-		Output file format, select 'txt' or 'csv' (default: 'txt')
-	delimiter : str, optional
-		Delimiter to separate the columns in the exported report (default: ';')
-	hide : bool
-		Hide parameters in report that have not been computed
-	plots : bool, optional
-		If True, save figures in results as .png file
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
+	signal : array, optional
+		ECG lead-I like signal.
+	sampling_rate : int, float, optional
+		Sampling rate of the acquired signal in [Hz].
+	age : int, float
+		Age of the subject (default: 18).
+	gender : str
+		Gender of the subject ('m', 'male', 'f', 'female'; default: 'male').
+	interval : list, optional
+		Sets visualization interval of the signal (default: [0, 10]).
+	figsize : array, optional
+		Matplotlib figure size (width, height) (default: (12, 4)).
+	show : bool, optional
+		If True, shows plot figure (default: True).
 
 	Returns
 	-------
-	rfile : str
-		Absolute path of the output report file (may vary from the input file name)
+	hr_heatplot : biosppy.utils.ReturnTuple object
 
 	Raises
 	------
 	TypeError
-		If no HRV results provided
-	TypeError
-		If no file or directory path provided
-	TypeError
-		If selected output file format is not supported
-	IOError
-		If selected file or directory does not exist
-
-	Warnings
-	--------
-	..	New generated file name, if provided file does already exist
+		If no input data for 'nni', 'rpeaks' or 'signal' is provided
 
 	Notes
 	-----
-	..	Existing files will not be overwritten, instead the new file will consist of the given file name with an
-		(incremented) identifier (e.g. '_1') that will be added at the end of the provided file name.
-	..	Plot figures will be saved in .png format.
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#hrv-reports-hrv-report
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nni' data will be computed
+		from the 'rpeaks'
+	.. 	Modify the 'hr_heatplot.json' file to write own database values
 
 	"""
-	SUPPORTED_FILE_FORMATS = ['txt', 'csv']
-	plot_files = []
+	# Helper function
+	def _get_classification(val, data):
+		for key in data.keys():
+			if data[key][0] <= int(val) <= data[key][1]:
+				return key
 
 	# Check input
-	if results is None:
-		raise TypeError("No HRV results provided. Please specify input data.")
-	if file_format not in SUPPORTED_FILE_FORMATS:
-		raise TypeError("Unsupported file format. Only txt and csv formats are supported.")
+	if signal is not None:
+		rpeaks = biosppy.signals.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
+	elif nni is None and rpeaks is None:
+		raise TypeError('No input data provided. Please specify input data.')
 
-	# Check path input
-	if path is None:
-		raise TypeError("No file name or directory provided. Please specify at least an output directory.")
-	elif type(path) is str:
-		if rfile is None:
-			# Generate automatic file name
-			rfile = 'hrv_report' + dt.datetime.now().strftime('_%Y-%m-%d_%H-%M-%S') + '.' + file_format
-			path += rfile
-		else:
-			# Check if file name has an compatible extension
-			_, fformat = os.path.splitext(rfile)
-			if fformat != file_format or fformat == '':
-				path = path + rfile + '.' + file_format
-			else:
-				path = path + rfile
-	elif type(path) is file:
-		path_ = path.name
-		path.close()
-		path = path_
+	# Get NNI series
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
-	if 'hrv_export' in str(path):
-		path = path.replace('hrv_export', 'hrv_report')
+	# Compute HR data and
+	hr_data = heart_rate(nn)
+	t = np.cumsum(nn) / 1000
+	interval = pyhrv.utils.check_interval(interval, limits=[0, t[-1]], default=[0, t[-1]])
 
-	rfile, _ = _check_fname(path, file_format, rfile)
+	# Prepare figure
+	if figsize is None:
+		figsize = (12, 5)
+	fig, (ax, ax1, ax2) = plt.subplots(3, 1, figsize=figsize, gridspec_kw={'height_ratios': [12, 1, 1]})
+	ax1.axis("off")
+	fig.suptitle("Heart Rate Heat Plot (%s, %s)" % (gender, age))
 
-	# Load HRV parameters metadata
-	params = json.load(open(os.path.join(os.path.split(__file__)[0], './files/hrv_keys.json'), 'r'), encoding='utf-8')
-
-	# Prepare output dictionary
-	output = {'Name': rfile}
-	if 'comment' in results.keys():
-		output['comment'] = results['comment']
+	# X-Axis configuration
+	# Set x-axis format to seconds if the duration of the signal <= 60s
+	if interval[1] <= 60:
+		ax.set_xlabel('Time [s]')
+	# Set x-axis format to MM:SS if the duration of the signal > 60s and <= 1h
+	elif 60 < interval[1] <= 3600:
+		ax.set_xlabel('Time [MM:SS]')
+		formatter = mpl.ticker.FuncFormatter(lambda ms, x: str(dt.timedelta(seconds=ms))[2:])
+		ax.xaxis.set_major_formatter(formatter)
+	# Set x-axis format to HH:MM:SS if the duration of the signal > 1h
 	else:
-		output['comment'] = 'n/a'
+		ax.set_xlabel('Time [HH:MM:SS]')
+		formatter = mpl.ticker.FuncFormatter(lambda ms, x: str(dt.timedelta(seconds=ms)))
+		ax.xaxis.set_major_formatter(formatter)
 
-	for key in results.keys():
-		if not isinstance(results[key], plt.Figure):
-			# Hide 'nan' and 'n/a' values in report if preferred
-			if hide and str(results[key]) in ['nan', 'n/a']:
-				continue
-			else:
-				output[key] = results[key]
-		else:
-			# If matplotlib figure found, plots=True, and the figure is known in 'hrv_keys.json' -> save the figure
-			if plots:
-				if key in params:
-					pfname = os.path.splitext(rfile)[0] + '_' + str(key)
-					results[key].savefig(pfname, dpi=300)
-					plot_files.append(os.path.split(pfname)[1] + '.png')
+	# Set gender
+	if gender not in ["male", "m", "female", "f"]:
+		raise ValueError("Unknown gender '%s' for this database." % gender)
+	else:
+		if gender == 'm':
+			gender = 'male'
+		elif gender == 'f':
+			gender = 'female'
 
-	# Metadata
-	tstamp = dt.datetime.now().strftime('_%Y-%m-%d_%H-%M-%S')
-	mdesc = {'file': 'File', 'device': 'Device',
-			'identifier': 'Identifier/MAC', 'fs': 'Sampling Rate', 'resolution': 'Resolution', 'tstamp': 'Date Time'}
-	mdata = {}
+	# Load comparison data from database
+	database = json.load(open(os.path.join(os.path.split(__file__)[0], './files/hr_heatplot.json')))
 
-	for key in mdesc.keys():
-		mdata[key] = info[key] if key in info.keys() else 'n/a'
-	mdata['tstamp'] = tstamp[1:]
+	# Get database values
+	if age > 17:
+		for key in database["ages"].keys():
+			if database["ages"][key][0] - 1 < age < database["ages"][key][1] + 1:
+				_age = database["ages"][key][0]
 
-	# Prepare text file format
-	hformat = '# %s %*s %s\n'
-	cformat = '%s %*s %*s\n'
-	sformat = '\n	-	%s'
-	titles = {
-		'time': 'Time Domain',
-		'frequency_fft': 'Frequency Domain - FFT Welch\'s Method',
-		'frequency_ar': 'Frequency Domain - Autoregression Method',
-		'frequency_lomb': 'Frequency Domain - Lomb-Scargle Method',
-		'nonlinear': 'Nonlinear Methods',
-		'metadata': 'METADATA',
-		'plots': 'Plots'
-	}
+		color_map = database["colors"]
+		data = database[gender][str(_age)]
+		order = database["order"]
 
-	with open(rfile, 'w+') as f:
-		# Write header
-		f.write('# BIOSPPY HRV REPORT - v.%s\n' % __version__)
-		for key in mdata.keys():
-			f.write(hformat % (mdesc[key], 20 - len(mdesc[key]), delimiter, mdata[key]))
+		# Plot with information based on reference database:
+		# Create classifier counter (preparation for steps after the plot)
+		classifier_counter = {}
+		for key in data.keys():
+			classifier_counter[key] = 0
 
-		# Add comment
-		line = 70
-		f.write('\n\n%s\n%s\n%s\n%s\n' % (line * '-', 'COMMENTS', output['comment'], line * '-'))
+		# Add threshold lines based on the comparison data
+		for threshold in data.keys():
+			ax.hlines(data[threshold][0], 0, t[-1], linewidth=0.4, alpha=1, color=color_map[threshold])
+		ax.plot(t, hr_data, 'k--', linewidth=0.5)
 
-		# Prepare content
-		content = dict()
-		for key in params.keys():
-			if 'plot' not in str(key):
-				key = str(key)
+		# Add colorized HR markers
+		old_classifier = _get_classification(hr_data[0], data)
+		start_index = 0
+		end_index = 0
+		for hr_val in hr_data:
+			classifier_counter[old_classifier] += 1
+			current_classifier = _get_classification(hr_val, data)
+			if current_classifier != old_classifier:
+				ax.plot(t[start_index:end_index], hr_data[start_index:end_index], 'o',
+						markerfacecolor=color_map[old_classifier], markeredgecolor=color_map[old_classifier])
+				start_index = end_index
+				old_classifier = current_classifier
+			end_index += 1
 
-				# Prepare parameter label & units
-				if key not in ['comment', 'Name']:
-					label = str(params[key][1]) + (' (%s)' % params[key][2])
+		# Compute distribution of HR values in %
+		percentages = {}
+		_left = 0
+		legend = []
+		for i in range(7):
+			classifier = str(order[str(i)][0])
+			percentages[classifier] = float(classifier_counter[classifier]) / hr_data.size * 100
+			ax2.barh("", percentages[classifier], left=_left, color=color_map[classifier])
+			_left += percentages[classifier]
+			legend.append(mpl.patches.Patch(label="%s\n(%.2f%s)" % (order[str(i)][1], percentages[classifier], "$\%$"),
+											fc=color_map[classifier]))
+		ax.legend(handles=legend, loc=8, ncol=7)
+	elif age <= 0:
+		raise ValueError("Age cannot be <= 0.")
+	else:
+		warnings.warn("No reference data for age %i available." % age)
+		ax.plot(t, hr_data, 'k--', linewidth=0.5)
+		ax2.plot("", 0)
 
-					# Select output parameters (to report file)
-					if key in output.keys() and 'plot' not in str(key) and 'histogram' not in str(key):
-						if str(output[key]) in ['nan', 'n/a'] and hide:
-							continue
+	# Set axis limits
+	ax.axis([interval[0], interval[1], hr_data.min() * 0.7, hr_data.max() * 1.1])
+	ax.set_ylabel('Heart Rate [$1/min$]')
+	ax2.set_xlim([0, 100])
+	ax2.set_xlabel("Distribution of HR over the HR classifiers [$\%$]")
+
+	# Show plot
+	if show:
+		plt.show()
+
+	# Output
+	return biosppy.utils.ReturnTuple((fig, ), ('hr_heatplot', ))
+
+
+def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpolation=None, show=True, mode='normal'):
+	"""Computes time varying plot of a pyHRV parameter at every NNI of the input NNI (or rpeak) series using a moving
+	time window or a moving NNI window.
+
+	Parameters
+	----------
+	nni : array
+		NN-Intervals in [ms] or [s]
+	rpeaks : array
+		R-peak locations in [ms] or [s]
+	parameter : string
+		pyHRV parameter key for which the time varying computation is to be plotted (check the hrv_keys.json file for a
+		full list of available keys)
+	window : string
+		Time varying window configuration using the following syntax:
+			'tX'	for using a moving time window, with X being the window interval before and after the current NNI
+					Example:	t20 generates a time window of 20s before and 20s after each NNI for the computation
+								of th pyHRV parameter
+			OR
+			'nX'	for using a moving NNI window, with X being the number of NNI included before and after the current
+					NNI
+					Example:	n20 generates a window which includes 20 NNI before and 20 NNI after the current NNI
+	interpolation : int (optional)
+		Frequency at which the computed parameter signal is be resampled and interpolated (for example to create a
+		parameter signal with the same sampling frequency of the original ECG signal)
+	show : bool, optional
+		If true, show time varying plot (default: True)
+	mode :
+
+	Returns
+	-------
+
+	"""
+	# Check input series
+	nn = pyhrv.utils.check_input(nni, rpeaks)
+
+	# Check if parameter is on the list of invalid parameters (computational time of these parameters are too long or
+	# the parameters are input parameters for PSD functions
+	invalid_parameters = ['plot', 'tinn_m', 'tinn_n', 'fft_nfft', 'fft_window', 'fft_resampling_frequency',
+						  'fft_interpolation', 'ar_nfft', 'ar_order', 'lomb_nfft', 'lomb_ma']
+
+	# Check selected parameter
+	if parameter is None:
+		raise TypeError("No parameter set for 'parameter'")
+	elif parameter in invalid_parameters:
+		raise ValueError("Parameter '%s' is not supported by this function. Please select another one." % parameter)
+	elif parameter not in pyhrv.utils.load_hrv_keys_json().keys():
+		raise ValueError("Unknown parameter '%s' (not a pyHRV parameter)." % parameter)
+
+	# Check window and decode window configuration
+	if window[0] != 't' and window[0] != 'n':
+		raise ValueError("Invalid mode '%s'. Please select 't' for a time window or 'n' for a NNI window." % window[0])
+	elif int(window[1:]) <= 0:
+		raise ValueError("'window' cannot be <= 0.")
+	else:
+		window_mode = window[0]
+		window_size = int(window[1:])
+
+	# Internal helper function
+	def _compute_parameter(array, func):
+		try:
+			# Try to pass the show and mode argument to to suppress PSD plots
+			val = eval(func + '(nni=array, mode=\'dev\')[0][\'%s\']' % parameter)
+		except TypeError as e:
+			if 'mode' in str(e):
+				try:
+					# If functions has now mode feature but 'mode' argument, but a plotting feature
+					val = eval(func + '(nni=array, plot=False)[\'%s\']' % parameter)
+				except TypeError as a:
+					try:
+						val = eval(func + '(nni=array, show=False)[\'%s\']' % parameter)
+					except TypeError as ae:
+						if 'plot' in str(ae):
+							# If functions has now plotting feature try regular function
+							val = eval(func + '(nni=array)[\'%s\']' % parameter)
 						else:
-							para = output[key]
-							out = ''
-							if isinstance(para, collections.Iterable) and type(para) is not str:
-								for i, val in enumerate(list(para)):
-									if val is str or np.nan:
-										val_ = str(val) if val not in ['n/a', 'nan'] else 'n/a'
-									elif val == float:
-										val_ = '%.3f' % val if val not in ['n/a', 'nan'] else 'n/a'
-									out += sformat % val_
-							elif type(para) is str:
-								out = '%s' % output[key] if output[key] not in ['n/a', 'nan', None] else 'n/a'
-							else:
-								out = '%.3f' % output[key] if output[key] not in ['n/a', 'nan', None] else 'n/a'
-						content[key] = cformat % (label, 50 - len(label), delimiter, 1, out)
-					elif not hide:
-						content[key] = cformat % (label, 50-len(label), delimiter, 1, 'n/a')
-				else:
-					content['comment'] = output[key]
+							val = eval(func + '(nni=array)[\'%s\']' % parameter)
+		return val
 
-		# Write output to report file
-		current_domain = []
+	# Vars
+	parameter_values = np.asarray([])
 
-		# Go through all parameters in 'hrv_keys.json'
-		for n in range(1, len(params.keys()) - 1):
-			# Go through content
-			for key in content.keys():
-				# Check keys by specified order set in the last element of each entry in 'hrv_keys.json'
-				if params[key][-1] == n:
-					# Set parameter title in output file (Time Domain, Frequency Domain, etc.)
-					if current_domain != params[key][0] and str(key) not in ['nn_intervals']:
-						current_domain = params[key][0]
-						if current_domain != 'plot':
-							f.write('\n\n%s\n%s\n%s\n' % (line * '-', titles[current_domain], line * '-'))
+	# Get hrv_keys & the respective function
+	hrv_keys = pyhrv.utils.load_hrv_keys_json()
+	parameter_func = hrv_keys[parameter][-1]
+	parameter_label = hrv_keys[parameter][1]
+	parameter_unit = hrv_keys[parameter][2]
 
-					# Finally, write parameter content to output file
-					f.write(content[key])
+	# Beat window computation
+	if window_mode == 'n':
+		for i, _ in enumerate(nni):
+			if i == 0:
+				continue
+			# Incomplete initial window
+			elif i <= (window_size - 1):
+				vals = nn[:(i + window_size + 1)]
+				parameter_values = np.append(parameter_values, _compute_parameter(vals, parameter_func))
+			# Complete Window
+			elif i < (nni.size - window_size):
+				vals = nn[i - window_size: i + window_size + 1]
+				parameter_values = np.append(parameter_values, _compute_parameter(vals, parameter_func))
+			# Incomplete ending window
+			else:
+				vals = nn[i - window_size:i]
+				parameter_values = np.append(parameter_values, _compute_parameter(vals, parameter_func))
 
-		# Add generated plot figures (file names to facilitate the link between report files and plot figures)
-		if plots:
-			f.write('\n\n%s\n%s\n%s\n' % (line * '-', 'Plot Figure Files', line * '-'))
-			for plot in plot_files:
-				f.write('%s\n' % plot)
+	# Time window computation
+	elif window_mode == 't':
+		t = np.cumsum(nn) / 1000
+		for i, _t in enumerate(t):
+			if i == 0:
+				continue
+			# Incomplete initial window
+			elif _t <= window_size:
+				# t_vals = np.where((t <= _t) & (t <== (_t + window_size)))
+				indices = np.where(t <= (_t + window_size))[0]
+				parameter_values = np.append(parameter_values, _compute_parameter(nn[indices], parameter_func))
+			# Complete Window
+			elif _t < t[-1] - window_size:
+				indices = np.where(((_t - window_size) <= t) & (t <= (_t + window_size)))[0]
+				parameter_values = np.append(parameter_values, _compute_parameter(nn[indices], parameter_func))
+			# Incomplete end window
+			else:
+				indices = np.where(((_t - window_size) <= t) & (t <= t[-1]))[0]
+				parameter_values = np.append(parameter_values, _compute_parameter(nn[indices], parameter_func))
 
-		# Add NNI if desired
-		if nni is not None:
-			f.write('\n\n%s\n' % params['nn_intervals'][1])
-			for i in nni:
-				f.write('%.3f\n ' % i)
+	# Interpolation (optional) and time vector
+	if interpolation is not None:
+		t = np.cumsum(nn)
+		f_interpol = sp.interpolate.interp1d(t, parameter_values, 'cubic')
+		t = np.arange(t[0], t[-1], 1000. / interpolation)
+		parameter_values = f_interpol(t)
+		t /= 1000.
+	else:
+		t = np.cumsum(nn) / 1000
 
-	return rfile
+	# Define start and end intervals
+	if window_mode == 'n':
+		indices = np.arange(0, len(nn))
+		start_interval = np.where(indices < window_size + 1)[0]
+		valid_interval = np.where((indices >= (window_size + 1)) & (indices <= (indices[-1] - window_size)))[0]
+		end_interval = np.where(indices > (indices[-1] - window_size))[0][:-1]
+	elif window_mode == 't':
+		start_interval = np.where(t < window_size)[0]
+		valid_interval = np.where((t >= window_size) & (t <= t[-1] - window_size))[0]
+		end_interval = np.where(t > t[-1] - window_size)[0][:-1]
+
+	y_min, y_max = 0, parameter_values.max() * 1.2
+
+	# Figure
+	fig = plt.figure(figsize=(12, 4))
+	ax = fig.add_subplot(111)
+	_win_mode = "NNI Window: %i Intervals" % window_size if window_mode == 'n' else "Time Window: %is" % window_size
+	fig.suptitle('Time Varying - %s Evolution' % parameter_label)
+	ax.set_title('(%s)' % _win_mode, size=10)
+	ax.set_ylabel('%s [$%s$]' % (parameter.upper(), parameter_unit))
+	ax.set_xlim([0, t[-1]])
+	ax.set_ylim([y_min, y_max])
+
+	# Plot start values (except the very first NNI)
+	ax.plot(t[1:window_size + 1], parameter_values[1:window_size + 1], 'r--')
+
+	# Plot valid values
+	ax.plot(t[valid_interval], parameter_values[valid_interval], 'g')
+
+	# Plot final values
+	ax.plot(t[end_interval], parameter_values[end_interval], 'r--')
+
+	# X-Axis configuration
+	# Set x-axis format to seconds if the duration of the signal <= 60s
+	if t[-1] <= 60:
+		ax.set_xlabel('Time [s]')
+	# Set x-axis format to MM:SS if the duration of the signal > 60s and <= 1h
+	elif 60 < t[-1] <= 3600:
+		ax.set_xlabel('Time [MM:SS]')
+		formatter = mpl.ticker.FuncFormatter(lambda ms, x: str(dt.timedelta(seconds=ms))[2:])
+		ax.xaxis.set_major_formatter(formatter)
+	# Set x-axis format to HH:MM:SS if the duration of the signal > 1h
+	else:
+		ax.set_xlabel('Time [HH:MM:SS]')
+		formatter = mpl.ticker.FuncFormatter(lambda ms, x: str(dt.timedelta(seconds=ms)))
+		ax.xaxis.set_major_formatter(formatter)
+
+	# Window areas
+	legends = []
+	ax.vlines(t[window_size], y_min, y_max, color='r')
+	ax.fill_between([0, t[window_size]], [y_max, y_max], facecolor='r', alpha=0.3)
+	ax.vlines(t[parameter_values.size - window_size - 1], y_min, y_max, color='r')
+	ax.fill_between([t[parameter_values.size - window_size - 1], t[-1]], [y_max, y_max], facecolor='r', alpha=0.3)
+	legends.append(mpl.patches.Patch(fc='g', label='Complete Window'))
+	legends.append(mpl.patches.Patch(fc='r', label='Incomplete Window', alpha=0.3))
+
+	# Recommended minimum window size
+	# TODO in future versions: add available recommended minimum durations to the HRV keys json file
+	parameter_minimum = 50
+	if t[window_size] < parameter_minimum:
+		ax.vlines(parameter_minimum, y_min, y_max, color='orange')
+		ax.fill_between([t[window_size], parameter_minimum], [y_max, y_max], color='orange', alpha=0.3)
+		legends.append(mpl.patches.Patch(fc='orange', label='Recommended Minimum Window Size (%is)' %
+															parameter_minimum, alpha=0.3))
+	ax.legend(handles=legends, loc=8, framealpha=1., ncol=3)
+
+	# Add overall value
+	val = _compute_parameter(nn, parameter_func)
+	ax.hlines(val, 0, t[-1], linestyles='--', linewidth=0.7)
+	ax.text(1, val + 1, 'Overall')
+
+	# Check mode
+	if mode not in ['normal', 'dev', 'devplot']:
+		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
+		mode = 'normal'
+
+	if mode == 'normal':
+		if show:
+			plt.show()
+
+		# Output
+		args = (fig,)
+		names = ("time_varying_%s" % parameter,)
+		return biosppy.utils.ReturnTuple(args, names)
+
+	elif mode == 'dev':
+		return t, parameter_values, parameter
+
+	elif mode == 'devplot':
+		if mode == 'normal':
+			if show:
+				plt.show()
+
+			# Output
+			args = (fig, )
+			names = ("time_varying_%s" % parameter, )
+			return biosppy.utils.ReturnTuple(args, names), t, parameter_values, parameter
+
+
+def radar_chart(nni=None,
+				rpeaks=None,
+				comparison_nni=None,
+				comparison_rpeaks=None,
+				parameters=None,
+				reference_label='Reference',
+				comparison_label='Comparison',
+				show=True,
+				legend=True):
+	"""Plots a radar chart of HRV parameters to visualize the evolution the parameters computed from a NNI series
+	(e.g. extracted from an ECG recording while doing sports) compared to a reference/baseline NNI series (
+	e.g. extracted from an ECG recording while at rest).
+
+	The radarchart normalizes the values of the reference NNI series with the values extracted from the baseline NNI
+	series being used as the 100% reference values.
+
+	Example: 	Reference NNI series: 	SDNN = 100ms → 100%
+				Comparison NNI series: 	SDNN = 150ms → 150%
+
+	The radar chart is not limited by the number of HRV parameters to be included in the chart; it dynamically
+	adjusts itself to the number of compared parameters.
+
+	Docs: https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#radar-chart-radar-chart
+
+	Parameters
+	----------
+	nni : array
+		Baseline or reference NNI series in [ms] or [s] (default: None)
+	rpeaks : array
+		Baseline or referene R-peak series in [ms] or [s] (default: None)
+	comparison_nni : array
+		Comparison NNI series in [ms] or [s] (default: None)
+	comparison_rpeaks : array
+		Comparison R-peak series in [ms] or [s] (default: None)
+	parameters : list
+		List of pyHRV parameters (see keys of the hrv_keys.json file for a full list of available parameters).
+		The list must contain more than 1 pyHRV parameters (default: None)
+	reference_label : str, optional
+		Plot label of the reference input data (e.g. 'ECG while at rest'; default: 'Reference')
+	comparison_label : str, optional
+		Plot label of the comparison input data (e.g. 'ECG while running'; default: 'Comparison')
+	show : bool, optional
+		If True, shows plot figure (default: True).
+	legend : bool, optional
+		If true, add a legend with the computed results to the plot (default: True)
+
+	Returns (biosppy.utils.ReturnTuple Object)
+	------------------------------------------
+	[key : format]
+		Description.
+	reference_results : dict
+		Results of the computed HRV parameters of the reference NNI series
+		Keys: 	parameters listed in the input parameter 'parameters'
+	comparison results : dict
+		Results of the computed HRV parameters of the comparison NNI series
+		Keys: 	parameters listed in the input parameter 'parameters'
+	radar_plot :  matplotlib figure
+		Figure of the generated radar plot
+
+	Raises
+	------
+	TypeError
+		If an error occurred during the computation of a parameter
+	TypeError
+		If no input data is provided for the baseline/reference NNI or R-peak series
+	TypeError
+		If no input data is provided for the comparison NNI or R-peak series
+	TypeError
+		If no selection of pyHRV parameters is provided
+	ValueError
+		If less than 2 pyHRV parameters were provided
+
+	Notes
+	-----
+	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nn' and the 'nni' data will be computed
+		from the 'rpeaks'
+	.. 	If both 'comparison_nni' and 'comparison_rpeaks' are provided, 'comparison_rpeaks' will be chosen over the
+		the 'comparison_nni' and the nni data will be computed from the 'comparison_rpeaks'
+
+	"""
+	# Helper function & variables
+	para_func = pyhrv.utils.load_hrv_keys_json()
+	unknown_parameters, ref_params, comp_params = [], {}, {}
+
+	def _compute_parameter(nni_series, parameter):
+
+		# Get function name for the requested parameter
+		func = para_func[parameter][-1]
+
+		try:
+			# Try to pass the show and mode argument to to suppress PSD plots
+			index = 0
+			if parameter.endswith('_vlf'):
+				parameter = parameter.replace('_vlf', '')
+			elif parameter.endswith('_lf'):
+				index = 1
+				parameter = parameter.replace('_lf', '')
+			elif parameter.endswith('_hf'):
+				index = 2
+				parameter = parameter.replace('_hf', '')
+			val = eval(func + '(nni=nni_series, mode=\'dev\')[0][\'%s\']' % (parameter))
+			val = val[index]
+		except TypeError as e:
+			if 'mode' in str(e):
+				try:
+					# If functions has now mode feature but 'mode' argument, but a plotting feature
+					val = eval(func + '(nni=nni_series, plot=False)[\'%s\']' % parameter)
+				except TypeError as a:
+					if 'plot' in str(a):
+						# If functions has now plotting feature try regular function
+						val = eval(func + '(nni=nni_series)[\'%s\']' % parameter)
+					else:
+						raise TypeError(e)
+		return val
+
+	# Check input data
+	if nni is None and rpeaks is None:
+		raise TypeError("No input data provided for baseline or reference NNI. Please specify the reference NNI series.")
+	else:
+		nn = pyhrv.utils.check_input(nni, rpeaks)
+
+	if comparison_nni is not None and comparison_rpeaks is not None:
+		raise TypeError("No input data provided for comparison NNI. Please specify the comarison NNI series.")
+	else:
+		comp_nn = pyhrv.utils.check_input(comparison_nni, comparison_rpeaks)
+
+	if parameters is None:
+		raise TypeError("No input list of parameters provided for 'parameters'. Please specify a list of the parameters"
+						"to be computed and compared.")
+	elif len(parameters) < 2:
+		raise ValueError("Not enough parameters selected for a radar chart. Please specify at least 2 HRV parameters "
+						 "listed in the 'hrv_keys.json' file.")
+
+	# Check for parameter that require a minimum duration to be computed & remove them if the criteria is not met
+	if nn.sum() / 1000. <= 600 or comp_nn.sum() / 1000. <= 600:
+		for p in ['sdann', 'sdnn_index']:
+			if p in parameters:
+				parameters.remove(p)
+				warnings.warn("Input NNI series are too short for the computation of the '%s' parameter. This "
+							  "parameter has been removed from the parameter list." % p, stacklevel=2)
+
+	# Register projection of custom RadarAxes class
+	register_projection(pyhrv.utils.pyHRVRadarAxes)
+
+	# Check if the provided input parameter exists in pyHRV (hrv_keys.json) & compute available parameters
+	for p in parameters:
+		p = p.lower()
+		if p not in para_func.keys():
+			# Save unknown parameters
+			unknown_parameters.append(p)
+		else:
+			# Compute available parameters
+			ref_params[p] = _compute_parameter(nn, p)
+			comp_params[p] = _compute_parameter(comp_nn, p)
+
+			# Check if any parameters could not be computed (returned as None or Nan) and remove them
+			# (avoids visualization artifacts)
+			if np.isnan(ref_params[p]) or np.isnan(comp_params[p]):
+				ref_params.pop(p)
+				comp_params.pop(p)
+				warnings.warn("The parameter '%s' could not be computed and has been removed from the parameter list."
+							  % p)
+
+	# Raise warning pointing out unknown parameters
+	if unknown_parameters != []:
+		warnings.warn("Unknown parameters '%s' will not be computed." % unknown_parameters, stacklevel=2)
+
+	# Prepare plot
+	colors = ['lightskyblue', 'salmon']
+	if legend:
+		fig, (ax_l, ax) = plt.subplots(1, 2, figsize=(12, 6), subplot_kw=dict(projection='radar'))
+	else:
+		fig, ax = plt.subplots(1, 1, figsize=(8, 8), subplot_kw={'projection': 'radar'})
+	theta = np.linspace(0, 2 * np.pi, len(ref_params.keys()), endpoint=False)
+	ax.theta = theta
+
+	# Prepare plot data
+	ax.set_varlabels([para_func[s][1].replace(' ', '\n') for s in ref_params.keys()])
+	ref_vals = [100 for x in ref_params.keys()]
+	com_vals = [comp_params[p] / ref_params[p] * 100 for p in ref_params.keys()]
+
+	# Plot data
+	for i, vals in enumerate([ref_vals, com_vals]):
+		ax.plot(theta, vals, color=colors[i])
+		ax.fill(theta, vals, color=colors[i], alpha=0.3)
+
+	title = "HRV Parameter Radar Chart\nReference NNI Series (%s) vs. Comparison NNI Series (%s)\n" % (colors[0], colors[1]) \
+			+ r"(Chart values in $\%$, Reference NNI parameters $\hat=$100$\%$)"
+
+	# Add legend to second empty plot
+	if legend:
+		ax_l.set_title(title, horizontalalignment='center')
+		legend = []
+
+		# Helper function
+		def _add_legend(label, fc="white"):
+			return legend.append(mpl.patches.Patch(fc=fc, label="\n" + label))
+
+		# Add list of computed parameters
+		_add_legend(reference_label, colors[0])
+		for p in ref_params.keys():
+			_add_legend("%s:" % para_func[p][1])
+
+		# Add list of comparison parameters
+		_add_legend(comparison_label, colors[1])
+		for p in ref_params.keys():
+			u = para_func[p][2] if para_func[p][2] != "-" else ""
+			_add_legend("%.2f%s vs. %.2f%s" % (ref_params[p], u, comp_params[p], u))
+
+		# Add relative differences
+		_add_legend("")
+		for i, _ in enumerate(ref_params.keys()):
+			val = com_vals[i] - 100
+			_add_legend("+%.2f%s" % (val, r"$\%$") if val > 0 else "%.2f%s" % (val, r"$\%$"))
+
+		ax_l.legend(handles=legend, ncol=3, frameon=False, loc=7)
+		ax_l.axis('off')
+	else:
+		ax.set_title(title, horizontalalignment='center')
+
+	# Show plot
+	if show:
+		plt.show()
+
+	# Output
+	args = (ref_params, comp_params, fig, )
+	names = ('reference_results', 'comparison_results', 'radar_plot', )
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
@@ -990,7 +1172,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 	TypeError
 		No input data provided
 	TypeError
-		Unsupported data format provided (other than dict, or utils.ReturnTuple object.)
+		Unsupported data format provided (other than dict, or biosppy.utils.ReturnTuple object.)
 	TypeError
 		If no file or directory path provided
 
@@ -1006,10 +1188,10 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#hrv-export-hrv-export
 
 	"""
-	# Check input (if available & utils.ReturnTuple object)
+	# Check input (if available & biosppy.utils.ReturnTuple object)
 	if results is None:
 		raise TypeError("No results data provided. Please specify input data.")
-	elif results is not type(dict()) and isinstance(results, utils.ReturnTuple) is False:
+	elif results is not type(dict()) and isinstance(results, biosppy.utils.ReturnTuple) is False:
 		raise TypeError("Unsupported data format: %s. "
 						"Please provide input data as Python dictionary or biosppy.utils.ReturnTuple object." % type(results))
 
@@ -1032,7 +1214,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 		path.close()
 		path = path_
 
-	efile, _ = _check_fname(path, 'json', efile)
+	efile, _ = pyhrv.utils.check_fname(path, 'json', efile)
 
 	# Get HRV parameters
 	params = json.load(open(os.path.join(os.path.split(__file__)[0], './files/hrv_keys.json'), 'r'))
@@ -1046,10 +1228,19 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 	# Prepare output dictionary
 	output = {'Name': efile, 'Comment': str(comment)}
 	for key in results.keys():
-		if 'plot' not in str(key) and 'histogram' not in str(key):
-			output[key] = results[key] if str(results[key]) != 'nan' else 'n/a'
+		if isinstance(results[key], biosppy.utils.ReturnTuple):
+			output[key] = dict(results[key])
+		elif isinstance(results[key], tuple):
+			output[key] = list(results[key])
+		elif isinstance(results[key], str):
+			output[key] = results[key]
+		elif isinstance(results[key], range):
+			output[key] = list(results[key])
+		elif results[key] is None:
+			output[key] = 'n/a'
+		elif 'plot' not in str(key) and 'histogram' not in str(key):
+			output[key] = float(results[key]) if str(results[key]) != 'nan' else 'n/a'
 
-	# Write output dictionary to JSON file
 	json.encoder.FLOAT_REPR = lambda o: format(o, 'f')
 	with open(efile, 'w+') as f:
 		json.dump(output, f, sort_keys=True, indent=4, separators=(',', ': '))
@@ -1093,281 +1284,58 @@ def hrv_import(hrv_file=None):
 
 	results = dict()
 	for key in data.keys():
-		results[str(key)] = data[key] if type(data[key]) is not unicode else str(data[key])
+		results[str(key)] = data[key] if type(data[key]) is not str else str(data[key])
 
-	# Create utils.ReturnTuple object from imported data
-	return utils.ReturnTuple(results.values(), results.keys())
-
-
-def join_tuples(*args):
-	"""Joins multiple biosppy.utils.ReturnTuple objects into one biosppy.utils.ReturnTuple object.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#join-tuples-join-tuples
-
-	Parameters
-	----------
-	tuples : list, array, utils.ReturnTuple objects
-		List or array containing utils.ReturnTuple objects.
-
-	Returns
-	-------
-	return_tuple : biosppy.utils.ReturnTuple object
-		biosppy.utils.ReturnTuple object with the content of all input tuples joined together.
-
-	Raises
-	------
-	TypeError:
-		If no input data is provided
-	TypeError:
-		If input data contains non-biosppy.utils.ReturnTuple objects
-
-	Notes
-	----
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#join-tuples-join-tuples
-
-	"""
-	# Check input
-	if args is None:
-		raise TypeError("Please specify input data.")
-
-	for i in args:
-		if not isinstance(i, utils.ReturnTuple):
-			raise TypeError("The list of tuples contains non-utils.ReturnTuple objects.")
-
-	# Join tuples
-	names = ()
-	vals = ()
-
-	for i in args:
-		for key in i.keys():
-			names = names + (key, )
-			vals = vals + (i[key], )
-
-	return utils.ReturnTuple(vals, names)
-
-
-def _check_fname(rfile, fformat='txt', name='new_file'):
-	"""Checks if file or path exists and creates new file with a given suffix or incrementing identifier at the end of
-	the file name to avoid overwriting existing files.
-
-	Parameters
-	----------
-	rfile : str
-		Absolute file path or directory.
-	fformat : str
-		File format (e.g. 'txt').
-	name : str
-		File name for newly created file if only directory is provided.
-
-	Returns
-	-------
-	rfile : str
-		Absolute file path of a new file.
-
-	Raises
-	------
-	IOError
-		If file or directory does not exist.
-
-	Warnings
-	--------
-	..	New generated file name, if provided file does already exist.
-
-	Notes
-	-----
-	..	Existing files will not be overwritten, instead the new file will consist of the given file name with an
-		(incremented) identifier (e.g. '_1') that will be added at the end of the provided file name.
-	..	If only directory provided, the new file name will consist of the provided 'name' string.
-
-	"""
-	# Prepare path data
-	fformat = '.' + fformat
-
-	# Check if 'rfile' is a path name or path + file name
-	if os.path.isdir(rfile) and not os.path.isfile(rfile + name + fformat):
-		rfile = rfile + name + fformat
-	elif os.path.isfile(rfile):
-		old_rfile = rfile
-
-		# Increment file identifier until an available file name has been found
-		while(os.path.isfile(rfile)):
-			rfile, format = os.path.splitext(rfile)
-
-			# check for duplicate file name and create new file with (incremented) number at the end
-			if rfile[-3:-1].isdigit():
-				rfile = rfile[:-3] + str(int(rfile[-3:]) + 1)
-			elif rfile[-2:-1].isdigit():
-				rfile = rfile[:-2] + str(int(rfile[-2:]) + 1)
-			elif rfile[-1].isdigit():
-				rfile = rfile[:-1] + str(int(rfile[-1:]) + 1)
-			elif rfile[-1].isdigit and rfile[-1] != '_':
-				rfile += '_1'
-			rfile += ('%s' % fformat)
-
-		# Show warning if file does already exist
-		msg = "\nFile '%s' does already exist." \
-			  "New file name '%s' selected to avoid overwriting existing files." % (old_rfile, rfile)
-		warnings.warn(msg, stacklevel=2)
-	elif not os.path.isfile(rfile):
-		rfile = os.path.splitext(rfile)[0] + fformat
-		with open(rfile, 'w+'):
-			pass
-	else:
-		raise IOError("File or directory does not exist. Please verify input data.")
-
-	return rfile, os.path.split(rfile)
-
-
-def std(array, dof=1):
-	"""Computes the standard deviation of a data series.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#standard-deviation-std
-
-	Parameters
-	----------
-	array : list, numpy array
-		Data series.
-	dof : int
-		Degree of freedom (default to 1).
-
-	Returns
-	-------
-	result : float
-		Standard deviation of the input data series
-
-	Raises
-	------
-	TypeError
-		If input array is not specified
-
-	Notes
-	-----
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#standard-deviation-std
-
-	"""
-	if array is None:
-		raise TypeError("Please specify input data.")
-
-	array = np.asarray(array)
-	result = np.sum([(x - np.mean(array))**2 for x in array])
-	result = np.sqrt(1. / (array.size - dof) * result)
-	return result
-
-
-def time_vector(signal=None, sampling_rate=1000.):
-	"""Computes time vector for the provided input signal.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#time-vector-time-vector
-
-	Parameters
-	----------
-	signal : array
-		ECG signal (or any other sensor signal)
-	sampling_rate : int, float, optional
-		Sampling rate of the input signal in [Hz]
-
-	Returns
-	-------
-	time_vector : array
-		Time vector for the input signal sampled at the input 'sampling_rate'
-
-	Raises
-	------
-	TypeError
-		If input signal is not specified.
-
-	Notes
-	-----
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#time-vector-time-vector
-
-	"""
-	if signal is None:
-		raise TypeError("Please specify input signal.")
-
-	signal = np.asarray(signal)
-	t = np.arange(0, signal.size / sampling_rate, 1./sampling_rate)
-	return t
-
-
-def check_input(nni=None, rpeaks=None):
-	"""Checks if input series of NN intervals or R-peaks are provided and, if yes, returns a NN interval series in [ms]
-	format.
-
-	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#check-input-check-input
-
-	Parameters
-	----------
-	nni : array, int
-		NN intervals in [ms] or [s].
-	rpeaks : array, int
-		R-peak times in [ms] or [s].
-
-	Returns
-	-------
-	nni : array
-		NN interval series [ms].
-
-	Raises
-	------
-	TypeError
-		If no input data for 'nni' and 'rpeaks' provided.
-
-	Notes
-	-----
-	..	You can find the documentation for this function here:
-		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#check-input-check-input
-
-	"""
-	# Check input
-	if nni is None and rpeaks is not None:
-		# Compute NN intervals if r_peaks array is given
-		nni = nn_intervals(rpeaks)
-	elif nni is not None:
-		# Use given NN intervals & confirm numpy
-		nni = nn_format(nni)
-	else:
-		raise TypeError("No R-peak data or NN intervals provided. Please specify input data.")
-	return nni
+	# Create biosppy.utils.ReturnTuple object from imported data
+	return biosppy.utils.ReturnTuple(results.values(), results.keys())
 
 
 if __name__ == "__main__":
 	"""
 	Example Script - HRV Tools
 	"""
-	import pyhrv.time_domain as td
-	from opensignalsreader import OpenSignalsReader
+	import pyhrv
 	from biosppy.signals.ecg import ecg
 
-	# Change path to your preferred directory
-	path = './files/'
+	# Load a Sample Signal
+	nni = pyhrv.utils.load_sample_nni()
 
 	# Load OpenSignals (r)evolution ECG sample file
-	acq = OpenSignalsReader(path + 'SampleECG.txt')
-	signal = acq.signal('ECG')
-	sampling_rate = acq.sampling_rate
+	signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
 	# Filter data & get r-peak locations [ms]
-	signal, rpeaks = ecg(signal, sampling_rate=sampling_rate, show=False)[1:3]
+	signal, rpeaks = ecg(signal, show=False)[1:3]
 
-	# Plot ECG & save plot figure
-	results = plot_ecg(signal, sampling_rate=sampling_rate, show=True, interval=[0, 22])
+	# Plot ECG for the interval of 0s and 22s
+	plot_ecg(signal, interval=[0, 22])
 
-	# Plot Tachogram & save plot figure
-	results = join_tuples(results, tachogram(rpeaks=rpeaks, show=False))
+	# Plot Tachogram for the interval of 0s and 22s
+	tachogram(nni, interval=[0, 22])
 
-	# Compute Time Domain Parameters
-	results = join_tuples(results, td.time_domain(rpeaks=rpeaks, plot=True, show=False))
+	# Heart Rate Heatplot to highlight HR performance compared to a sports database
+	heart_rate_heatplot(nni, gender='male', age=28)
 
-	# Export HRV results to JSON file & save plot figures
-	hrv_export(results, path=path, efile='SampleExport3', plots=True)
+	# Time Varying is designed to show the evolution of HRV parameters over time using a moving window
+	# Define a moving window of 3 NNIs before and after the current NNI using the NNI window indicator 'n'
+	time_varying(nni, parameter='sdnn', window='n3')
 
-	# Create HRV report file & save plot figures
-	hrv_report(results, path=path, rfile='SampleReport3', plots=True)
+	# Define a moving window of 3 seconds before and after the current NNI using the time window indicator 't'
+	time_varying(nni, parameter='sdnn', window='t3')
 
-	# Import HRV results from exported JSON export file
-	hrv_import(path + 'SampleExport.json')
+	# Radar charts are created dynamically, depending on the number of parameters used as input
+	# For this example, let's split he test NNI series into two segments & select a list of 6 parameters
+	ref_nni = nni[:100]
+	comp_nni = nni[100:200]
+	params = ['nni_mean', 'nni_max', 'sdnn', 'rmssd', 'sdsd', 'nn50', 'nn20']
+	radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
 
-	check_interval(None, default=[2, 8])
+	# Now with only 3 parameters
+	params = ['nni_mean', 'sdnn', 'rmssd']
+	radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
+
+	# Export and import HRV results into and from JSON files:
+	# First, compute hrv parameters
+	results = pyhrv.hrv(nni, show=False)
+
+	hrv_export(results, path='./files/', efile='SampleExport')
+	hrv_import('./files/SampleExport.json')

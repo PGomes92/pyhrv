@@ -8,25 +8,26 @@ function.
 
 Notes
 -----
-..  This module is part of the master thesis
+..  Up to v.0.3 this work has been developed within the master thesis
 	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This package is a contribution to the open-source biosignal processing toolbox 'BioSppy':
-	https://github.com/PIA-Group/BioSPPy
+..	You find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/hrv.html
+.. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
-Thesis Supervisors
-------------------
-..  Hugo Silva, PhD, Instituto de Telecomunicacoes, PLUX wireless biosignals S.A.
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
+..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-21-10-2018
+12-11-2019
 
-:copyright: (c) 2018 by Pedro Gomes (HAW Hamburg)
+:copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
 
 """
@@ -36,17 +37,24 @@ from __future__ import absolute_import
 # Imports
 import warnings
 
-# BioSppy import
+# BioSPPy import
 import biosppy
-from biosppy import utils
 import matplotlib.pyplot as plt
 
 # Import toolbox functions
 import pyhrv
-import pyhrv.tools as tools
 import pyhrv.time_domain as td
 import pyhrv.frequency_domain as fd
 import pyhrv.nonlinear as nl
+try:
+	from pyhrv import tools
+except ImportError as e:
+	pass
+
+try:
+	from pyhrv import utils
+except ImportError as e:
+	pass
 
 
 def hrv(nni=None,
@@ -129,7 +137,7 @@ def hrv(nni=None,
 	kwargs_lomb : dict, optional
 		**kwargs for the 'lomb_psd()' function:
 			..	nfft : int, optional
-					Number of points computed for the FFT result (default: 2**8).
+					Number of points computed for the Lomb result (default: 2**8).
 			..	ma_size : int, optional
 					Window size of the optional moving average filter (default: None).
 
@@ -163,7 +171,7 @@ def hrv(nni=None,
 
 	Returns
 	-------
-	results : biosppy.utils.ReturnTuple object
+	results : biosppy.biosspy.utils.ReturnTuple object
 		All time domain results.
 
 	Returned Parameters - Time Domain
@@ -221,7 +229,7 @@ def hrv(nni=None,
 
 	Notes
 	-----
-	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
+	..	Results are stored in a biosppy.biosspy.utils.ReturnTuple object and need to be accessed with the respective keys as
 		done with dictionaries (see list of parameters and keys above).
 	..	Provide at least one type of input data (ecg_signal, nn, or rpeaks).
 	..	Input data will be prioritized in the following order: 1. ecg_signal, 2. nn, 3. rpeaks.
@@ -245,9 +253,9 @@ def hrv(nni=None,
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
-	nn = tools.check_input(nni, rpeaks)
+	nn = utils.check_input(nni, rpeaks)
 
-	version = utils.ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
+	version = biosppy.utils.ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
 
 	# COMPUTE TIME DOMAIN PARAMETERS
 	# Check for kwargs for the 'kwargs_time'
@@ -324,7 +332,7 @@ def hrv(nni=None,
 		n_results = nl.nonlinear(nni=nn, show=False)
 
 	# Prepare output
-	results = tools.join_tuples(t_results, f_results, n_results)
+	results = utils.join_tuples(t_results, f_results, n_results)
 
 	# Plot ECG signal
 	if plot_ecg and signal is not None:
@@ -356,7 +364,7 @@ def hrv(nni=None,
 		else:
 			ecg_plot = tools.plot_ecg(signal=signal, sampling_rate=sampling_rate, show=False, interval=interval)
 
-		results = tools.join_tuples(results, ecg_plot)
+		results = utils.join_tuples(results, ecg_plot)
 
 	# Plot Tachogram
 	if plot_tachogram:
@@ -388,7 +396,7 @@ def hrv(nni=None,
 		else:
 			tachogram_plot = tools.tachogram(nni=nn, show=False, interval=interval)
 
-		results = tools.join_tuples(results, tachogram_plot)
+		results = utils.join_tuples(results, tachogram_plot)
 
 	if show:
 		plt.show()
@@ -396,18 +404,19 @@ def hrv(nni=None,
 	# Output
 	return results
 
+
 if __name__ == '__main__':
 	"""
 	Example Script - Computing all HRV parameters of pyHRV
 	"""
 	# Import
-	import numpy as np
+	from pyhrv import utils
 
-	# Load sample NNI series
-	nni = np.load('./files/SampleNNISeries.npy')
+	# Load sample NNI series of 60min
+	nni = utils.load_sample_nni(series="long")
 
 	# Compute HRV results using all the default values
-	hrv_results = hrv(nn=nni, show=True)
+	hrv_results = hrv(nni=nni, show=True)
 
 	# Print results to the console
 	for key in hrv_results.keys():

@@ -8,26 +8,28 @@ and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, Sp
 
 Notes
 -----
-..  This module is part of the master thesis
-	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
-	https://github.com/PIA-Group/BioSPPy
+..  Up to v.0.3 this work has been developed within the master thesis
+	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)"
+..	You find the API reference for this module here:
+	https://pyhrv.readthedocs.io/en/latest/_pages/api/nonlinear.html
+.. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
-Thesis Supervisors
-------------------
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
 ..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-12-09-2018
+12-11-2019
 
-:copyright: (c) 2018 by Pedro Gomes
+:copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import division, print_function, absolute_import
@@ -39,15 +41,21 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-# BioSppy imports
-from biosppy import utils
+# BioSPPy imports
+import biosppy
 
-# Local imports/HRV toolbox imports
-import pyhrv.tools as tools
+# Local imports/pyHRV toolbox imports
+import pyhrv
 
-# TODO add plot argument to docstring
-def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=True, vectors=True, legend=True, \
-																									   marker='o'):
+# TODO add devplot mode
+def poincare(nni=None,
+			 rpeaks=None,
+			 show=True,
+			 figsize=None,
+			 ellipse=True,
+			 vectors=True,
+			 legend=True,
+			 marker='o'):
 	"""Creates Poincaré plot from a series of NN intervals or R-peak locations and derives the Poincaré related
 	parameters SD1, SD2, SD1/SD2 ratio, and area of the Poincaré ellipse.
 
@@ -56,21 +64,23 @@ def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=
 	Parameters
 	----------
 	nni : array
-		NN intervals in [ms] or [s].
+		NN intervals in [ms] or [s]
 	rpeaks : array
-		R-peak times in [ms] or [s].
+		R-peak times in [ms] or [s]
 	show : bool, optional
-		If true, shows Poincaré plot (default: True).
+		If true, shows Poincaré plot (default: True)
+	show : bool, optional
+		If true, shows generated plot
 	figsize : array, optional
-		Matplotlib figure size (width, height) (default: (6, 6)).
+		Matplotlib figure size (width, height) (default: (6, 6))
 	ellipse : bool, optional
-		If true, shows fitted ellipse in plot (default: True).
+		If true, shows fitted ellipse in plot (default: True)
 	vectors : bool, optional
-		If true, shows SD1 and SD2 vectors in plot (default: True).
+		If true, shows SD1 and SD2 vectors in plot (default: True)
 	legend : bool, optional
-		If True, adds legend to the Poincaré plot (default: True).
+		If True, adds legend to the Poincaré plot (default: True)
 	marker : character, optional
-		NNI marker in plot (default: 'o').
+		NNI marker in plot (default: 'o')
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -89,7 +99,7 @@ def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=
 
 	"""
 	# Check input values
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Prepare Poincaré data
 	x1 = np.asarray(nn[:-1])
@@ -102,79 +112,75 @@ def poincare(nni=None, rpeaks=None, show=True, plot=True, figsize=None, ellipse=
 	# Area of ellipse
 	area = np.pi * sd1 * sd2
 
-	# if plot is wanted
-	if plot:
-		# Prepare figure
-		if figsize is None:
-			figsize = (6, 6)
-		fig = plt.figure(figsize=figsize)
-		fig.tight_layout()
-		ax = fig.add_subplot(111)
+	# Prepare figure
+	if figsize is None:
+		figsize = (6, 6)
+	fig = plt.figure(figsize=figsize)
+	fig.tight_layout()
+	ax = fig.add_subplot(111)
 
-		ax.set_title(r'$Poincar\acute{e}$')
-		ax.set_ylabel('$NNI_{i+1}$ [ms]')
-		ax.set_xlabel('$NNI_i$ [ms]')
-		ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
-		ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
-		ax.grid()
-		ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
+	ax.set_title(r'$Poincar\acute{e}$')
+	ax.set_ylabel('$NNI_{i+1}$ [ms]')
+	ax.set_xlabel('$NNI_i$ [ms]')
+	ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
+	ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
+	ax.grid()
+	ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
 
-		# Compute mean NNI (center of the Poincaré plot)
-		nn_mean = np.mean(nn)
+	# Compute mean NNI (center of the Poincaré plot)
+	nn_mean = np.mean(nn)
 
-		# Draw poincaré ellipse
-		if ellipse:
-			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
-			ax.add_artist(ellipse_)
-			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
-			ax.add_artist(ellipse_)
+	# Draw poincaré ellipse
+	if ellipse:
+		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
+		ax.add_artist(ellipse_)
+		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
+		ax.add_artist(ellipse_)
 
-		# Add poincaré vectors (SD1 & SD2)
-		if vectors:
-			arrow_head_size = 3
-			na = 4
-			a1 = ax.arrow(
-				nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
-				head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
-			a2 = ax.arrow(
-				nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
-				head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
-			a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-			a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-			ax.add_line(mpl.lines.Line2D(
-				(min(nn), max(nn)),
-				(min(nn), max(nn)),
-				c='b', ls=':', alpha=0.6))
-			ax.add_line(mpl.lines.Line2D(
-				(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
-				(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
-				c='g', ls=':', alpha=0.6))
+	# Add poincaré vectors (SD1 & SD2)
+	if vectors:
+		arrow_head_size = 3
+		na = 4
+		a1 = ax.arrow(
+			nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
+			head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
+		a2 = ax.arrow(
+			nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
+			head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
+		a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+		a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+		ax.add_line(mpl.lines.Line2D(
+			(min(nn), max(nn)),
+			(min(nn), max(nn)),
+			c='b', ls=':', alpha=0.6))
+		ax.add_line(mpl.lines.Line2D(
+			(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
+			(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
+			c='g', ls=':', alpha=0.6))
 
-			# Add legend
-			if legend:
-				ax.legend(
-					[a1, a2, a3, a4],
-					['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
-					framealpha=1)
+		# Add legend
+		if legend:
+			ax.legend(
+				[a1, a2, a3, a4],
+				['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
+				framealpha=1)
 
-		# Show plot
-		if show:
-			plt.show()
-	else:
-		fig = None
+	# Show plot
+	if show:
+		plt.show()
 
 	# Output
 	args = (fig, sd1, sd2, sd2/sd1, area)
 	names = ('poincare_plot', 'sd1', 'sd2', 'sd_ratio', 'ellipse_area')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
-def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
+def sample_entropy(nni=None, rpeaks=None, dim=2, tolerance=None):
 	"""Computes the sample entropy (sampen) of the NNI series.
 
 	Parameters
 	----------
-	nn : array
+	nni : array
 		NN intervals in [ms] or [s].
 	rpeaks : array
 		R-peak times in [ms] or [s].
@@ -197,7 +203,7 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	if tolerance is None:
 		tolerance = np.std(nn, ddof=-1) * 0.2
@@ -214,7 +220,7 @@ def sample_entropy(nn=None, rpeaks=None, dim=2, tolerance=None):
 	# Output
 	args = (sampen, )
 	names = ('sampen', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True):
@@ -251,11 +257,11 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 
 	"""
 	# Check input values
-	nn = tools.check_input(nn, rpeaks)
+	nn = pyhrv.utils.check_input(nn, rpeaks)
 
 	# Check intervals
-	short = tools.check_interval(short, default=(4, 16))
-	long = tools.check_interval(long, default=(17, 64))
+	short = pyhrv.utils.check_interval(short, default=(4, 16))
+	long = pyhrv.utils.check_interval(long, default=(17, 64))
 
 	# Create arrays
 	short = range(short[0], short[1] + 1)
@@ -306,8 +312,8 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 		plt.show()
 
 	# Output
-	args = (fig, alpha1, alpha2,)
-	return utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', ))
+	args = (fig, alpha1, alpha2, short, long)
+	return biosppy.utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 
 def nonlinear(nni=None,
@@ -403,7 +409,7 @@ def nonlinear(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Unwrap kwargs_poincare dictionary & compute Poincaré
 	if kwargs_poincare is not None:
@@ -496,7 +502,7 @@ def nonlinear(nni=None,
 		d_results = dfa(nn, show=False)
 
 	# Join Results
-	results = tools.join_tuples(p_results, s_results, d_results)
+	results = pyhrv.utils.join_tuples(p_results, s_results, d_results)
 
 	# Plot
 	if show:
@@ -525,19 +531,20 @@ if __name__ == "__main__":
 	res3 = dfa(nni, show=False)
 
 	# Join results
-	results = tools.join_tuples(res1, res2, res3)
+	results = pyhrv.utils.join_tuples(res1, res2, res3)
 
 	# Results
 	print("=========================")
 	print("NONLINEAR ANALYSIS")
 	print("=========================")
 	print("Poincaré Plot")
-	print("SD1:		%f [ms]" % results['sd1'])
-	print("SD2:		%f [ms]" % results['sd2'])
-	print("SD2/SD1: 	%f [ms]" % results['sd_ratio'])
-	print("Area S:		%f [ms]" % results['ellipse_area'])
+	print("SD1:				%f [ms]" % results['sd1'])
+	print("SD2:				%f [ms]" % results['sd2'])
+	print("SD2/SD1: 		%f [ms]" % results['sd_ratio'])
+	print("Area S:			%f [ms]" % results['ellipse_area'])
 	print("Sample Entropy:	%f" % results['sampen'])
-	print("DFA:			%f	[ms]")
+	print("DFA (alpha1):	%f	[ms]" % results['dfa_alpha1'])
+	print("DFA (alpha2):	%f	[ms]" % results['dfa_alpha2'])
 
 	# Alternatively use the nonlinear() function to compute all the nonlinear parameters at once
 	nonlinear(nni=nni)

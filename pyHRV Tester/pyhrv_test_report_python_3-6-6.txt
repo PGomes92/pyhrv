@@ -1,0 +1,73 @@
+[########################################################################################################################]                                                                                                                  
+[Python]    Version 3.6.6 |Anaconda, Inc.| (default, Jun 28 2018, 11:07:29) 
+[GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)]
+[pyHRV]     Version 0.4.0
+[Date]      2019-11-12 22:47:25.755694
+[########################################################################################################################]                                                                                                                  
+[TIME DOMAIN]     
+[OK]        pyhrv.time_domain.hr_parameters() passed with NNI input data.
+[OK]        pyhrv.time_domain.hr_parameters() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.nni_parameters() passed with NNI input data.
+[OK]        pyhrv.time_domain.nni_parameters() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.triangular_index() passed with NNI input data.
+[OK]        pyhrv.time_domain.triangular_index() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.nni_differences_parameters() passed with NNI input data.
+[OK]        pyhrv.time_domain.nni_differences_parameters() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.sdnn() passed with NNI input data.
+[OK]        pyhrv.time_domain.sdnn() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.sdsd() passed with NNI input data.
+[OK]        pyhrv.time_domain.sdsd() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.sdnn_index() passed with NNI input data.
+[OK]        pyhrv.time_domain.sdnn_index() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.rmssd() passed with NNI input data.
+[OK]        pyhrv.time_domain.rmssd() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.tinn() passed with NNI input data.
+[OK]        pyhrv.time_domain.tinn() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.sdann() passed with NNI input data.
+[OK]        pyhrv.time_domain.sdann() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.nn20() passed with NNI input data.
+[OK]        pyhrv.time_domain.nn20() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.nn50() passed with NNI input data.
+[OK]        pyhrv.time_domain.nn50() passed with R-Peak input data.
+[OK]        pyhrv.time_domain.time_domain() passed with NNI input data.
+[OK]        pyhrv.time_domain.time_domain() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[FREQUENCY DOMAIN]          
+[OK]        pyhrv.frequency_domain.lomb_psd() passed with NNI input data.
+[OK]        pyhrv.frequency_domain.lomb_psd() passed with R-Peak input data.
+[OK]        pyhrv.frequency_domain.welch_psd() passed with NNI input data.
+[OK]        pyhrv.frequency_domain.welch_psd() passed with R-Peak input data.
+[OK]        pyhrv.frequency_domain.ar_psd() passed with NNI input data.
+[OK]        pyhrv.frequency_domain.ar_psd() passed with R-Peak input data.
+[OK]        pyhrv.frequency_domain.frequency_domain() passed with NNI input data.
+[OK]        pyhrv.frequency_domain.frequency_domain() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[NONLINEAR PARAMETERS]              
+[OK]        pyhrv.nonlinear.poincare() passed with NNI input data.
+[OK]        pyhrv.nonlinear.poincare() passed with R-Peak input data.
+[OK]        pyhrv.nonlinear.sample_entropy() passed with NNI input data.
+[OK]        pyhrv.nonlinear.sample_entropy() passed with R-Peak input data.
+[OK]        pyhrv.nonlinear.dfa() passed with NNI input data.
+[OK]        pyhrv.nonlinear.dfa() passed with R-Peak input data.
+[OK]        pyhrv.nonlinear.nonlinear() passed with NNI input data.
+[OK]        pyhrv.nonlinear.nonlinear() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[HRV FUNCTION]      
+[OK]        pyhrv.hrv() passed with NNI input data.
+[OK]        pyhrv.hrv() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[TESTING HRV TXT & CSV REPORTS]                       
+[OK]        pyhrv.report.hrv_report() txt report() passed with NNI input data.
+[OK]        pyhrv.report.hrv_report() csv report() passed with NNI input data.
+[########################################################################################################################]                                                                                                                  
+[TESTING FUNCTIONS OF THE TOOLS MODULE]                               
+[OK]        pyhrv.tools.tachogram() passed with NNI input data.
+[OK]        pyhrv.tools.tachogram() passed with R-Peak input data.
+[OK]        pyhrv.tools.heart_rate() passed with NNI input data.
+[OK]        pyhrv.tools.heart_rate() passed with R-Peak input data.
+[OK]        pyhrv.tools.heart_rate_heatplot() passed with NNI input data.
+[OK]        pyhrv.tools.heart_rate_heatplot() passed with R-Peak input data.
+[OK]        pyhrv.tools.time_varying() passed with NNI input data.
+[OK]        pyhrv.tools.time_varying() passed with R-Peak input data.
+[OK]        pyhrv.tools.radar_chart() passed with NNI input data.
+[OK]        pyhrv.tools.radar_chart() passed with NNI input data.

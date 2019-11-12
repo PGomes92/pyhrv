@@ -8,29 +8,28 @@ and/or NN interval series extracted from an ECG lead I-like signal (e.g. ECG, Sp
 
 Notes
 -----
-..  This module is part of the master thesis
+..  Up to v.0.3 this work has been developed within the master thesis
 	"Development of an Open-Source Python Toolbox for Heart Rate Variability (HRV)".
-..	This module is a contribution to the open-source biosignal processing toolbox 'BioSppy':
-	https://github.com/PIA-Group/BioSPPy
 ..	You find the API reference for this module here:
 	https://pyhrv.readthedocs.io/en/latest/_pages/api/time.html
 .. 	See 'references.txt' for a full detailed list of references
 
 Author
 ------
-..  Pedro Gomes, Master Student, University of Applied Sciences Hamburg
+..  Pedro Gomes, pgomes92@gmail.com
 
-Thesis Supervisors
-------------------
-..  Hugo Silva, PhD, Instituto de Telecomunicoes & PLUX wireless biosignals S.A.
+Contributors (and former Thesis Supervisors)
+--------------------------------------------
+..  Hugo Silva, PhD, Instituto de Telecomunicacoes & PLUX wireless biosignals S.A.
 ..  Prof. Dr. Petra Margaritoff, University of Applied Sciences Hamburg
 
 Last Update
 -----------
-19-11-2018
+12-11-2019
 
-:copyright: (c) 2018 by Pedro Gomes
+:copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
+
 """
 # Compatibility
 from __future__ import division, print_function
@@ -43,11 +42,11 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 # BioSppy imports
+import biosppy
 from biosppy.signals.ecg import ecg
-from biosppy import utils
 
-# Local imports/HRV toolbox imports
-import pyhrv.tools as tools
+# Local imports/pyHRV toolbox imports
+import pyhrv
 
 
 def nni_parameters(nni=None, rpeaks=None):
@@ -81,12 +80,12 @@ def nni_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# output
 	args = (int(nn.size), nn.mean(), nn.min(), nn.max())
 	names = ('nni_counter', 'nni_mean', 'nni_min', 'nni_max')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nni_differences_parameters(nni=None, rpeaks=None):
@@ -118,15 +117,15 @@ def nni_differences_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Get NN interval differences
-	nnd = tools.nni_diff(nn)
+	nnd = pyhrv.tools.nni_diff(nn)
 
 	# output
 	args = (float(nnd.mean()), int(nnd.min()), int(nnd.max()), )
 	names = ('nni_diff_mean', 'nni_diff_min', 'nni_diff_max', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def hr_parameters(nni=None, rpeaks=None):
@@ -160,15 +159,15 @@ def hr_parameters(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Get heart rate series
-	hr = tools.heart_rate(nn)
+	hr = pyhrv.tools.heart_rate(nn)
 
 	# Output
 	args = (hr.mean(), hr.min(), hr.max(), hr.std(ddof=1))
 	names = ('hr_mean', 'hr_min', 'hr_max', 'hr_std')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdnn(nni=None, rpeaks=None):
@@ -199,15 +198,15 @@ def sdnn(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Computation of SDNN & Output
-	args = [tools.std(nn)]
+	args = [pyhrv.utils.std(nn)]
 	names = ['sdnn']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
-def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
+def sdnn_index(nni=None, rpeaks=None, full=True, duration=300, warn=True):
 	"""Computes the mean of the SDNN values of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996]
@@ -221,10 +220,10 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 		R-peak times in [ms] or [s].
 	full : bool, optional
 		If True, returns last segment, even if the cumulative sum of NNI does not reach the 300s (default: False).
-	overlap : bool, optional
-		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
 		Maximum duration duration per segment in [s] (default: 300s).
+	warn : bool, optional
+		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -238,35 +237,27 @@ def sdnn_index(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	..	Only one type of input data is required.
 	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
 	..	NN and R-peak series provided in [s] format will be converted to [ms] format.
-	..	In some cases, the NN interval may start in a segment (or time interval) N and end only in the successive
-		segment N+1. In this case, use the 'overlap' parameter to select if the first element of the segment should be
-		dropped or not:
-		..	If True: overlap allowed, returns all NNI but the cumulative sum of the NNI in a segment can be greater
-			than the specified duration.
-		..	If False: no overlap allowed, first NNI will be dropped and the cumulative sum of the NNI in a segment
-			will always be < specified duration.
+
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
-	segments, seg = tools.segmentation(nn,  full=full, overlap=overlap, duration=duration)
+	segments, seg = pyhrv.utils.segmentation(nn,  full=full, duration=duration, warn=warn)
 
 	if seg:
 		sdnn_values = [sdnn(x)['sdnn'] for x in segments]
 		sdnn_index = np.mean(sdnn_values)
 	else:
 		sdnn_index = float('nan')
-		if tools.WARN:
-			warnings.warn("Signal duration too short for SDNN index computation.")
 
 	# Output
 	args = [sdnn_index]
 	names = ['sdnn_index']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
-def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
+def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=True):
 	"""Computes the standard deviation of the mean NNI value of each segment (default: 300s segments).
 
 	References: [Electrophysiology1996], [Lohninger2017]
@@ -279,10 +270,10 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 		R-peak times in [ms] or [s].
 	full : bool, optional
 		If True, returns last segment, even if the cumulative sum of NNI does not reach the 300s (default: False).
-	overlap : bool, optional
-		If True, allow to return NNI that go from the interval of one segment to the successive segment (default: False).
 	duration : int, optional
 		Maximum duration duration per segment in [s] (default: 300s).
+	warn : bool, optional
+		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -296,32 +287,25 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300):
 	..	Only one type of input data is required
 	.. 	If both 'nni' and 'rpeaks' are provided, 'nni' will be chosen over the 'rpeaks'
 	..	NN and R-peak series provided in [s] format will be converted to [ms] format
-	..	In some cases, the NN interval may start in a segment (or time interval) N and end only in the successive
-		segment N+1. In this case, use the 'overlap' parameter to select if the first element of the segment should be
-		dropped or not:
-		..	If True: overlap allowed, returns all NNI but the cumulative sum of the NNI in a segment can be greater
-			than the specified duration.
-		..	If False: no overlap allowed, first NNI will be dropped and the cumulative sum of the NNI in a segment
-			will always be < specified duration.
+
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Signal segmentation into 5 min segments
-	segments, seg = tools.segmentation(nn, full=full, overlap=overlap, duration=duration)
+	segments, seg = pyhrv.utils.segmentation(nn, full=full, duration=duration, warn=warn)
 
 	if seg:
 		mean_values = [np.mean(x) for x in segments]
-		sdann_ = tools.std(mean_values)
+		sdann_ = pyhrv.utils.std(mean_values)
 	else:
 		sdann_ = float('nan')
-		if tools.WARN:
-			warnings.warn("Signal duration too short for SDANN computation.")
+		warnings.warn("Signal duration too short for SDANN computation.")
 
 	# Output
 	args = [sdann_]
 	names = ['sdann']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def rmssd(nni=None, rpeaks=None):
@@ -352,17 +336,17 @@ def rmssd(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Compute RMSSD
-	nnd = tools.nni_diff(nn)
-	rmssd_ = np.sum(x**2 for x in nnd)
+	nnd = pyhrv.tools.nni_diff(nn)
+	rmssd_ = np.sum([x**2 for x in nnd])
 	rmssd_ = np.sqrt(1. / nnd.size * rmssd_)
 
 	# Output
 	args = (rmssd_, )
 	names = ('rmssd', )
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def sdsd(nni=None, rpeaks=None):
@@ -393,18 +377,18 @@ def sdsd(nni=None, rpeaks=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Compute NN differences
-	nnd = tools.nni_diff(nn)
+	nnd = pyhrv.tools.nni_diff(nn)
 
 	# Computation of SDNN
-	sdsd_ = tools.std(nnd)
+	sdsd_ = pyhrv.utils.std(nnd)
 
 	# Output
 	args = [sdsd_]
 	names = ['sdsd']
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nnXX(nni=None, rpeaks=None, threshold=None):
@@ -444,7 +428,7 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Check threshold
 	if threshold is None:
@@ -453,14 +437,14 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 		raise ValueError("Invalid value for 'threshold'. Value must not be <= 0.")
 
 	# Count NN20
-	nnd = tools.nni_diff(nn)
+	nnd = pyhrv.tools.nni_diff(nn)
 	nnxx = sum(i > threshold for i in nnd)
 	pnnxx = nnxx / len(nnd) * 100
 
 	# Output
 	args = (nnxx, pnnxx)
 	names = ('nn%i' % threshold, 'pnn%i' % threshold)
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def nn50(nni=None, rpeaks=None):
@@ -588,8 +572,12 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		from the 'rpeaks'.
 
 	"""
+	# Raise a warning because this function is currently not generating correct results
+	warnings.warn('CAUTION: The TINN computation is currently providing incorrect results in the most cases due to a '
+				  'malfunction of the function. This function will be reviewed over the next updates to solve this issue')
+
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Get Histogram data (with or without histogram plot figure)
 	if plot:
@@ -684,7 +672,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		args = (N, M, tinn,)
 		names = ('tinn_n', 'tinn_m', 'tinn',)
 
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
@@ -734,7 +722,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 
 	"""
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# If histogram should be plotted
 	if plot:
@@ -776,7 +764,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 		args = (tri_index, )
 		names = ('tri_index', )
 
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
@@ -916,7 +904,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	"""
 
 	# Check input
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
 	# Get Histogram data & plot (optional)
 	if plot:
@@ -956,7 +944,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	# Output
 	args = (fig, tinn_vals['tinn_n'], tinn_vals['tinn_m'], tinn_vals['tinn'], trindex)
 	names = ('nni_histogram', 'tinn_n', 'tinn_m', 'tinn', 'tri_index')
-	return utils.ReturnTuple(args, names)
+	return biosppy.utils.ReturnTuple(args, names)
 
 
 def time_domain(nni=None,
@@ -1040,36 +1028,37 @@ def time_domain(nni=None,
 		raise TypeError('No input data provided. Please specify input data.')
 
 	# Get NNI series
-	nn = tools.check_input(nni, rpeaks)
+	nn = pyhrv.utils.check_input(nni, rpeaks)
 
-	# Call time domain functions & wrap results in a single biosspy.utils.ReturnTuple object
+	# Call time domain functions & wrap results in a single biosppy.utils.ReturnTuple object
 	results = nni_parameters(nn)
-	results = tools.join_tuples(results, hr_parameters(nn))
-	results = tools.join_tuples(results, nni_differences_parameters(nn))
-	results = tools.join_tuples(results, sdnn(nn))
-	results = tools.join_tuples(results, sdnn_index(nn))
-	results = tools.join_tuples(results, sdann(nn))
-	results = tools.join_tuples(results, rmssd(nn))
-	results = tools.join_tuples(results, sdsd(nn))
-	results = tools.join_tuples(results, nn50(nn))
-	results = tools.join_tuples(results, nn20(nn))
+	results = pyhrv.utils.join_tuples(results, hr_parameters(nn))
+	results = pyhrv.utils.join_tuples(results, nni_differences_parameters(nn))
+	results = pyhrv.utils.join_tuples(results, sdnn(nn))
+	results = pyhrv.utils.join_tuples(results, sdnn_index(nn))
+	results = pyhrv.utils.join_tuples(results, sdann(nn))
+	results = pyhrv.utils.join_tuples(results, rmssd(nn))
+	results = pyhrv.utils.join_tuples(results, sdsd(nn))
+	results = pyhrv.utils.join_tuples(results, nn50(nn))
+	results = pyhrv.utils.join_tuples(results, nn20(nn))
 
 	# Compute custom threshold if required
-	if threshold is not None:
-		results = tools.join_tuples(results, nnXX(nn, threshold=int(threshold)))
+	if threshold is not None and threshold not in [50, 20]:
+		results = pyhrv.utils.join_tuples(results, nnXX(nn, threshold=int(threshold)))
 
 	# Compute geometrical parameters
-	results = tools.join_tuples(results, geometrical_parameters(nn, plot=plot, show=show, binsize=binsize))
+	results = pyhrv.utils.join_tuples(results, geometrical_parameters(nn, plot=plot, show=show, binsize=binsize))
 
 	# Output
 	return results
+
 
 if __name__ == "__main__":
 	"""
 	Example Script - HRV Time Domain Analysis
 	"""
 	# Load sample NNI series
-	nni = np.load('./files/SampleNNISeries.npy')
+	nni = pyhrv.utils.load_sample_nni(series='long')
 
 	# Time Domain results
 	print("=========================")
@@ -1114,8 +1103,8 @@ if __name__ == "__main__":
 	print("> M:				%f [ms]" % geo['tinn_m'])
 
 	# Alternatively use the individual geometrical parameter functions
-	geo = triangular_index(nni, plot=False)
-	geo = tinn(nni, plot=False)
+	triangular_index(nni, plot=False)
+	tinn(nni, plot=False)
 
 	# Alternatively use the time_domain() function to compute all time domain parameters using a single function
 	time_domain(nni=nni)

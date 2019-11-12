@@ -1,0 +1,140 @@
+{
+  "colors": {
+    "poor": "#E50600",
+    "below_average": "#DE4E00",
+    "average": "#D89200",
+    "above_average": "#D1D200",
+    "good": "#89CB00",
+    "excellent": "#45C500",
+    "athlete": "#04BF00"
+  },
+  "order": {
+    "0": ["poor", "Poor"],
+    "1": ["below_average", "Bel. Avg."],
+    "2": ["average", "Avg."],
+    "3": ["above_average", "Abo. Avg."],
+    "4": ["good", "Good"],
+    "5": ["excellent", "Excellent"],
+    "6": ["athlete", "Athlete"]
+  },
+  "ages": {
+    "0": [18, 25],
+    "1": [26, 35],
+    "2": [36, 45],
+    "3": [46, 55],
+    "4": [56, 64],
+    "5": [65, 120]
+  },
+  "male": {
+    "18": {
+      "poor": [82, 200],
+      "below_average": [74, 81],
+      "average": [70, 73],
+      "above_average": [66, 69],
+      "good": [62, 65],
+      "excellent": [56, 61],
+      "athlete": [0, 55]
+    },
+    "26": {
+      "poor": [82, 200],
+      "below_average": [75, 81],
+      "average": [71, 74],
+      "above_average": [66, 70],
+      "good": [62, 65],
+      "excellent": [55, 61],
+      "athlete": [0, 54]
+    },
+    "36": {
+      "poor": [83, 200],
+      "below_average": [76, 82],
+      "average": [71, 75],
+      "above_average": [67, 70],
+      "good": [63, 66],
+      "excellent": [57, 62],
+      "athlete": [0, 56]
+    },
+    "46": {
+      "poor": [84, 200],
+      "below_average": [77, 83],
+      "average": [72, 76],
+      "above_average": [68, 71],
+      "good": [64, 67],
+      "excellent": [58, 63],
+      "athlete": [0, 57]
+    },
+    "56": {
+      "poor": [82, 200],
+      "below_average": [76, 81],
+      "average": [72, 75],
+      "above_average": [68, 71],
+      "good": [62, 67],
+      "excellent": [57, 61],
+      "athlete": [0, 56]
+    },
+    "65": {
+      "poor": [80, 200],
+      "below_average": [74, 79],
+      "average": [70, 73],
+      "above_average": [66, 69],
+      "good": [62, 65],
+      "excellent": [56, 61],
+      "athlete": [0, 55]
+    }
+  },
+  "female": {
+    "18": {
+      "poor": [85, 200],
+      "below_average": [79, 84],
+      "average": [74, 78],
+      "above_average": [70, 73],
+      "good": [66, 69],
+      "excellent": [61, 65],
+      "athlete": [0, 60]
+    },
+    "26": {
+      "poor": [83, 200],
+      "below_average": [77, 82],
+      "average": [73, 76],
+      "above_average": [69, 72],
+      "good": [70, 73],
+      "excellent": [66, 69],
+      "athlete": [0, 59]
+    },
+    "36": {
+      "poor": [85, 200],
+      "below_average": [79, 84],
+      "average": [74, 78],
+      "above_average": [70, 73],
+      "good": [65, 69],
+      "excellent": [60, 64],
+      "athlete": [0, 59]
+    },
+    "46": {
+      "poor": [84, 200],
+      "below_average": [78, 83],
+      "average": [74, 77],
+      "above_average": [70, 73],
+      "good": [66, 69],
+      "excellent": [61, 65],
+      "athlete": [0, 60]
+    },
+    "56": {
+      "poor": [84, 200],
+      "below_average": [78, 83],
+      "average": [74, 77],
+      "above_average": [69, 73],
+      "good": [65, 68],
+      "excellent": [60, 64],
+      "athlete": [0, 59]
+    },
+    "65": {
+      "poor": [84, 200],
+      "below_average": [77, 84],
+      "average": [73, 78],
+      "above_average": [69, 72],
+      "good": [65, 68],
+      "excellent": [60, 64],
+      "athlete": [0, 59]
+    }
+  }
+}

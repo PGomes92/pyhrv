@@ -7,9 +7,9 @@ API Reference
    :caption: Contents:
 
    api/levels
-   api/tools
    api/hrv
    api/time
    api/frequency
    api/nonlinear
-   api/parameters
+   api/tools
+   api/utils
