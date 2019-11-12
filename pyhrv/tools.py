@@ -30,7 +30,7 @@ Docs
 
 Last Update
 -----------
-26-06-2019
+12-11-2019
 
 :copyright: (c) 2018 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.
@@ -1040,7 +1040,7 @@ def radar_chart(nni=None,
 		comp_nn = pyhrv.utils.check_input(comparison_nni, comparison_rpeaks)
 
 	if parameters is None:
-		raise TypeError("No input list of parameters provided for 'reference'. Please specify a list of the parameters"
+		raise TypeError("No input list of parameters provided for 'parameters'. Please specify a list of the parameters"
 						"to be computed and compared.")
 	elif len(parameters) < 2:
 		raise ValueError("Not enough parameters selected for a radar chart. Please specify at least 2 HRV parameters "
@@ -1065,8 +1065,8 @@ def radar_chart(nni=None,
 			unknown_parameters.append(p)
 		else:
 			# Compute available parameters
-			ref_params[p] = _compute_parameter(ref_nni, p)
-			comp_params[p] = _compute_parameter(comp_nni, p)
+			ref_params[p] = _compute_parameter(nn, p)
+			comp_params[p] = _compute_parameter(comp_nn, p)
 
 			# Check if any parameters could not be computed (returned as None or Nan) and remove them
 			# (avoids visualization artifacts)

@@ -90,7 +90,7 @@ The LaTeX template files for the PDF report are available in th the [pyhrv/repor
 
 Note that the HRV results are stored as new commends in the [parameters.tex](parameters.tex) file which are then used throughout the report template. It is recommended to change only the template while leaving the parameters.tex file as is.
 
-If possible, help pyHRV grow by leaving a reference on your custom reports. For this, use either the citation format suggested on this [repositories' main README]() or add a note to the footer with the repositories URL:
+If possible, help pyHRV grow by leaving a reference on your custom reports. For this, use either the citation format suggested on this [repositories' main README](https://github.com/PGomes92/pyhrv) or add a note to the footer with the repositories URL:
 
 ```latex
    \lfoot{HRV results \& report generated with pyHRV (v.\version)\\\url{https://github.com/PGomes92/pyhrv}}

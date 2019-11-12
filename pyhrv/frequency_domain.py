@@ -31,7 +31,7 @@ Contributors (and former Thesis Supervisors)
 
 Last Update
 -----------
-29-06-2019
+12-11-2019
 
 :copyright: (c) 2019 by Pedro Gomes
 :license: BSD 3-clause, see LICENSE for more details.

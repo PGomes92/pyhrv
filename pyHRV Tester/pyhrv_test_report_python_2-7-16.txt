@@ -2,7 +2,7 @@
 [Python]    Version 2.7.16 |Anaconda, Inc.| (default, Mar 14 2019, 16:24:02) 
 [GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)]
 [pyHRV]     Version 0.4.0
-[Date]      2019-08-15 01:47:33.261577
+[Date]      2019-11-12 22:07:42.680522
 [########################################################################################################################]                                                                                                                  
 [TIME DOMAIN]     
 [OK]        pyhrv.time_domain.tinn() passed with NNI input data.
@@ -51,3 +51,23 @@
 [OK]        pyhrv.nonlinear.sample_entropy() passed with R-Peak input data.
 [OK]        pyhrv.nonlinear.nonlinear() passed with NNI input data.
 [OK]        pyhrv.nonlinear.nonlinear() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[HRV FUNCTION]      
+[OK]        pyhrv.hrv() passed with NNI input data.
+[OK]        pyhrv.hrv() passed with R-Peak input data.
+[########################################################################################################################]                                                                                                                  
+[TESTING HRV TXT & CSV REPORTS]                       
+[OK]        pyhrv.report.hrv_report() txt report() passed with NNI input data.
+[OK]        pyhrv.report.hrv_report() csv report() passed with NNI input data.
+[########################################################################################################################]                                                                                                                  
+[TESTING FUNCTIONS OF THE TOOLS MODULE]                               
+[OK]        pyhrv.tools.tachogram() passed with NNI input data.
+[OK]        pyhrv.tools.tachogram() passed with R-Peak input data.
+[OK]        pyhrv.tools.heart_rate() passed with NNI input data.
+[OK]        pyhrv.tools.heart_rate() passed with R-Peak input data.
+[OK]        pyhrv.tools.heart_rate_heatplot() passed with NNI input data.
+[OK]        pyhrv.tools.heart_rate_heatplot() passed with R-Peak input data.
+[OK]        pyhrv.tools.time_varying() passed with NNI input data.
+[OK]        pyhrv.tools.time_varying() passed with R-Peak input data.
+[OK]        pyhrv.tools.radar_chart() passed with NNI input data.
+[OK]        pyhrv.tools.radar_chart() passed with NNI input data.

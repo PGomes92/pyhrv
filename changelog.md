@@ -27,19 +27,23 @@ based on a
 - removed ``overlap`` input argument from the ``pyhrv.utils.segmentation()`` functions as it had now effect anymore due to the previous updates of this function.
 - ``overlap`` input argument has also been removed from the ``pyhrv.utils.sdnn_index()`` and ``pyhrv.utils.sdann()`` functions for the same reason (both use the ``pyhrv.utils.segmentation()``)
 - Moved, fixed, and improved ``hrv_report()``
+- Overall improved stability of the pyhrv package
 - restructured pyhrv package (see especially ``tools.py`` and the ``utils.py`` modules):
 
 ```
     pyhrv                           # Toolbox
-    ├── quickstart                  # Quickstart Guide
     ├── files                       # pyHRV support files
+    |   ├── quickstart              # Figures for the quickstart guide (see pyhrv module README.md)
     |   ├── hr_heatplot.json        # HR reference normal values for the hr_heatplot() function
     |   ├── hrv_keys.json           # HRV keys to access the parameter results stored in
     |   ├── references.txt          # Publications references on which pyHRV functions are based
     |   ├── SampleECG.txt           # Sample ECG signal (for testing purposes)
     |   ├── SampleExport.json       # Sample HRV results export (for demonstration purposes)
-    |   ├── SampleNNISeries.npy     # Sample NNI series (for testing purposes)
-    |   └── SampleECG.txt           # Sample ECG signal (for testing purposes)
+    |   ├── SampleNNISeriesLong.npy # 60 minute sample NNI series (for testing purposes)
+    |   ├── SampleNNISeriesShort.npy# 5 minute sample NNI series (for testing purposes)
+    |   ├── SampleReport.csv        # Sample report in .csv format
+    |   ├── SampleReport.pdf        # Sample report in .pdf format
+    |   └── SampleReport.txt        # Sample report in .txt format
     |      
     ├── report                      # Subpackage for PDF, TXT, and CSV report generation
     |   ├── build                   # Default path for generated PDF, TXT, and CSV reports 
@@ -48,12 +52,8 @@ based on a
     |   ├── __init__.py             # Report init file
     |   ├── main.tex                # Main LaTeX file
     |   ├── parameters.tex          # File containing all the variables in which the HRV parameters will be stored
-    |   ├── pdf_report.py           # PDF report module
     |   ├── pyhrv.png               # pyHRV logo for the PDF header
     |   ├── README.md               # Report README
-    |   ├── SampleReport.csv        # Sample report in CSV format
-    |   ├── SampleReport.pdf        # Sample report in PDF format
-    |   ├── SampleReport.txt        # Sample report in TXT format
     |   └── settings.tex            # Settings file for the LaTeX-based project
     |   
     ├── __init__.py                 # pyHRV init file
@@ -78,8 +78,10 @@ HRV parameters
 - added ``complete`` as valid value for the ``interval`` input parameter of the ``tools.plot_ecg`` and ``tools
 .tachogram``
 functions
+- pyhrv.time_domain.tinn() & pyhrv.time_domain.geometrical_parameters() functions no issue a warning due to the current issue of the TINN function of providing wrong results (see issue #5)
 - removed 'overlap' input parameter from ``sdnn`` and ``sdnn_index`` functions 
 - updated main README
+- Fixes #6, #7 and #9
 
 Update Version 0.3.2
 --------------------

@@ -37,7 +37,7 @@ from pyhrv.hrv import hrv
 
 # Metadata
 __author__ = "Pedro Gomes"
-__email__ = "pedro.gomes@haw-hamburg.de"
+__email__ = "pgomes92@gmail.com"
 __maintainer__ = "Pedro Gomes"
 __status__ = "Development"
 __license__ = "BSD 3-Clause License"
