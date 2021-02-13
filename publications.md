@@ -1,4 +1,5 @@
-# pyHRV Citation & Publications
+# pyHRV Citation & Publications 
+![Citations](https://img.shields.io/static/v1?label=Citations&message=24+&color=informational)
 
 ### Citing pyHRV
 Please use the following conference paper to cite pyHRV in your work ([Conference Paper [PDF]](https://drive.google.com/open?id=1enItjdVXkTYX_h2DkgDl2v8vXAe09QJv), [Conference Proceedings [PDF]](https://etran.rs/2019/Proceedings_IcETRAN_ETRAN_2019.pdf)):
