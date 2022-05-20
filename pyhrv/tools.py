@@ -222,7 +222,7 @@ def plot_ecg(signal=None,
 		t = pyhrv.utils.time_vector(signal, sampling_rate=sampling_rate)
 
 	# Configure interval of visualized signal
-	if interval is 'complete':
+	if interval == 'complete':
 		interval = [0, t[-1]]
 	else:
 		interval = pyhrv.utils.check_interval(interval, limits=[0, t[-1]], default=[0, 10])
@@ -369,7 +369,7 @@ def tachogram(nni=None,
 	t = np.cumsum(nni) / 1000.
 
 	# Configure interval of visualized signal
-	if interval is 'complete':
+	if interval == 'complete':
 		interval = [0, t[-1]]
 	else:
 		interval = pyhrv.utils.check_interval(interval, limits=[0, t[-1]], default=[0, 10])
@@ -649,10 +649,12 @@ def heart_rate_heatplot(nni=None,
 		percentages = {}
 		_left = 0
 		legend = []
-		for i in range(7):
+		ax2.tick_params(left=False)
+		ax2.set_yticklabels([])
+		for i in list(range(7)):
 			classifier = str(order[str(i)][0])
 			percentages[classifier] = float(classifier_counter[classifier]) / hr_data.size * 100
-			ax2.barh("", percentages[classifier], left=_left, color=color_map[classifier])
+			ax2.barh(y=0, width=percentages[classifier], left=_left, color=color_map[classifier])
 			_left += percentages[classifier]
 			legend.append(mpl.patches.Patch(label="%s\n(%.2f%s)" % (order[str(i)][1], percentages[classifier], "$\%$"),
 											fc=color_map[classifier]))
@@ -1299,43 +1301,44 @@ if __name__ == "__main__":
 
 	# Load a Sample Signal
 	nni = pyhrv.utils.load_sample_nni()
+	heart_rate_heatplot(nni)
 
-	# Load OpenSignals (r)evolution ECG sample file
-	signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
-
-	# Filter data & get r-peak locations [ms]
-	signal, rpeaks = ecg(signal, show=False)[1:3]
-
-	# Plot ECG for the interval of 0s and 22s
-	plot_ecg(signal, interval=[0, 22])
-
-	# Plot Tachogram for the interval of 0s and 22s
-	tachogram(nni, interval=[0, 22])
-
-	# Heart Rate Heatplot to highlight HR performance compared to a sports database
-	heart_rate_heatplot(nni, gender='male', age=28)
-
-	# Time Varying is designed to show the evolution of HRV parameters over time using a moving window
-	# Define a moving window of 3 NNIs before and after the current NNI using the NNI window indicator 'n'
-	time_varying(nni, parameter='sdnn', window='n3')
-
-	# Define a moving window of 3 seconds before and after the current NNI using the time window indicator 't'
-	time_varying(nni, parameter='sdnn', window='t3')
-
-	# Radar charts are created dynamically, depending on the number of parameters used as input
-	# For this example, let's split he test NNI series into two segments & select a list of 6 parameters
-	ref_nni = nni[:100]
-	comp_nni = nni[100:200]
-	params = ['nni_mean', 'nni_max', 'sdnn', 'rmssd', 'sdsd', 'nn50', 'nn20']
-	radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
-
-	# Now with only 3 parameters
-	params = ['nni_mean', 'sdnn', 'rmssd']
-	radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
-
-	# Export and import HRV results into and from JSON files:
-	# First, compute hrv parameters
-	results = pyhrv.hrv(nni, show=False)
-
-	hrv_export(results, path='./files/', efile='SampleExport')
-	hrv_import('./files/SampleExport.json')
+	# # Load OpenSignals (r)evolution ECG sample file
+	# signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
+	#
+	# # Filter data & get r-peak locations [ms]
+	# signal, rpeaks = ecg(signal, show=False)[1:3]
+	#
+	# # Plot ECG for the interval of 0s and 22s
+	# plot_ecg(signal, interval=[0, 22])
+	#
+	# # Plot Tachogram for the interval of 0s and 22s
+	# tachogram(nni, interval=[0, 22])
+	#
+	# # Heart Rate Heatplot to highlight HR performance compared to a sports database
+	# heart_rate_heatplot(nni, gender='male', age=28)
+	#
+	# # Time Varying is designed to show the evolution of HRV parameters over time using a moving window
+	# # Define a moving window of 3 NNIs before and after the current NNI using the NNI window indicator 'n'
+	# time_varying(nni, parameter='sdnn', window='n3')
+	#
+	# # Define a moving window of 3 seconds before and after the current NNI using the time window indicator 't'
+	# time_varying(nni, parameter='sdnn', window='t3')
+	#
+	# # Radar charts are created dynamically, depending on the number of parameters used as input
+	# # For this example, let's split he test NNI series into two segments & select a list of 6 parameters
+	# ref_nni = nni[:100]
+	# comp_nni = nni[100:200]
+	# params = ['nni_mean', 'nni_max', 'sdnn', 'rmssd', 'sdsd', 'nn50', 'nn20']
+	# radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
+	#
+	# # Now with only 3 parameters
+	# params = ['nni_mean', 'sdnn', 'rmssd']
+	# radar_chart(ref_nni, comparison_nni=comp_nni, parameters=params)
+	#
+	# # Export and import HRV results into and from JSON files:
+	# # First, compute hrv parameters
+	# results = pyhrv.hrv(nni, show=False)
+	#
+	# hrv_export(results, path='./files/', efile='SampleExport')
+	# hrv_import('./files/SampleExport.json')

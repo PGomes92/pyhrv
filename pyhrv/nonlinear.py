@@ -43,11 +43,12 @@ import matplotlib.pyplot as plt
 
 # BioSPPy imports
 import biosppy
+from biosppy.signals.ecg import ecg
 
 # Local imports/pyHRV toolbox imports
 import pyhrv
 
-# TODO add devplot mode
+
 def poincare(nni=None,
 			 rpeaks=None,
 			 show=True,
@@ -55,7 +56,8 @@ def poincare(nni=None,
 			 ellipse=True,
 			 vectors=True,
 			 legend=True,
-			 marker='o'):
+			 marker='o',
+			 mode='normal'):
 	"""Creates Poincaré plot from a series of NN intervals or R-peak locations and derives the Poincaré related
 	parameters SD1, SD2, SD1/SD2 ratio, and area of the Poincaré ellipse.
 
@@ -81,6 +83,10 @@ def poincare(nni=None,
 		If True, adds legend to the Poincaré plot (default: True)
 	marker : character, optional
 		NNI marker in plot (default: 'o')
+		mode : string, optional
+	Return mode of the function; available modes:
+		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
+		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -112,67 +118,79 @@ def poincare(nni=None,
 	# Area of ellipse
 	area = np.pi * sd1 * sd2
 
-	# Prepare figure
-	if figsize is None:
-		figsize = (6, 6)
-	fig = plt.figure(figsize=figsize)
-	fig.tight_layout()
-	ax = fig.add_subplot(111)
+	# Dev:
+	# Output computed SD1 & SD2 without plot
+	if mode == 'dev':
+		# Output
+		args = (sd1, sd2, sd2 / sd1, area)
+		names = ('sd1', 'sd2', 'sd_ratio', 'ellipse_area')
+		return biosppy.utils.ReturnTuple(args, names)
 
-	ax.set_title(r'$Poincar\acute{e}$')
-	ax.set_ylabel('$NNI_{i+1}$ [ms]')
-	ax.set_xlabel('$NNI_i$ [ms]')
-	ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
-	ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
-	ax.grid()
-	ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
+	# Normal:
+	# Same as dev but with plot
+	if mode == 'normal':
+		if figsize is None:
+			figsize = (6, 6)
+		fig = plt.figure(figsize=figsize)
+		fig.tight_layout()
+		ax = fig.add_subplot(111)
 
-	# Compute mean NNI (center of the Poincaré plot)
-	nn_mean = np.mean(nn)
+		ax.set_title(r'$Poincar\acute{e}$')
+		ax.set_ylabel('$NNI_{i+1}$ [ms]')
+		ax.set_xlabel('$NNI_i$ [ms]')
+		ax.set_xlim([np.min(nn) - 50, np.max(nn) + 50])
+		ax.set_ylim([np.min(nn) - 50, np.max(nn) + 50])
+		ax.grid()
+		ax.plot(x1, x2, 'r%s' % marker, markersize=2, alpha=0.5, zorder=3)
 
-	# Draw poincaré ellipse
-	if ellipse:
-		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
-		ax.add_artist(ellipse_)
-		ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
-		ax.add_artist(ellipse_)
+		# Compute mean NNI (center of the Poincaré plot)
+		nn_mean = np.mean(nn)
 
-	# Add poincaré vectors (SD1 & SD2)
-	if vectors:
-		arrow_head_size = 3
-		na = 4
-		a1 = ax.arrow(
-			nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
-			head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
-		a2 = ax.arrow(
-			nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
-			head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
-		a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-		a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
-		ax.add_line(mpl.lines.Line2D(
-			(min(nn), max(nn)),
-			(min(nn), max(nn)),
-			c='b', ls=':', alpha=0.6))
-		ax.add_line(mpl.lines.Line2D(
-			(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
-			(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
-			c='g', ls=':', alpha=0.6))
+		# Draw poincaré ellipse
+		if ellipse:
+			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2, sd2 * 2, angle=-45, fc='k', zorder=1)
+			ax.add_artist(ellipse_)
+			ellipse_ = mpl.patches.Ellipse((nn_mean, nn_mean), sd1 * 2 - 1, sd2 * 2 - 1, angle=-45, fc='lightyellow', zorder=1)
+			ax.add_artist(ellipse_)
 
-		# Add legend
-		if legend:
-			ax.legend(
-				[a1, a2, a3, a4],
-				['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
-				framealpha=1)
+		# Add poincaré vectors (SD1 & SD2)
+		if vectors:
+			arrow_head_size = 3
+			na = 4
+			a1 = ax.arrow(
+				nn_mean, nn_mean, (-sd1 + na) * np.cos(np.deg2rad(45)), (sd1 - na) * np.sin(np.deg2rad(45)),
+				head_width=arrow_head_size, head_length=arrow_head_size, fc='g', ec='g', zorder=4, linewidth=1.5)
+			a2 = ax.arrow(
+				nn_mean, nn_mean, (sd2 - na) * np.cos(np.deg2rad(45)), (sd2 - na) * np.sin(np.deg2rad(45)),
+				head_width=arrow_head_size, head_length=arrow_head_size, fc='b', ec='b', zorder=4, linewidth=1.5)
+			a3 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+			a4 = mpl.patches.Patch(facecolor='white', alpha=0.0)
+			ax.add_line(mpl.lines.Line2D(
+				(min(nn), max(nn)),
+				(min(nn), max(nn)),
+				c='b', ls=':', alpha=0.6))
+			ax.add_line(mpl.lines.Line2D(
+				(nn_mean - sd1 * np.cos(np.deg2rad(45)) * na, nn_mean + sd1 * np.cos(np.deg2rad(45)) * na),
+				(nn_mean + sd1 * np.sin(np.deg2rad(45)) * na, nn_mean - sd1 * np.sin(np.deg2rad(45)) * na),
+				c='g', ls=':', alpha=0.6))
 
-	# Show plot
-	if show:
-		plt.show()
+			# Add legend
+			if legend:
+				ax.legend(
+					[a1, a2, a3, a4],
+					['SD1: %.3f$ms$' % sd1, 'SD2: %.3f$ms$' % sd2, 'S: %.3f$ms^2$' % area, 'SD1/SD2: %.3f' % (sd1/sd2)],
+					framealpha=1)
 
-	# Output
-	args = (fig, sd1, sd2, sd2/sd1, area)
-	names = ('poincare_plot', 'sd1', 'sd2', 'sd_ratio', 'ellipse_area')
-	return biosppy.utils.ReturnTuple(args, names)
+		# Show plot
+		if show:
+			plt.show()
+
+		# Output
+		args = (fig, sd1, sd2, sd2/sd1, area)
+		names = ('poincare_plot', 'sd1', 'sd2', 'sd_ratio', 'ellipse_area')
+		return biosppy.utils.ReturnTuple(args, names)
+
+
 
 
 def sample_entropy(nni=None, rpeaks=None, dim=2, tolerance=None):
@@ -223,7 +241,7 @@ def sample_entropy(nni=None, rpeaks=None, dim=2, tolerance=None):
 	return biosppy.utils.ReturnTuple(args, names)
 
 
-def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True):
+def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True, mode='normal'):
 	"""Conducts Detrended Fluctuation Analysis for short and long-term fluctuation of an NNI series.
 
 	References: [Joshua2008][Kuusela2014][Fred2017]
@@ -243,6 +261,10 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 		If True, shows DFA plot (default: True)
 	legend : bool
 		If True, adds legend with alpha1 and alpha2 values to the DFA plot (default: True)
+	mode : string, optional
+		Return mode of the function; available modes:
+		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
+		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 
 	Returns (biosppy.utils.ReturnTuple Object)
 	------------------------------------------
@@ -268,15 +290,15 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 	long = range(long[0], long[1] + 1)
 
 	# Prepare plot
-	if figsize is None:
-		figsize = (6, 6)
-	fig = plt.figure(figsize=figsize)
-	ax = fig.add_subplot(111)
-	ax.set_title('Detrended Fluctuation Analysis (DFA)')
-	ax.set_xlabel('log n [beats]')
-	ax.set_ylabel('log F(n)')
+	if mode == 'normal':
+		if figsize is None:
+			figsize = (6, 6)
+		fig = plt.figure(figsize=figsize)
+		ax = fig.add_subplot(111)
+		ax.set_title('Detrended Fluctuation Analysis (DFA)')
+		ax.set_xlabel('log n [beats]')
+		ax.set_ylabel('log F(n)')
 
-	# try:
 	# Compute alpha values
 	try:
 		alpha1, dfa_short = nolds.dfa(nn, short, debug_data=True, overlap=False)
@@ -284,36 +306,49 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 	except ValueError:
 		# If DFA could not be conducted due to insufficient number of NNIs, return an empty graph and 'nan' for alpha1/2
 		warnings.warn("Not enough NNI samples for Detrended Fluctuations Analysis.")
-		ax.axis([0, 1, 0, 1])
-		ax.text(0.5, 0.5, '[Insufficient number of NNI samples for DFA]', horizontalalignment='center',
-				verticalalignment='center')
+
+		# Update plot
+		if mode == 'normal':
+			ax.axis([0, 1, 0, 1])
+			ax.text(0.5, 0.5, '[Insufficient number of NNI samples for DFA]', horizontalalignment='center',
+					verticalalignment='center')
 		alpha1, alpha2 = 'nan', 'nan'
 	else:
 		# Plot DFA results if number of NNI were sufficent to conduct DFA
 		# Plot short term DFA
 		vals, flucts, poly = dfa_short[0], dfa_short[1], np.polyval(dfa_short[2], dfa_short[0])
 		label = r'$ \alpha_{1}: %0.2f$' % alpha1
-		ax.plot(vals, flucts, 'bo', markersize=1)
-		ax.plot(vals, poly, 'b', label=label, alpha=0.7)
 
-		# Plot long term DFA
-		vals, flucts, poly = dfa_long[0], dfa_long[1], np.polyval(dfa_long[2], dfa_long[0])
-		label = r'$ \alpha_{2}: %0.2f$' % alpha2
-		ax.plot(vals, flucts, 'go', markersize=1)
-		ax.plot(vals, poly, 'g', label=label, alpha=0.7)
+		# Update plot
+		if mode == 'normal':
+			ax.plot(vals, flucts, 'bo', markersize=1)
+			ax.plot(vals, poly, 'b', label=label, alpha=0.7)
 
-		# Add legend
-		if legend:
-			ax.legend()
-		ax.grid()
+			# Plot long term DFA
+			vals, flucts, poly = dfa_long[0], dfa_long[1], np.polyval(dfa_long[2], dfa_long[0])
+			label = r'$ \alpha_{2}: %0.2f$' % alpha2
+			ax.plot(vals, flucts, 'go', markersize=1)
+			ax.plot(vals, poly, 'g', label=label, alpha=0.7)
 
-	# Plot axis
-	if show:
-		plt.show()
+			# Add legend
+			if legend:
+				ax.legend()
+			ax.grid()
 
-	# Output
-	args = (fig, alpha1, alpha2, short, long)
-	return biosppy.utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
+	# Normal Mode:
+	# Returns results & plot figure
+	if mode == 'normal':
+		# Plot axis
+		if show:
+			plt.show()
+		args = (fig, alpha1, alpha2, short, long)
+		return biosppy.utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
+
+	# Dev Mode:
+	# Returns results only
+	if mode == 'dev':
+		args = (alpha1, alpha2, short, long)
+		return biosppy.utils.ReturnTuple(args, ('dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 
 def nonlinear(nni=None,
@@ -323,7 +358,7 @@ def nonlinear(nni=None,
 			  show=False,
 			  kwargs_poincare=None,
 			  kwargs_sampen=None,
-			  kwargs_dfa=None):
+			  kwargs_dfa=None,):
 	"""Computes all time domain parameters of the HRV time domain module
 		and returns them in a ReturnTuple object.
 
@@ -404,7 +439,8 @@ def nonlinear(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		rpeaks = ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
+		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
@@ -495,10 +531,10 @@ def nonlinear(nni=None,
 			warnings.warn("Unknown kwargs for 'dfa()': %s. These kwargs have no effect."
 						  % unsupported_kwargs, stacklevel=2)
 
-		# Compute Poincaré plot with custom configuration
+		# Compute DFA plot with custom configuration
 		d_results = dfa(nn, show=False, short=short, long=long, legend=legend)
 	else:
-		# Compute Poincaré plot with default values
+		# Compute DFA plot with default values
 		d_results = dfa(nn, show=False)
 
 	# Join Results
@@ -518,8 +554,8 @@ if __name__ == "__main__":
 	"""
 	import numpy as np
 
-	# Get Sample Data
-	nni = np.load('./files/SampleNNISeries.npy')
+	# Load sample NNI series
+	nni = pyhrv.utils.load_sample_nni()
 
 	# Compute Poincaré
 	res1 = poincare(nni, show=False)

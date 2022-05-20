@@ -772,7 +772,7 @@ def hrv_report(results=None,
 						else:
 							para = output[key]
 							out = ''
-							if isinstance(para, collections.Iterable) and type(para) is not str:
+							if isinstance(para, collections.abc.Iterable) and type(para) is not str:
 								for i, val in enumerate(list(para)):
 									if val is str or np.nan:
 										val_ = str(val) if val not in ['n/a', 'nan'] else 'n/a'

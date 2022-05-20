@@ -16,7 +16,7 @@ setuptools.setup(
 	description=description,
 	long_description=long_description,
 	long_description_content_type="text/markdown",
-	python_requires='>=2.7',
+	python_requires='>=3',
 	url="https://github.com/PGomes92/pyhrv",
 	keywords=['Heart Rate Variability', 'HRV'],
 	setup_requires=[
@@ -47,11 +47,13 @@ setuptools.setup(
 		'Natural Language :: English',
 		'License :: OSI Approved :: BSD License',
 		'Programming Language :: Python',
-		'Programming Language :: Python :: 2.7',
 		'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
 		'Programming Language :: Python :: 3.6',
 		'Programming Language :: Python :: 3.7',
+		'Programming Language :: Python :: 3.8',
+		'Programming Language :: Python :: ',
+		'Programming Language :: Python :: 3.10',
 		'Operating System :: OS Independent',
 	],
 )

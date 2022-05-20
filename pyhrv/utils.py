@@ -246,7 +246,7 @@ def check_interval(interval=None, limits=None, default=None):
 		interval = _check_limits(interval, 'interval')
 		if not limits[0] <= interval[0]:
 			interval[0] = limits[0]
-			warnings.warn("Interval limits out of boundaries. Interval set to: %s" % interval, stacklevel=2)
+			warnings.warn("Interval limits out of boundaries. Interval s€et to: %s" % interval, stacklevel=2)
 		if not limits[1] >= interval[1]:
 			interval[1] = limits[1]
 			warnings.warn("Interval limits out of boundaries. Interval set to: %s" % interval, stacklevel=2)
@@ -281,10 +281,9 @@ def _check_limits(interval, name):
 	# upper limit < 0 or upper limit > max interval -> set upper limit to max
 	if interval[0] > interval[1]:
 		interval[0], interval[1] = interval[1], interval[0]
-		vals = (name, name, interval[0], interval[1])
-		warnings.warn("Corrected invalid '%s' limits (lower limit > upper limit).'%s' set to: %s" % vals)
+		warnings.warn("The provided lower limit of the parameter '%s' is greater than the upper limit. Limits have been switched." % name)
 	if interval[0] == interval[1]:
-		raise ValueError("'%f': Invalid interval limits as they are equal." % name)
+		raise ValueError("The provided lower and upper limits of the parameter '%s' are invalid as they are identical." % name)
 	return interval
 
 

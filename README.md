@@ -1,8 +1,8 @@
 ![Image](./SampleFigures/pyhrv.png)
 
-![GitHub Version](https://img.shields.io/badge/GitHub-v.0.4.0-orange.svg)
+![GitHub Version](https://img.shields.io/badge/GitHub-v.0.4.1-orange.svg)
 [![PyPi Version](https://img.shields.io/pypi/v/pyhrv.svg)](https://pypi.org/project/pyhrv/)
-![Python Versions](https://img.shields.io/pypi/pyversions/pyhrv.svg)
+![Python Versions](https://img.shields.io/badge/python-3.X-blue)
 [![Issues](https://img.shields.io/github/issues/PGomes92/pyhrv.svg)](https://github.com/PGomes92/pyhrv/issues)
 ![Development](https://img.shields.io/badge/development-active-green.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyhrv/badge/?version=latest)](https://pyhrv.readthedocs.io/en/latest/)
@@ -16,14 +16,16 @@ With pyHRV, we aim to provide a user-friendly and versatile Python toolbox for H
 It provides provides comprehensible source code to help beginners understand the fundamentals of HRV parameter computation, while providing the most important HRV analysis functionalities for developers and publication-quality plots of the results for researchers.
 # Getting Started
 
-### Installation
-This toolbox can be installed using the ```pip``` tool (works for Python 2 and 3):
+### Installation & Python Compatibility
+This toolbox can be installed using the ```pip``` tool.
 
 ```python
 pip install pyhrv
 ```
-
 Dependencies: [biosppy](https://github.com/PIA-Group/BioSPPy) | [numpy](http://www.numpy.org) | [scipy](http://scipy.org) | [matplotlib](https://matplotlib.org) | [nolds](https://github.com/CSchoel/nolds) | [spectrum](https://github.com/cokelaer/spectrum)
+
+pyHRV is primarily maintained in Python 3.X but has been tested under Python 2.7 up to version 0.4.0.
+
 
 ### Documentation & Tutorials
 Detailed pyHRV documentation is available on ReadTheDocs:

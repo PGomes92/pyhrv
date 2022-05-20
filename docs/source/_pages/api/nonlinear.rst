@@ -10,21 +10,10 @@ The ``nonlinear.py`` module contains functions to compute nonlinear HRV paramete
 
 .. contents:: Module Contents
 
-.. important::
-
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
-
-   These examples do work with any other ECG signal independently of the acquisition software, of course.
-
-   The sample NNI series used in the some examples below was taken from the NNI samples which come with the `pyHRV`
-   package.
-
 .. seealso::
 
    Useful links:
 
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
    * :ref:`ref-samples` (docs)
    * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/samples>`_
    * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/series_1.npy>`_
@@ -163,17 +152,16 @@ Alternatively, you can use R-peak series (``rpeaks``):
 
    # Import packages
    import biosppy
-   import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
+   import pyhrv.nonlinear as nl
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, _, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute Poincaré using R-peak series
-   results = nl.poincare(rpeaks=rpeaks)
+   results = pyhrv.nonlinear.poincare(rpeaks=t[rpeaks])
 
 Use the ``ellipse``, the ``vectors`` and the ``legend`` to show only the Poincaré scatter plot.
 
@@ -267,14 +255,13 @@ Alternatively, you can use R-peak series (``rpeaks``):
 
    # Import packages
    import biosppy
-   import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
+   import pyhrv.nonlinear as nl
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, _, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute Sample Entropy using R-peak series
    results = nl.sampen(rpeaks=rpeaks)
@@ -399,16 +386,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, _, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute DFA using R-peak series
-   results = nl.dfa(rpeaks=rpeaks)
+   results = nl.dfa(rpeaks=t[rpeaks])
 
 .. _ref-nonlinear:
 
@@ -531,22 +517,21 @@ parameter computation:
    import biosppy
    import pyhrv.nonlinear as nl
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI series
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # OPTION 1: Compute using the ECG Signal
-   signal_results = nl.nonlinear(signal=signal)
+   signal_results = nl.nonlinear(signal=filtered_signal)
 
    # OPTION 2: Compute using the R-peak series
-   rpeaks_results = nl.nonlinear(rpeaks=rpeaks)
+   rpeaks_results = nl.nonlinear(rpeaks=t[rpeaks])
 
    # OPTION 3: Compute using the
    nni_results = nl.nonlinear(nni=nni)
@@ -575,10 +560,9 @@ dictionaries of this function (see this functions **Application Notes** for a li
    # Import packages
    import biosppy
    import pyhrv.nonlinear as nl
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Define input parameters for the 'poincare()' function
    kwargs_poincare = {'ellipse': True, 'vectors': True, 'legend': True, 'markers': 'o'}

@@ -9,24 +9,6 @@ The *Tools Module* contains general purpose functions and key functionalities (e
 
 .. contents:: Module Contents
 
-.. important::
-
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
-
-   These examples do work with any other ECG signal independently of the acquisition software, of course.
-
-   The sample NNI series used in the some examples below were taken from the NNI samples that come with the pyHRV
-   package.
-
-.. seealso::
-
-   Useful links:
-
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
-   * :ref:`ref-samples` (docs)
-   * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/samples>`_
-   * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/series_1.npy>`_
 
 NN Intervals: nn_intervals()
 ############################
@@ -77,16 +59,15 @@ The following example code demonstrates how to use this function:
    # Import packages
    import biosppy
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
-   # Get R-peak locations (and hide the ECG plots)
-   rpeaks = biosppy.signals.ecg.ecg(signal, show=False)[2]
+   # Get R-peaks series using biosppy
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI parameters
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
 NN Interval Differences: nn_diff()
 ##################################
@@ -137,16 +118,15 @@ The following example code demonstrates how to use this function:
    # Import packages
    import biosppy
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('./samples/SampleECG.npy').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
-   # Get R-peak locations
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   # Get R-peaks series using biosppy
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI parameters
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # Compute NNI differences
    delta_nni = tools.nn_diff(nni)
@@ -276,10 +256,9 @@ The time axis scaling will change depending on the duration of the visualized in
 
    # Import
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Plot ECG
    tools.plot_ecg(signal)
@@ -356,16 +335,15 @@ The input ``nni`` series will be converted to [ms], even if the ``rpeaks`` or ``
 
 **Example**
 
-The following example demonstrates how to load an ECG signal recorded with the OpenSignals (r)evolution and loaded with the `opensignalsreader` package.
+The following example demonstrates how to load an ECG signal.
 
 .. code-block:: python
 
    # Import
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Plot Tachogram
    tools.tachogram(signal)
@@ -377,23 +355,21 @@ Alternatively, use R-peak data to plot the histogram...
    # Import
    import biosppy
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
-   # Extract R-peaks
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
-
+   # Get R-peaks series using biosppy
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
    # Plot Tachogram
-   tools.tachogram(rpeaks=rpeaks)
+   tools.tachogram(rpeaks=t[rpeaks])
 
 ... or using directly the NNI series...
 
 .. code-block:: python
 
    # Compute NNI intervals from the R-peaks
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # Plot Tachogram
    tools.tachogram(nni=nni)
@@ -503,16 +479,15 @@ The time axis scaling will change depending on the duration of the visualized in
 
 **Example**
 
-The following example demonstrates how to load an ECG signal recorded with the OpenSignals (r)evolution and loaded with the `opensignalsreader` package.
+The following example demonstrates how to load an ECG signal.
 
 .. code-block:: python
 
    # Import
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Plot Heart Rate Heatplot using an ECG signal
    tools.hr_heatplot(signal=signal)
@@ -524,21 +499,21 @@ Alternatively, use R-peak or NNI data to plot the HR Heatplot...
    # Import
    import biosppy
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load ECG data
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
-   # Extract R-peaks & plot HR Heatplot using the R-Peaks
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
-   tools.hr_heatplot(rpeaks=rpeaks)
+   # Get R-peaks series using biosppy
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
+   
+   tools.hr_heatplot(rpeaks=t[rpeaks])
 
 ... or using directly the NNI series...
 
 .. code-block:: python
 
    # Compute NNI intervals from the R-peaks
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # Plot HR Heatplot using the NNIs
    tools.hr_heatplot(signal=signal)

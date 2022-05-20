@@ -1,3 +1,21 @@
+Update Version 0.4.1
+--------------------
+**Added**
+- Request from Issue #22 & Issue #15: added ``mode`` to the Nonlinear Domain functions ``poincare()`` and ``dfa()``:
+   - ``normal``: Returns computed output data and plot figures
+   - ``dev``: Returns computed output data only
+
+**Fixed**
+  - Fixes Issue #28 where the pyhrv.utils._check_limits() function was incorrectly formatting strings for error and warning messages (and ironically causing an error due to this)
+  - Fixed an issue where reports where not being generated correctly in Python 3.8+
+  - Fixed an issue where the heart rate heatplot threw an "StopIteration" error in Python 3.8+
+  - Fixes Issue #13 (missing import in ``nonlinear.py``)
+  - Fixed an issue where some high level functions where using rpeak indices instead of temporal rpeaks locations when a raw ECG signal was provided
+
+**Docs Update**
+  - Fixes Issue #29 where multiple sample codes using biosppy where using the wrong r-peaks series for NNI computation
+  - Fixes Issue #26 where docs where linking to outdated sample data
+
 Update Version 0.4.0
 --------------------
 #### Major Changes

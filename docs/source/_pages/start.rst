@@ -76,9 +76,7 @@ signals are imported and converted to mV using the `opensignalsreader <https://g
 
 Sample NNI Series
 -----------------
-`pyHRV` comes with 50 NNI samples, which can be used if you have no ECG data or NNI series available. These sample
-series were extracted from the `MIT-BIH NSRDB Database from physionet.org <https://physionet
-.org/physiobank/database/nsrdb/>`_ and can be found in the `samples <https://github.com/PGomes92/pyhrv/tree/master/samples>`_ folder.
+`pyHRV` comes with sample data available `here <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/files>`_ folder.
 
 .. _ref-returntuple:
 

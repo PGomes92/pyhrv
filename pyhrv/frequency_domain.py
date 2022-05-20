@@ -1779,7 +1779,8 @@ def frequency_domain(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[2]
+		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 

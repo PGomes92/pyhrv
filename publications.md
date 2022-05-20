@@ -22,6 +22,8 @@ Please use the following conference paper to cite pyHRV in your work ([Conferenc
 Find below a list of publications using pyHRV.
 
 #### 2021
+Y. Lee, V. Pham, T. Chung, "[Innovative Way of Detecting Atrial Fibrillation Based on HRV Features Using AI-Techniques](https://link.springer.com/chapter/10.1007/978-981-16-8062-5_24)", in _Communications in Computer and Information Science_, 2021
+
 S. Jiang, F. Firouzi, K. Chakrabarty, E. Elbogen, "A Resilient and Hierarchical IoT-based Solution for Stress", Preprint, 2021 
 
 #### 2020

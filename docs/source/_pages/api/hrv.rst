@@ -1,21 +1,3 @@
-
-.. important::
-
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
-
-   These examples do work with any other ECG signal independently of the acquisition software, of course.
-
-   The sample NNI series used in some examples below were taken from the NNI samples which come with the pyHRV package.
-
-.. seealso::
-
-   * `pyHRV Time Domain Module source code <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/hrv.py>`_
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
-   * :ref:`ref-samples` (docs)
-   * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/samples>`_
-   * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/series_1.npy>`_
-
 .. _ref-hrvfunc:
 
 The HRV Function: hrv()
@@ -245,22 +227,21 @@ parameter computation:
    import biosppy
    import pyhrv.tools as tools
    from pyhrv.hrv import hrv
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI series
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # OPTION 1: Compute Time Domain parameters using the ECG signal
-   signal_results = hrv(signal=signal)
+   signal_results = hrv(signal=filtered_signal)
 
    # OPTION 2: Compute Time Domain parameters using the R-peak series
-   rpeaks_results = hrv(rpeaks=rpeaks)
+   rpeaks_results = hrv(rpeaks=t[rpeaks])
 
    # OPTION 3: Compute Time Domain parameters using the NNI-series
    nni_results = hrv(nni=nni)

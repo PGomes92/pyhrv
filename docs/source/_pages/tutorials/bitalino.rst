@@ -166,13 +166,12 @@ Step 6: Processing ECG Signal and Extracting R-Peaks
 using us to filter our ECG signal (e.g. removing motion artifacts), and to extract the R-peak locations which are
 needed for the HRV computation. We can do this using the ``biosppy.signals.ecg.ecg()`` function.
 
-This function returns a series of datasets and parameters, however, we are only interested in the filtered ECG signal
-and the R-peak locations. Add the following line of code to the existing code of the previous step:
+This function returns a series of datasets and parameters, however, we are only interested in the filtered ECG signal. Add the following line of code to the existing code of the previous step:
 
 .. code-block:: python
 
-   # Filter ECG signal and extract the R-peak locations
-   filtered_signal, rpeaks = ecg(signal)[1:3]
+   # Filter ECG signal
+   filtered_signal = ecg(signal)[1]
 
 .. note::
 
@@ -189,7 +188,7 @@ and the R-peak locations. Add the following line of code to the existing code of
    .. code-block:: python
 
       pyhrv.hrv(signal=signal)
-      phrv.time_domain.time_domain(signal=signal)
+      pyhrv.time_domain.time_domain(signal=signal)
       pyhrv.frequency_domain.frequency_domain(signal=signal)
       pyhrv.nonlinear.nonlinear(signal=signal)
 
@@ -205,7 +204,7 @@ To compute all available HRV parameters with the default parameters, add the fol
 .. code-block:: python
 
    # Compute all HRV parameters with default input parameters
-   results = hrv(signal=signal)
+   results = hrv(signal=filtered_signal)
 
 .. note::
 
@@ -267,10 +266,10 @@ The code sections we have generated over the course of this tutorial are summari
    signal = acq.signal('ECG')
 
    # Filter ECG signal and extract the R-peak locations
-   filtered_signal, rpeaks = ecg(signal)[1:3]
+   filtered_signal = ecg(signal)[1]
 
    # Compute all HRV parameters with default input parameters
-   results = hrv(signal=signal)
+   results = hrv(signal=filtered_signal)
 
    # Print all the parameters keys and values individually
    for key in results.keys():

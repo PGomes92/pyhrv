@@ -11,19 +11,8 @@ The *Frequency Domain Module* contains all functions to compute the frequency do
 
 .. contents:: Module Contents
 
-.. important::
-
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
-
-   These examples do work with any other ECG signal independently of the acquisition software, of course.
-
-   The sample NNI series used in some examples below was taken from the NNI samples which come with the `pyHRV`
-   package.
-
 .. seealso::
 
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
    * :ref:`ref-samples` (docs)
    * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/samples>`_
    * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/series_1.npy>`_
@@ -206,16 +195,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute the PSD and frequency domain parameters using the R-peak series
-   result = fd.welch_psd(rpeaks=rpeaks)
+   result = fd.welch_psd(rpeaks=t[rpeaks])
 
 The plot of these examples should look like the following plot:
 
@@ -419,16 +407,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute the PSD and frequency domain parameters using the R-peak series
-   result = fd.lomb_psd(rpeaks=rpeaks)
+   result = fd.lomb_psd(rpeaks=t[rpeaks])
 
 The plot of these examples should look like the following plot:
 
@@ -646,16 +633,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute the PSD and frequency domain parameters using the R-peak series
-   result = fd.ar_psd(rpeaks=rpeaks)
+   result = fd.ar_psd(rpeaks=t[rpeaks])
 
 
 .. figure:: /_static/ar_default.png
@@ -873,13 +859,12 @@ Alternatively, you can use R-peak series (``rpeaks``), too:
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute the PSDs and the comparison plot using the Welch's method and 60s segments
    result = fd.psd_comparison(rpeaks=rpeaks, duration=60, method='welch')
@@ -1133,13 +1118,12 @@ Alternatively, you can use R-peak series (``rpeaks``), too:
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute the PSDs and the comparison plot using the Welch's method and 60s segments
    result = fd.psd_waterfall(rpeaks=rpeaks, duration=60, method='welch')
@@ -1408,22 +1392,21 @@ parameter computation:
    import biosppy
    import pyhrv.frequency_domain as fd
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI series
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # OPTION 1: Compute PSDs using the ECG Signal
-   signal_results = fd.frequency_domain(signal=signal)
+   signal_results = fd.frequency_domain(signal=filtered_signal)
 
    # OPTION 2: Compute PSDs using the R-peak series
-   rpeaks_results = fd.frequency_domain(rpeaks=rpeaks)
+   rpeaks_results = fd.frequency_domain(rpeaks=t[rpeaks])
 
    # OPTION 3: Compute PSDs using the
    nni_results = fd.frequency_domain(nni=nni)
@@ -1503,10 +1486,12 @@ dictionaries of this function (see this functions **Application Notes** for a li
    # Import packages
    import biosppy
    import pyhrv.frequency_domain as fd
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
+
+   # Get R-peaks series using biosppy
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Define input parameters for the 'welch_psd()' function
    kwargs_welch = {'nfft': 2**8, 'detrend': False, 'window': 'hann'}
@@ -1518,7 +1503,7 @@ dictionaries of this function (see this functions **Application Notes** for a li
    kwargs_ar = {'nfft': 2**8, 'order': 30}
 
    # Compute PSDs using the ECG Signal
-   signal_results = fd.frequency_domain(signal=signal, show=True,
+   signal_results = fd.frequency_domain(signal=filtered_signal, show=True,
    kwargs_welch=kwargs_lomb, kwargs_lomb=kwargs_lomb, kwargs_ar=kwargs_ar)
 
 .. _ref-freqparams:

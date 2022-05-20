@@ -10,21 +10,6 @@ The ``time_domain.py`` module contains all the functions to compute the HRV time
 
 .. contents:: Module Contents
 
-.. important::
-
-   Some of the examples below use an ECG signal recorded with the OpenSignals (r)evolution software and are loaded with the ``opensignalsreader`` package.
-
-   These examples do work with any other ECG signal independently of the acquisition software, of course.
-
-   The sample NNI series used in some examples below were taken from the NNI samples which come with the pyHRV package.
-
-.. seealso::
-
-   * `OpenSignals (r)evolution software <http://bitalino.com/en/software>`_
-   * `Sample ECG file acquired with the OpenSignals software <https://github.com/PGomes92/pyhrv/blob/master/pyhrv/samples/SampleECG.txt>`_
-   * :ref:`ref-samples` (docs)
-   * `Sample NNI Series on GitHub <https://github.com/PGomes92/pyhrv/tree/master/pyhrv/samples>`_
-   * `series_1.npy (file used in the examples below) <https://github.com/PGomes92/pyhrv/blob/master/samples/series_1.npy>`_
 
 NNI Parameters: nni_parameters()
 ################################
@@ -90,16 +75,15 @@ Alternatively, you can use R-peak series (``rpeaks``) data to compute the NNI pa
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameters using R-peak series
-   results = td.nni_parameters(rpeaks=rpeaks)
+   results = td.nni_parameters(rpeaks=t[rpeaks])
 
 ∆NNI Parameters: nni_differences_parameters()
 #############################################
@@ -164,16 +148,15 @@ Alternatively, you can use R-peak series (``rpeaks``) data to compute the ∆NNI
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameters using R-peak series
-   results = td.nni_differences_parameters(rpeaks=rpeaks)
+   results = td.nni_differences_parameters(rpeaks=t[rpeaks])
 
 Heart Rate Parameters: hr_parameters()
 ######################################
@@ -259,16 +242,15 @@ Alternatively, you can use R-peak series (``rpeaks``) to compute the HR paramete
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameters using R-peak series
-   results = td.hr_parameters(rpeaks=rpeaks)
+   results = td.hr_parameters(rpeaks=t[rpeaks])
 
 .. _ref-sdnn:
 
@@ -345,16 +327,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameter using R-peak series
-   results = td.sdnn(rpeaks=rpeaks)
+   results = td.sdnn(rpeaks=t[rpeaks])
 
 SDNN Index: sdnn_index()
 ########################
@@ -444,16 +425,15 @@ Alternatively, you can use R-peak series (``rpeaks``) to compute the SDNN Index:
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameter using R-peak series
-   results = td.sdnn_index(rpeaks=rpeaks)
+   results = td.sdnn_index(rpeaks=t[rpeaks])
 
 SDANN: sdann()
 ##############
@@ -543,16 +523,15 @@ Alternatively, you can use R-peak series (``rpeaks``) to compute the SDANN:
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameter using R-peak series
-   results = td.sdann(rpeaks=rpeaks)
+   results = td.sdann(rpeaks=t[rpeaks])
 
 RMSSD: rmssd()
 ##############
@@ -627,16 +606,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameter using R-peak series
-   results = td.rmssd(rpeaks=rpeaks)
+   results = td.rmssd(rpeaks=t[rpeaks])
 
 .. _ref-sdsd:
 
@@ -713,16 +691,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute parameter using R-peak series
-   results = td.sdsd(rpeaks=rpeaks)
+   results = td.sdsd(rpeaks=t[rpeaks])
 
 .. _ref-nnxx:
 
@@ -836,20 +813,19 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNXX parameters using the R-peak series and a threshold of 30ms
-   results30 = nnXX(rpeaks=rpeaks, threshold=30)
+   results30 = nnXX(rpeaks=t[rpeaks], threshold=30)
    print(results30['nn30']
 
    # Compute NNXX parameters using the R-peak series and a threshold of 35ms
-   results35 = nnXX(rpeaks=rpeaks, threshold=35)
+   results35 = nnXX(rpeaks=r[rpeaks], threshold=35)
    print(results35['nn35'])
 
 NN50: nn50()
@@ -938,16 +914,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NN50 parameters using the R-peak series
-   results30 = nn50(rpeaks=rpeaks)
+   results30 = nn50(rpeaks=t[rpeaks])
    print(results['nn50'])
    print(results['pnn50'])
 
@@ -1037,16 +1012,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NN20 parameters using the R-peak series
-   results = nn20(rpeaks=rpeaks)
+   results = nn20(rpeaks=t[rpeaks])
    print(results['nn20'])
    print(results['pnn20'])
 
@@ -1187,16 +1161,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute TINN parameters using the R-peak series
-   results = td.tinn(rpeaks=rpeaks)
+   results = td.tinn(rpeaks=t[rpeaks])
 
 .. _ref-triindex:
 
@@ -1310,16 +1283,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute Triangular Index using the R-peak series
-   results = td.triangular_index(rpeaks=rpeaks)
+   results = td.triangular_index(rpeaks=t[rpeaks])
 
 Geometrical Parameters Function: geometrical_parameters()
 ---------------------------------------------------------
@@ -1426,16 +1398,15 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Import packages
    import biosppy
    import pyhrv.time_domain as td
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute Geometrical Parameters using the R-peak series
-   results = td.geometrical_parameters(rpeaks=rpeaks)
+   results = td.geometrical_parameters(rpeaks=t[rpeaks])
 
 .. _ref-timedomain:
 
@@ -1553,22 +1524,21 @@ parameter computation:
    import biosppy
    import pyhrv.time_domain as td
    import pyhrv.tools as tools
-   from opensignalsreader import OpenSignalsReader
 
-   # Load sample ECG signal stored in an OpenSignals file
-   signal = OpenSignalsReader('SampleECG.txt').signal('ECG')
+   # Load sample ECG signal
+   signal = np.loadtxt('./files/SampleECG.txt')[:, -1]
 
    # Get R-peaks series using biosppy
-   rpeaks = biosppy.signals.ecg.ecg(signal)[2]
+   t, filtered_signal, rpeaks = biosppy.signals.ecg.ecg(signal)[:3]
 
    # Compute NNI series
-   nni = tools.nn_intervals(rpeaks)
+   nni = tools.nn_intervals(t[rpeaks])
 
    # OPTION 1: Compute Time Domain parameters using the ECG signal
-   signal_results = td.time_domain(signal=signal)
+   signal_results = td.time_domain(signal=filtered_signal)
 
    # OPTION 2: Compute Time Domain parameters using the R-peak series
-   rpeaks_results = td.time_domain(rpeaks=rpeaks)
+   rpeaks_results = td.time_domain(rpeaks=t[rpeaks])
 
    # OPTION 3: Compute Time Domain parameters using the NNI-series
    nni_results = td.time_domain(nni=nni)

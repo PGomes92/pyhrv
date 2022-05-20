@@ -229,10 +229,11 @@ The functions of the `time_domain.py` module can be used as shown on the example
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.time_domain as td 
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute SDNN
 result = td.sdnn(nni)
@@ -247,10 +248,11 @@ Instead of calling each parameter function individually you can use the module l
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.time_domain as td 
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute SDNN
 results = td.time_domain(nni)
@@ -306,10 +308,11 @@ The default frequency bands are specified as follows:
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.frequency_domain as fd
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute the PSD and frequency domain parameters
 result = fd.welch_psd(nni=nni)
@@ -344,10 +347,11 @@ The default frequency bands are specified as follows:
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.frequency_domain as fd
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute the PSD and frequency domain parameters
 result = fd.lomb_psd(nni=nni)
@@ -381,10 +385,11 @@ The default frequency bands are specified as follows:
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.frequency_domain as fd
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute the PSD and frequency domain parameters
 result = fd.ar_psd(nni=nni)
@@ -412,10 +417,11 @@ Instead of calling each method function individually you can use the module leve
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.frequency_domain as fd 
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute frequency 
 results = fd.frequency_domain(nni=nni)
@@ -431,10 +437,11 @@ You can still define  specific parameters for the individual methods when using 
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.frequency_domain as fd 
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Welch parameter(s)
 kwargs_welch = {'nfft': 2**12}
@@ -477,10 +484,11 @@ The functions of the `nonlinear.py` module can be used as shown on the example b
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.nonlinear as nl
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute SDNN
 result = nl.poincare(nni)
@@ -497,10 +505,11 @@ For the Detrended Fluctuatio Analysis (DFA) set the defined short-term and long-
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.nonlinear as nl
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute SDNN
 result = nl.dfa(nni, short=[4, 16], long=[17, 64])
@@ -518,10 +527,11 @@ Instead of calling each parameter function individually you can use the module l
 ```python
 # Import packages
 import numpy as np
+import pyhrv
 import pyhrv.nonlinear as nl 
 
 # Load NNI sample series
-nni = np.load('./files/SampleNNISeries.npy')
+nni = pyhrv.utils.load_sample_nni()
 
 # Compute all nonlinear parameters
 results = nl.nonlinear(nni)
