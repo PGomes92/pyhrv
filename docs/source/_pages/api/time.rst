@@ -620,7 +620,7 @@ Alternatively, you can use R-peak series (``rpeaks``):
 
 SDSD: sdsd()
 ############
-.. py:function:: pyhrv.time_domain.rmssd(nni=None, rpeaks=None)
+.. py:function:: pyhrv.time_domain.sdsd(nni=None, rpeaks=None)
 
 **Function Description**
 
