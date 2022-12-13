@@ -20,7 +20,7 @@ these are not already on your machine:
 * `scipy <http://scipy.org>`_
 * `matplotlib <https://matplotlib.org>`_
 * `nolds <https://github.com/CSchoel/nolds>`_
-* `spectrum <https://github.com/withspectrum/spectrum>`_
+* `spectrum <https://github.com/cokelaer/spectrum>`_
 
 .. note::
 
