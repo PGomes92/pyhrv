@@ -22,13 +22,13 @@ setuptools.setup(
 	setup_requires=[
 		'numpy',
 		'scipy',
-		'biosppy',
+		'biosppy<1.0.0',
 		'matplotlib',
 		'nolds',
 		'spectrum',
 	],
 	install_requires=[
-		'biosppy',
+		'biosppy<1.0.0',
 		'matplotlib',
 		'numpy',
 		'scipy',
