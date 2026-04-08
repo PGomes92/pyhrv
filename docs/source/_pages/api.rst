@@ -13,3 +13,4 @@ API Reference
    api/nonlinear
    api/tools
    api/utils
+   api/parallel

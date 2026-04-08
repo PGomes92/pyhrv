@@ -1,3 +1,18 @@
+Update Version 0.5.0
+--------------------
+**Added**
+- Parallel processing module (``pyhrv.parallel``) for concurrent HRV computation using ``concurrent.futures.ProcessPoolExecutor``
+   - ``parallel_hrv()``: Computes time, frequency, and nonlinear domains in parallel (3 worker processes)
+   - ``parallel_time_domain()``: Computes individual time domain functions (SDNN, RMSSD, etc.) concurrently
+   - ``parallel_frequency_domain()``: Computes Welch, Lomb-Scargle, and AR PSD methods concurrently (3 worker processes)
+- New ``parallel`` parameter on ``hrv()`` function (default: ``False``). Set to ``True`` to enable parallel computation of all three HRV domains.
+- Benchmark script (``benchmark.py``) for comparing sequential vs parallel computation performance across different dataset sizes
+
+**Notes**
+  - Parallel mode uses the ``Agg`` matplotlib backend in child processes. Plot figure objects (e.g. ``fft_plot``, ``poincare_plot``) are returned as ``None`` in parallel mode.
+  - ``biosppy.utils.ReturnTuple`` objects are serialized to plain dicts for cross-process pickling and reconstructed in the parent process.
+  - No new dependencies required — uses only Python's built-in ``concurrent.futures`` and ``multiprocessing``.
+
 Update Version 0.4.1
 --------------------
 **Added**
@@ -79,6 +94,7 @@ based on a
     ├── hrv.py                      # HRV function
     ├── frequency_domain_.py        # Frequency Domain functions
     ├── nonlinear.py                # Nonlinear Parameters functions
+    ├── parallel.py                 # Parallel processing utilities (multiprocessing)
     ├── time_domain.py              # Time Domain functions
     ├── tools.py                    # HRV tools functions (Tachogram, ECG, radar chart, HR heatplot, and other 
     |                               # Comparison functions

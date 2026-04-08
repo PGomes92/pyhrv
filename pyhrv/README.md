@@ -31,6 +31,11 @@
   * [5.2 Quickstart](#nonlinear_quick)
     * [5.2.1 Compute Individual Nonlinear Parameters](#nonlinear_quick_parameter)
     * [5.2.2 Compute All Nonlinear Parameters at Once](#nonlinear_quick_module)
+* [6. Parallel Processing](#parallel)
+  * [6.1 Overview](#parallel_overview)
+  * [6.2 Quickstart](#parallel_quick)
+    * [6.2.1 Enable Parallel Mode in hrv()](#parallel_hrv)
+    * [6.2.2 Domain-Level Parallel Functions](#parallel_domain)
 
 
 ##### List of Acronyms
@@ -540,4 +545,69 @@ results = nl.nonlinear(nni)
 print(results['sd1'])
 print(results['dfa_short'])
 # etc...
+```
+
+
+# 6. Parallel Processing <a name="parallel"></a>
+## 6.1 Overview <a name="parallel_overview"></a>
+The `parallel.py` module provides multiprocessing utilities for concurrent HRV computation. The three HRV analysis domains (time, frequency, nonlinear) are independent of each other and can be computed simultaneously using Python's `concurrent.futures.ProcessPoolExecutor`.
+
+No additional dependencies are required — the module uses only Python's built-in `concurrent.futures` and `multiprocessing` modules.
+
+| Function | Description |
+| --- | --- |
+| `parallel_hrv()` | Computes time, frequency, and nonlinear domains in parallel (3 processes) |
+| `parallel_time_domain()` | Computes individual time domain functions concurrently |
+| `parallel_frequency_domain()` | Computes Welch, Lomb-Scargle, and AR PSD methods in parallel (3 processes) |
+
+## 6.2 Quickstart <a name="parallel_quick"></a>
+In order to use this module, it is recommended to import it as follows:
+```python
+import pyhrv.parallel as parallel
+```
+
+### 6.2.1 Enable Parallel Mode in hrv() <a name="parallel_hrv"></a>
+The simplest way to use parallel processing is via the `parallel` flag on the `hrv()` function:
+
+```python
+# Import packages
+import pyhrv
+from pyhrv.hrv import hrv
+
+# Load NNI sample series
+nni = pyhrv.utils.load_sample_nni()
+
+# Compute all HRV parameters in parallel
+results = hrv(nni=nni, parallel=True)
+
+# Access results as usual
+print(results['sdnn'])
+print(results['fft_peak'])
+print(results['sd1'])
+```
+
+> NOTE:
+> When `parallel=True`, matplotlib plot figure objects (e.g. `fft_plot`, `poincare_plot`) are returned as `None` because figures cannot be transferred across process boundaries. Use `parallel=False` (the default) if you need the plot figures.
+
+### 6.2.2 Domain-Level Parallel Functions <a name="parallel_domain"></a>
+For finer control, use the parallel functions directly:
+
+```python
+# Import packages
+import pyhrv
+from pyhrv.parallel import parallel_frequency_domain, parallel_time_domain
+
+# Load NNI sample series
+nni = pyhrv.utils.load_sample_nni()
+
+# Compute Welch, Lomb-Scargle, and AR PSDs concurrently
+freq_results = parallel_frequency_domain(nni=nni)
+print(freq_results['fft_peak'])
+print(freq_results['lomb_peak'])
+print(freq_results['ar_peak'])
+
+# Compute all time domain sub-functions concurrently
+time_results = parallel_time_domain(nni=nni)
+print(time_results['sdnn'])
+print(time_results['rmssd'])
 ```
