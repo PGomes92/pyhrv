@@ -54,6 +54,8 @@ from matplotlib import pyplot as plt
 
 # biosppy imports
 import biosppy
+from biosppy.utils import ReturnTuple
+from biosppy.signals.ecg import ecg as biosppy_ecg
 
 # Local imports/HRV toolbox imports
 import pyhrv
@@ -112,9 +114,9 @@ def welch_psd(nni=None,
 		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All results of the Welch's method's PSD estimation (see list and keys below)
 
 	Returned Parameters & Keys
@@ -190,7 +192,7 @@ def welch_psd(nni=None,
 	# Metadata
 	args = (nfft, window, fs, 'cubic')
 	names = ('fft_nfft', 'fft_window', 'fft_resampling_frequency', 'fft_interpolation',)
-	meta = biosppy.utils.ReturnTuple(args, names)
+	meta = ReturnTuple(args, names)
 
 	if mode not in ['normal', 'dev', 'devplot']:
 		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
@@ -204,7 +206,7 @@ def welch_psd(nni=None,
 
 		# Plot PSD
 		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('fft_plot', ))
+		figure = ReturnTuple((figure, ), ('fft_plot', ))
 
 		# Output
 		return pyhrv.utils.join_tuples(params, figure, meta)
@@ -226,7 +228,7 @@ def welch_psd(nni=None,
 
 		# Plot PSD
 		figure = _plot_psd('fft', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('fft_plot', ))
+		figure = ReturnTuple((figure, ), ('fft_plot', ))
 
 		# Output
 		return pyhrv.utils.join_tuples(params, figure, meta), frequencies, np.asarray((powers / 10 ** 6))
@@ -281,9 +283,9 @@ def lomb_psd(
 		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All results of the Lomb-Scargle PSD estimation (see list and keys below)
 
 	Returned Parameters & Keys
@@ -343,7 +345,7 @@ def lomb_psd(
 		powers = biosppy.signals.tools.smoother(powers, size=ma_size)['signal']
 
 	# Define metadata
-	meta = biosppy.utils.ReturnTuple((nfft, ma_size, ), ('lomb_nfft', 'lomb_ma'))
+	meta = ReturnTuple((nfft, ma_size, ), ('lomb_nfft', 'lomb_ma'))
 
 	if mode not in ['normal', 'dev', 'devplot']:
 		warnings.warn("Unknown mode '%s'. Will proceed with 'normal' mode." % mode, stacklevel=2)
@@ -360,7 +362,7 @@ def lomb_psd(
 
 		# Plot parameters
 		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('lomb_plot', ))
+		figure = ReturnTuple((figure, ), ('lomb_plot', ))
 
 		# Complete output
 		return pyhrv.utils.join_tuples(params, figure, meta)
@@ -385,7 +387,7 @@ def lomb_psd(
 
 		# Plot parameters
 		figure = _plot_psd('lomb', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('lomb_plot', ))
+		figure = ReturnTuple((figure, ), ('lomb_plot', ))
 
 		# Complete output
 		return pyhrv.utils.join_tuples(params, figure, meta), frequencies, powers
@@ -439,9 +441,9 @@ def ar_psd(nni=None,
 		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 		'devplot'	Returns frequency domain parameters, frequency array, power array, and the plot figure
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All results of the Autoregressive PSD estimation (see list and keys below)
 
 	Returned Parameters & Keys
@@ -506,7 +508,7 @@ def ar_psd(nni=None,
 														# in the upcoming steps
 
 	# Define metadata
-	meta = biosppy.utils.ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
+	meta = ReturnTuple((nfft, order, fs, 'cubic'), ('ar_nfft', 'ar_order', 'ar_resampling_frequency',
 														  'ar_interpolation'))
 
 	if mode not in ['normal', 'dev', 'devplot']:
@@ -522,7 +524,7 @@ def ar_psd(nni=None,
 
 		# Plot PSD
 		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('ar_plot', ))
+		figure = ReturnTuple((figure, ), ('ar_plot', ))
 
 		# Complete output
 		return pyhrv.utils.join_tuples(params, figure)
@@ -544,7 +546,7 @@ def ar_psd(nni=None,
 
 		# Plot PSD
 		figure = _plot_psd('ar', frequencies, powers, freq_i, params, show, show_param, legend, figsize)
-		figure = biosppy.utils.ReturnTuple((figure, ), ('ar_plot', ))
+		figure = ReturnTuple((figure, ), ('ar_plot', ))
 
 		# Complete output
 		return pyhrv.utils.join_tuples(params, figure, meta), frequencies, (powers / 10 ** 6)
@@ -576,7 +578,7 @@ def _compute_parameters(method, frequencies, power, freq_bands):
 
 	Returns
 	-------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All results of the Lomb-Scargle PSD estimation (see list and keys below)
 
 	Returned Parameters & Keys
@@ -644,8 +646,8 @@ def _compute_parameters(method, frequencies, power, freq_bands):
 		'%s_ratio' % method, '%s_total' % method)
 
 	# Output
-	params = biosppy.utils.ReturnTuple(args, names)
-	freq_i = biosppy.utils.ReturnTuple((ulf_i, vlf_i, lf_i, hf_i), ('ulf', 'vlf', 'lf', 'hf'))
+	params = ReturnTuple(args, names)
+	freq_i = ReturnTuple((ulf_i, vlf_i, lf_i, hf_i), ('ulf', 'vlf', 'lf', 'hf'))
 	return params, freq_i
 
 
@@ -697,6 +699,8 @@ def _check_freq_bands(freq_bands):
 				ulf = freq_bands['ulf']
 			else:
 				ulf = (0, 0)
+		else:
+			ulf = None
 		args_.append(ulf)
 		names_.append('ulf')
 
@@ -719,16 +723,19 @@ def _check_freq_bands(freq_bands):
 		# Rule: top frequency of a lower frequency band must not be higher than the lower frequency of a higher
 		# frequency band
 		invalid = False
-		args_ = [list(x) for x in args_ if x is not None]
-		for i, val in enumerate(args_[:-1]):
-			if val != (0, 0):
-				if args_[i][1] > args_[i+1][0]:
-					subs = args_[i][1]
-					args_[i][1] = args_[i+1][0]
-					args_[i+1][0] = subs
-					invalid = True
-			else:
-				args_[i] = None
+		# Convert tuples to lists for boundary adjustment; convert (0, 0) sentinel to None
+		args_ = [None if (x is None or x == (0, 0)) else list(x) for x in args_]
+
+		# Check that adjacent non-None frequency band limits don't overlap
+		non_none = [(i, v) for i, v in enumerate(args_) if v is not None]
+		for j in range(len(non_none) - 1):
+			i, val = non_none[j]
+			i_next, val_next = non_none[j + 1]
+			if val[1] > val_next[0]:
+				subs = val[1]
+				args_[i][1] = val_next[0]
+				args_[i_next][0] = subs
+				invalid = True
 
 		if invalid:
 			raise ValueError("Invalid or overlapping frequency band limits.")
@@ -736,7 +743,7 @@ def _check_freq_bands(freq_bands):
 		args = args_
 		names = names_
 
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def _get_frequency_indices(freq, freq_bands):
@@ -914,6 +921,9 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 			fig_psd = plt.figure()
 		ax = fig_psd.add_subplot(111)
 
+	# Guard against all-zero power (e.g. very low HR signal) to avoid identical y-axis limits warning
+	_ymax = max(power) * (1 + 0.05) if max(power) > 0 else 1e-10
+
 	# Highlight the individual frequency bands
 	for band in fbands.keys():
 		if fbands[band] is not None:
@@ -922,7 +932,7 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 
 			# Add lines
 			if band != 'hf':
-				ax.vlines(fbands[band][1], 0, max(power) * (1 + 0.05),
+				ax.vlines(fbands[band][1], 0, _ymax,
 					linestyle='--', alpha=0.5, linewidth=0.5)
 
 	# Plot PSD function as line (not for Lomb as it tends to decrease the clarity of the plot)
@@ -944,7 +954,7 @@ def _plot_psd(method, freq, power, freq_indices, parameters, show, show_param, l
 	ax.grid(alpha=0.3)
 	ax.set_xlabel('Frequency [$Hz$]')
 	ax.set_ylabel('PSD [$s^2/Hz$]')
-	ax.axis([0, fbands['hf'][1], 0, max(power) * (1 + 0.05)])
+	ax.axis([0, fbands['hf'][1], 0, _ymax])
 
 	if show:
 		plt.show()
@@ -1005,7 +1015,7 @@ def psd_comparison(nni=None,
 	kwargs_method : dict
 		Dictionary of kwargs for the PSD computation functions 'welch_psd()', 'ar_psd()' or 'lomb_psd()'.
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -1075,9 +1085,9 @@ def psd_comparison(nni=None,
 		fig = _2d_plot(psd_data, fbands=_check_freq_bands(fbands), method=method, show=show, duration=duration)
 
 		# Output
-		output = biosppy.utils.ReturnTuple((fig,), ('psd_comparison_plot',))
+		output = ReturnTuple((fig,), ('psd_comparison_plot',))
 		for i in range(len(psd_data)):
-			output = pyhrv.utils.join_tuples(biosppy.utils.ReturnTuple((psd_data[i]['params'],), ('seg%i' % i,)), output)
+			output = pyhrv.utils.join_tuples(ReturnTuple((psd_data[i]['params'],), ('seg%i' % i,)), output)
 		return output
 
 
@@ -1146,9 +1156,9 @@ def _compute_psds(segments, method, fbands, kwargs={}):
 		psd_method = PSD_METHODS[method]
 		for i, seg in enumerate(segs):
 			params, f, p = psd_method(nni=seg, fbands=fbands, mode='dev', **kwargs)
-			args += (biosppy.utils.ReturnTuple((params, f, p,), ("params", "f", "p",)),)
+			args += (ReturnTuple((params, f, p,), ("params", "f", "p",)),)
 			names += ("seg%i" % (i + 1),)
-		return biosppy.utils.ReturnTuple(args, names)
+		return ReturnTuple(args, names)
 
 	# Check input data
 	kwargs = kwargs if kwargs is not None else {}
@@ -1354,7 +1364,7 @@ def psd_waterfall(nni=None,
 	legend : bool, optional
 		If true, add a legend with frequency bands to the plot (default: True)
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -1430,7 +1440,7 @@ def psd_waterfall(nni=None,
 
 			# Compute PSD of current segment
 			result = ar_psd(nni=nn, show=show, nfft=nfft, order=order)
-			return biosppy.utils.ReturnTuple((result['ar_plot'], result, ), ('ar_plot', 'seg1', ))
+			return ReturnTuple((result['ar_plot'], result, ), ('ar_plot', 'seg1', ))
 
 		# Return Welch PSD plot
 		elif method == 'welch':
@@ -1454,7 +1464,7 @@ def psd_waterfall(nni=None,
 
 			# Compute PSD of current segment
 			result = welch_psd(nni=nn, nfft=nfft, detrend=detrend, window=window, show=show)
-			return biosppy.utils.ReturnTuple((result['fft_plot'], result, ), ('fft_plot', 'seg1', ))
+			return ReturnTuple((result['fft_plot'], result, ), ('fft_plot', 'seg1', ))
 
 		# Return Lomb PSD plot
 		elif method == 'lomb':
@@ -1477,7 +1487,7 @@ def psd_waterfall(nni=None,
 
 			# Compute PSD of current segment
 			result = lomb_psd(nni=nn, nfft=nfft, ma_size=ma_size, show=show)
-			return biosppy.utils.ReturnTuple((result['lomb_plot'], result, ), ('lomb_plot', 'seg1', ))
+			return ReturnTuple((result['lomb_plot'], result, ), ('lomb_plot', 'seg1', ))
 
 	# If segmentation worked, proceed with plot
 	else:
@@ -1658,9 +1668,9 @@ def psd_waterfall(nni=None,
 			plt.show()
 
 		# Wrap output
-		output = biosppy.utils.ReturnTuple((fig, ), ('psd_waterfall_plot', ))
+		output = ReturnTuple((fig, ), ('psd_waterfall_plot', ))
 		for i in range(len(segment_parameters)):
-			output = pyhrv.utils.join_tuples(biosppy.utils.ReturnTuple((segment_parameters[i], ), ('seg%i' % i, )), output)
+			output = pyhrv.utils.join_tuples(ReturnTuple((segment_parameters[i], ), ('seg%i' % i, )), output)
 		return output
 
 
@@ -1734,7 +1744,7 @@ def frequency_domain(nni=None,
 					Autoregressive model order (default: 16)
 	Returns
 	-------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All results of the frequency domain PSD estimation methods (see list and keys below)
 
 	Returned Parameters & Keys
@@ -1779,7 +1789,7 @@ def frequency_domain(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		t, signal, rpeaks = biosppy_ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
 		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')

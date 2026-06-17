@@ -266,6 +266,72 @@ Alternatively, you can use R-peak series (``rpeaks``):
    # Compute Sample Entropy using R-peak series
    results = nl.sampen(rpeaks=rpeaks)
 
+.. _ref-lyapunov:
+
+Largest Lyapunov Exponent: lyapunov_exponent()
+###############################################
+
+.. py:function:: pyhrv.nonlinear.lyapunov_exponent(nni=None, rpeaks=None, emb_dim=10, lag=None, min_tsep=None, trajectory_len=20)
+
+**Function Description**
+
+Computes the Largest Lyapunov Exponent (LLE) of the NNI series using the Rosenstein algorithm. The LLE quantifies the
+rate of separation of infinitesimally close trajectories in phase space — a positive value indicates chaotic dynamics.
+In HRV, reduced LLE values are associated with pathological conditions and aging.
+
+**Input Parameters**
+   - ``nni`` (array): NN intervals in [ms] or [s].
+   - ``rpeaks`` (array): R-peak times in [ms] or [s].
+   - ``emb_dim`` (int, optional): Embedding dimension for phase space reconstruction (default: 10).
+   - ``lag`` (int, optional): Lag between elements of vectors in phase space reconstruction (default: None, auto-estimated).
+   - ``min_tsep`` (int, optional): Minimum temporal separation between neighbours (default: None, auto-estimated as mean period).
+   - ``trajectory_len`` (int, optional): Length of trajectories used for divergence rate estimation (default: 20).
+
+**Returns (ReturnTuple Object)**
+
+The results of this function are returned in a ``biosppy.utils.ReturnTuple`` object. Use the following keys below (on the left) to index the results:
+
+   - ``lyapunov`` (float): Largest Lyapunov Exponent of the NNI series.
+
+.. seealso::
+
+   :ref:`ref-returntuple`
+
+**Computation**
+
+This parameter is computed using the ``nolds.lyap_r()`` function (Rosenstein method), which is robust to parameter choices and suitable for short biological time series.
+
+.. seealso::
+
+   `Nolds Documentation - lyap_r <https://cschoel.github.io/nolds/nolds.html#largest-lyapunov-exponent>`_
+
+**Application Notes**
+
+It is not necessary to provide input data for ``nni`` **and** ``rpeaks``. The parameter(s) of this function will be computed with any of the input data provided (``nni`` **or** ``rpeaks``). ``nni`` will be prioritized in case both are provided.
+
+``nni`` or ``rpeaks`` data provided in seconds [s] will automatically be converted to ``nni`` data in  milliseconds [ms].
+
+.. seealso::
+
+   Section :ref:`ref-nnformat` for more information.
+
+**Examples & Tutorials**
+
+.. code-block:: python
+
+   # Import packages
+   import pyhrv
+   import pyhrv.nonlinear as nl
+
+   # Load sample data
+   nni = pyhrv.utils.load_sample_nni()
+
+   # Compute Largest Lyapunov Exponent
+   results = nl.lyapunov_exponent(nni)
+
+   # Print LLE
+   print(results['lyapunov'])
+
 .. _ref-dfa:
 
 Detrended Fluctuation Analysis: dfa()
@@ -413,6 +479,7 @@ Computes all the nonlinear HRV parameters of the Nonlinear module and returns th
 
       * :ref:`ref-poincare`
       * :ref:`ref-sampen`
+      * :ref:`ref-lyapunov`
       * :ref:`ref-dfa`
 
 **Input Parameters**
@@ -423,6 +490,7 @@ Computes all the nonlinear HRV parameters of the Nonlinear module and returns th
    - ``show`` (bool, optional): If true, show all PSD plots.
    - ``kwargs_poincare`` (dict, optional): Dictionary containing the kwargs for the 'poincare' function
    - ``kwargs_sampen`` (dict, optional): Dictionary containing the kwargs for the 'sample_entropy' function
+   - ``kwargs_lyapunov`` (dict, optional): Dictionary containing the kwargs for the 'lyapunov_exponent' function
    - ``kwargs_dfa`` (dict, optional): Dictionary containing the kwargs for the 'dfa' function
 
 .. important::
@@ -438,6 +506,7 @@ The results of this function are returned in a ``biosppy.utils.ReturnTuple`` obj
    - ``sd_ratio`` (float): Ratio between SD1 and SD2 (SD2/SD1)
    - ``ellipse_area`` (float): Arrea S of the fitted ellipse
    - ``sample_entropy`` (float): Sample entropy of the NNI series
+   - ``lyapunov`` (float): Largest Lyapunov Exponent of the NNI series
    - ``dfa_short`` (float): Alpha value of the short-term fluctuations (alpha1)
    - ``dfa_long`` (float): Alpha value of the long-term fluctuations (alpha2)
 
@@ -470,6 +539,14 @@ following keys are supported:
 
    - ``dim`` (int, optional): Entropy embedding dimension (default: 2)
    - ``tolerance`` (int, float, optional): Tolerance distance for which the two vectors can be considered equal (default: std(NNI))
+
+Use the ``kwargs_lyapunov`` dictionary to pass function specific parameters for the ``lyapunov_exponent()`` function.
+The following keys are supported:
+
+   - ``emb_dim`` (int, optional): Embedding dimension for phase space reconstruction (default: 10)
+   - ``lag`` (int, optional): Lag between elements of vectors (default: None, auto-estimated)
+   - ``min_tsep`` (int, optional): Minimum temporal separation between neighbours (default: None, auto-estimated)
+   - ``trajectory_len`` (int, optional): Length of trajectories for divergence rate estimation (default: 20)
 
 Use the ``kwargs_dfa`` dictionary to pass function specific parameters for the ``dfa()`` function. The following keys
 are supported:

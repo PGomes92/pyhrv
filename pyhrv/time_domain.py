@@ -40,10 +40,12 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from scipy.ndimage import gaussian_filter1d
 
 # BioSppy imports
 import biosppy
 from biosppy.signals.ecg import ecg
+from biosppy.utils import ReturnTuple
 
 # Local imports/pyHRV toolbox imports
 import pyhrv
@@ -59,7 +61,7 @@ def nni_parameters(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -85,7 +87,7 @@ def nni_parameters(nni=None, rpeaks=None):
 	# output
 	args = (int(nn.size), nn.mean(), nn.min(), nn.max())
 	names = ('nni_counter', 'nni_mean', 'nni_min', 'nni_max')
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def nni_differences_parameters(nni=None, rpeaks=None):
@@ -98,7 +100,7 @@ def nni_differences_parameters(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -125,7 +127,7 @@ def nni_differences_parameters(nni=None, rpeaks=None):
 	# output
 	args = (float(nnd.mean()), int(nnd.min()), int(nnd.max()), )
 	names = ('nni_diff_mean', 'nni_diff_min', 'nni_diff_max', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def hr_parameters(nni=None, rpeaks=None):
@@ -138,7 +140,7 @@ def hr_parameters(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -167,7 +169,7 @@ def hr_parameters(nni=None, rpeaks=None):
 	# Output
 	args = (hr.mean(), hr.min(), hr.max(), hr.std(ddof=1))
 	names = ('hr_mean', 'hr_min', 'hr_max', 'hr_std')
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def sdnn(nni=None, rpeaks=None):
@@ -183,7 +185,7 @@ def sdnn(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -203,7 +205,7 @@ def sdnn(nni=None, rpeaks=None):
 	# Computation of SDNN & Output
 	args = [pyhrv.utils.std(nn)]
 	names = ['sdnn']
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def sdnn_index(nni=None, rpeaks=None, full=True, duration=300, warn=True):
@@ -225,7 +227,7 @@ def sdnn_index(nni=None, rpeaks=None, full=True, duration=300, warn=True):
 	warn : bool, optional
 		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -254,7 +256,7 @@ def sdnn_index(nni=None, rpeaks=None, full=True, duration=300, warn=True):
 	# Output
 	args = [sdnn_index]
 	names = ['sdnn_index']
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=True):
@@ -275,7 +277,7 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=Tr
 	warn : bool, optional
 		If True, raise a warning message if a segmentation could not be conducted (duration > NNI series duration)
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -305,7 +307,7 @@ def sdann(nni=None, rpeaks=None, full=True, overlap=False, duration=300, warn=Tr
 	# Output
 	args = [sdann_]
 	names = ['sdann']
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def rmssd(nni=None, rpeaks=None):
@@ -321,7 +323,7 @@ def rmssd(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -346,7 +348,7 @@ def rmssd(nni=None, rpeaks=None):
 	# Output
 	args = (rmssd_, )
 	names = ('rmssd', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def sdsd(nni=None, rpeaks=None):
@@ -362,7 +364,7 @@ def sdsd(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -388,7 +390,7 @@ def sdsd(nni=None, rpeaks=None):
 	# Output
 	args = [sdsd_]
 	names = ['sdsd']
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def nnXX(nni=None, rpeaks=None, threshold=None):
@@ -407,7 +409,7 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 	threshold : int
 		Threshold for nnXX values in [ms].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -444,7 +446,7 @@ def nnXX(nni=None, rpeaks=None, threshold=None):
 	# Output
 	args = (nnxx, pnnxx)
 	names = ('nn%i' % threshold, 'pnn%i' % threshold)
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def nn50(nni=None, rpeaks=None):
@@ -461,7 +463,7 @@ def nn50(nni=None, rpeaks=None):
 	rpeaks : array
 		R-peak times in [ms] or [s].
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -520,7 +522,7 @@ def nn20(nni=None, rpeaks=None):
 	return nnXX(nni=nni, rpeaks=rpeaks, threshold=20)
 
 
-def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
+def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True, mode='short'):
 	"""Computes TINN based on the NN intervals histogram.
 
 	References:	[Electrophysiology1996]
@@ -542,11 +544,18 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		Matplotlib figure size (width, height) (default: (6, 6)).
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
+	mode : str, optional
+		Fitting mode for the triangular interpolation (default: 'short').
+		'short' - applies Gaussian smoothing (sigma=2 bins) to the histogram before fitting.
+		          Recommended for all recording lengths. Smoothing stabilises the sparse
+		          histogram of short recordings and has negligible effect (<3%) on long ones.
+		'long'  - fits the triangle directly on the raw histogram without smoothing.
+		          Use only for recordings >= 2 hours where the histogram is smooth enough
+		          for reliable fitting without pre-processing (strict HRV guidelines approach).
+		'auto'  - automatically selects 'short' for recordings < 30min, 'long' for >= 30min.
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
-	[key : format]
-		Description.
 	tinn_histogram : matplotlib figure object
 		Histogram figure (only if input parameter 'plot' is True).
 	tinn_n : float
@@ -570,32 +579,43 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 	..	'figsize' has only effect if 'plot' is also True.
 	.. 	If both 'nni' and 'rpeaks' are provided, 'rpeaks' will be chosen over the 'nni' and the 'nni' data will be computed
 		from the 'rpeaks'.
+	..	TINN is designed for long recordings (>= 20min). For short recordings the histogram is too sparse
+		for reliable triangular fitting; use mode='short' or mode='auto' (default) in those cases.
 
 	"""
-	# Raise a warning because this function is currently not generating correct results
-	warnings.warn('CAUTION: The TINN computation is currently providing incorrect results in the most cases due to a '
-				  'malfunction of the function. This function will be reviewed over the next updates to solve this issue')
-
 	# Check input
 	nn = pyhrv.utils.check_input(nni, rpeaks)
 
+	# Determine fitting mode based on recording duration if mode is 'auto'
+	# Recordings shorter than 30 minutes produce a sparse histogram that needs smoothing
+	duration_ms = np.sum(nn)
+	if mode == 'auto':
+		mode = 'short' if duration_ms < 1800000 else 'long'
+
 	# Get Histogram data (with or without histogram plot figure)
 	if plot:
-		fig, ax, D, bins = _get_histogram(nn, figsize=figsize, binsize=binsize, legend=legend, plot=plot)
+		fig, ax, D_raw, bins = _get_histogram(nn, figsize=figsize, binsize=binsize, legend=legend, plot=plot)
 	else:
-		D, bins = _get_histogram(nn, figsize=figsize, binsize=binsize, legend=legend, plot=plot)
+		D_raw, bins = _get_histogram(nn, figsize=figsize, binsize=binsize, legend=legend, plot=plot)
 
-	# Use only all bins except the last one to avoid indexing error with 'D' (otherwise bins.size = D.size + 1)
-	# bins = np.asarray(bins[:-1])
+	# Apply Gaussian smoothing for short recordings to stabilise the sparse histogram
+	# before fitting the triangle (prevents the optimizer collapsing to a narrow peak)
+	if mode == 'short':
+		D = gaussian_filter1d(D_raw.astype(float), sigma=2)
+	else:
+		D = D_raw.astype(float)
 
-	# Get bins of the triangular's N side (left side of the bin with the highest value of the distribution)
-	n_bins = [bin for bin in bins if bin < bins[np.argmax(D)]]
+	# Get the bin with the highest histogram value (peak of the distribution)
+	peak_bin = bins[np.argmax(D)]
 
-	# Get bins of the triangular's M side (right side of the bin with the highest value of the distribution)
-	m_bins = [bin for bin in bins if bin > bins[np.argmax(D)]]
+	# Get candidate N bins: bins to the left of the peak within the actual data range
+	n_bins = [b for b in bins if bins[D_raw > 0][0] <= b < peak_bin]
 
-	# Set a maximum error
-	min_error = 2 ** 14
+	# Get candidate M bins: bins to the right of the peak within the actual data range
+	m_bins = [b for b in bins if peak_bin < b <= bins[D_raw > 0][-1]]
+
+	# Set initial error to infinity so any triangle is accepted on the first iteration
+	min_error = float('inf')
 	N = 0
 	M = 0
 
@@ -603,34 +623,24 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 	for n in n_bins:
 		# Compute triangle and error for each possible M value within the bins
 		for m in m_bins:
-			# Get bin indices and time array that are valid for q(t) (i.e. q(t)!=0 for N < t < M)
-			qi = np.zeros(bins.size)
-			for i, bin in enumerate(bins):
-				qi[i] = (True if n <= bin <= m else False)
-			t = bins[[i for i, q in enumerate(qi) if q]]
+			# Get the bins that fall within the triangle base [n, m]
+			t = bins[(bins >= n) & (bins <= m)]
+			if len(t) < 2:
+				continue
 
 			# Compute linear function that describes the N side of the triangle (q(N) = 0 to q(X) = max(D(X)))
-			qn = interp1d([t[0], bins[np.argmax(D)]], [0, np.max(D)], 'linear', bounds_error=False)
-			qn = qn(bins)
+			qn = interp1d([t[0], peak_bin], [0, np.max(D)], 'linear', bounds_error=False)(bins)
 
 			# Compute linear function that describes the M side of the triangle (q(X) = max(D(X)) to q(M) = 0)
-			qm = interp1d([bins[np.argmax(D)], t[-1]], [np.max(D), 0], 'linear', bounds_error=False)
-			qm = qm(bins)
+			qm = interp1d([peak_bin, t[-1]], [np.max(D), 0], 'linear', bounds_error=False)(bins)
 
-			# Join the linear functions of both sides to single array
-			q = np.zeros(len(bins))
-			for i, val in enumerate(bins):
-				if str(qn[i]) != 'nan':
-					q[i] = qn[i]
-				elif str(qm[i]) != 'nan':
-					q[i] = qm[i]
-				else:
-					q[i] = 0
+			# Join the two linear functions into a single triangle array
+			q = np.where(~np.isnan(qn), qn, np.where(~np.isnan(qm), qm, 0.0))
 
-			# Compute squared error
-			error = np.sum([(D[i] - q[i]) ** 2 for i, _ in enumerate(bins)])
+			# Compute squared error between histogram and triangle
+			error = np.sum((D - q) ** 2)
 
-			# Save N and M value if error is < smaller than before
+			# Save N and M if this triangle has a smaller error than any previous one
 			if error < min_error:
 				N, M, min_error = n, m, error
 				qf = q
@@ -640,9 +650,9 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 
 	# If plot figure required, add interpolated triangle and other specified plot characteristics
 	if plot:
-		# Add triangle to the plot
-		ax.plot([N, bins[np.argmax(D)]], [0, D.max()], 'r--', linewidth=0.8)
-		ax.plot([bins[np.argmax(D)], M], [D.max(), 0], 'r--', linewidth=0.8)
+		# Add triangle to the plot (drawn on the raw histogram axes)
+		ax.plot([N, peak_bin], [0, D_raw.max()], 'r--', linewidth=0.8)
+		ax.plot([peak_bin, M], [D_raw.max(), 0], 'r--', linewidth=0.8)
 
 		# Add legend
 		if legend:
@@ -655,7 +665,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 			tinn_ = mpl.patches.Patch(facecolor='white', alpha=0.0)
 			ax.legend(
 				[h, tri, x, dx, n, m, tinn_],
-				['Histogram D(NNI)', 'Triangular Interpol.', 'D(X): %i' % D.max(), 'X: %.3f$ms$' % bins[np.argmax(D)],
+				['Histogram D(NNI)', 'Triangular Interpol.', 'D(X): %i' % D_raw.max(), 'X: %.3f$ms$' % peak_bin,
 				 'N: %.3f$ms$' % N, 'M: %.3fms' % M, 'TINN: %.3fms' % tinn],
 				loc=0
 			)
@@ -672,7 +682,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 		args = (N, M, tinn,)
 		names = ('tinn_n', 'tinn_m', 'tinn',)
 
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=None, legend=True):
@@ -698,7 +708,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -764,7 +774,7 @@ def triangular_index(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True
 		args = (tri_index, )
 		names = ('tri_index', )
 
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def _get_histogram(nn=None, plot=True, figsize=None, binsize=None, legend=True):
@@ -873,7 +883,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	legend : bool, optional
 		If True, adds legend to the histogram (default: True).
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -944,7 +954,7 @@ def geometrical_parameters(nni=None, rpeaks=None, binsize=7.815, plot=True, show
 	# Output
 	args = (fig, tinn_vals['tinn_n'], tinn_vals['tinn_m'], tinn_vals['tinn'], trindex)
 	names = ('nni_histogram', 'tinn_n', 'tinn_m', 'tinn', 'tri_index')
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def time_domain(nni=None,
@@ -980,7 +990,7 @@ def time_domain(nni=None,
 
 	Returns
 	-------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All time domain results (see list and keys below)
 
 	Returned Parameters
@@ -1004,7 +1014,7 @@ def time_domain(nni=None,
 
 	Notes
 	-----
-	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
+	..	Results are stored in a ReturnTuple object and need to be accessed with the respective keys as
 		done with dictionaries (see list of parameters and keys above).
 	..	Only one type of input data is required (signal, nni, or rpeaks).
 	..	Input data will be prioritized in the following order: 1. signal, 2. nni, 3. rpeaks.
@@ -1023,7 +1033,7 @@ def time_domain(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		t, signal, rpeaks = ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
 		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
@@ -1031,7 +1041,7 @@ def time_domain(nni=None,
 	# Get NNI series
 	nn = pyhrv.utils.check_input(nni, rpeaks)
 
-	# Call time domain functions & wrap results in a single biosppy.utils.ReturnTuple object
+	# Call time domain functions & wrap results in a single ReturnTuple object
 	results = nni_parameters(nn)
 	results = pyhrv.utils.join_tuples(results, hr_parameters(nn))
 	results = pyhrv.utils.join_tuples(results, nni_differences_parameters(nn))

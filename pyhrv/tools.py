@@ -52,6 +52,7 @@ from matplotlib.projections import register_projection
 
 # BioSPPy imports
 import biosppy
+from biosppy.utils import ReturnTuple
 
 # Local imports
 import pyhrv
@@ -300,7 +301,7 @@ def plot_ecg(signal=None,
 	# Output
 	args = (fig_ecg, )
 	names = ('ecg_plot', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def tachogram(nni=None,
@@ -449,7 +450,7 @@ def tachogram(nni=None,
 	# Output
 	args = (fig, )
 	names = ('tachogram_plot', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def heart_rate(nni=None, rpeaks=None):
@@ -542,7 +543,7 @@ def heart_rate_heatplot(nni=None,
 
 	Returns
 	-------
-	hr_heatplot : biosppy.utils.ReturnTuple object
+	hr_heatplot : ReturnTuple object
 
 	Raises
 	------
@@ -677,7 +678,7 @@ def heart_rate_heatplot(nni=None,
 		plt.show()
 
 	# Output
-	return biosppy.utils.ReturnTuple((fig, ), ('hr_heatplot', ))
+	return ReturnTuple((fig, ), ('hr_heatplot', ))
 
 
 def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpolation=None, show=True, mode='normal'):
@@ -899,7 +900,7 @@ def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpol
 		# Output
 		args = (fig,)
 		names = ("time_varying_%s" % parameter,)
-		return biosppy.utils.ReturnTuple(args, names)
+		return ReturnTuple(args, names)
 
 	elif mode == 'dev':
 		return t, parameter_values, parameter
@@ -912,7 +913,7 @@ def time_varying(nni=None, rpeaks=None, parameter='sdnn', window='n20', interpol
 			# Output
 			args = (fig, )
 			names = ("time_varying_%s" % parameter, )
-			return biosppy.utils.ReturnTuple(args, names), t, parameter_values, parameter
+			return ReturnTuple(args, names), t, parameter_values, parameter
 
 
 def radar_chart(nni=None,
@@ -961,7 +962,7 @@ def radar_chart(nni=None,
 	legend : bool, optional
 		If true, add a legend with the computed results to the plot (default: True)
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -1142,7 +1143,7 @@ def radar_chart(nni=None,
 	# Output
 	args = (ref_params, comp_params, fig, )
 	names = ('reference_results', 'comparison_results', 'radar_plot', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
 
 
 def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
@@ -1153,7 +1154,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 
 	Parameters
 	----------
-	results : dict, biosppy.utils.ReturnTuple object
+	results : dict, ReturnTuple object
 		Results of the HRV analysis
 	path : str
 		Absolute path of the output directory
@@ -1174,7 +1175,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 	TypeError
 		No input data provided
 	TypeError
-		Unsupported data format provided (other than dict, or biosppy.utils.ReturnTuple object.)
+		Unsupported data format provided (other than dict, or ReturnTuple object.)
 	TypeError
 		If no file or directory path provided
 
@@ -1190,12 +1191,12 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 		https://pyhrv.readthedocs.io/en/latest/_pages/api/tools.html#hrv-export-hrv-export
 
 	"""
-	# Check input (if available & biosppy.utils.ReturnTuple object)
+	# Check input (if available & ReturnTuple object)
 	if results is None:
 		raise TypeError("No results data provided. Please specify input data.")
-	elif results is not type(dict()) and isinstance(results, biosppy.utils.ReturnTuple) is False:
+	elif results is not type(dict()) and isinstance(results, ReturnTuple) is False:
 		raise TypeError("Unsupported data format: %s. "
-						"Please provide input data as Python dictionary or biosppy.utils.ReturnTuple object." % type(results))
+						"Please provide input data as Python dictionary or ReturnTuple object." % type(results))
 
 	if path is None:
 		raise TypeError("No file name or directory provided. Please specify at least an output directory.")
@@ -1230,7 +1231,7 @@ def hrv_export(results=None, path=None, efile=None, comment=None, plots=False):
 	# Prepare output dictionary
 	output = {'Name': efile, 'Comment': str(comment)}
 	for key in results.keys():
-		if isinstance(results[key], biosppy.utils.ReturnTuple):
+		if isinstance(results[key], ReturnTuple):
 			output[key] = dict(results[key])
 		elif isinstance(results[key], tuple):
 			output[key] = list(results[key])
@@ -1262,7 +1263,7 @@ def hrv_import(hrv_file=None):
 
 	Returns
 	-------
-	output : biosppy.utils.ReturnTuple object
+	output : ReturnTuple object
 		All imported results.
 
 	Raises
@@ -1288,8 +1289,8 @@ def hrv_import(hrv_file=None):
 	for key in data.keys():
 		results[str(key)] = data[key] if type(data[key]) is not str else str(data[key])
 
-	# Create biosppy.utils.ReturnTuple object from imported data
-	return biosppy.utils.ReturnTuple(results.values(), results.keys())
+	# Create ReturnTuple object from imported data
+	return ReturnTuple(results.values(), results.keys())
 
 
 if __name__ == "__main__":

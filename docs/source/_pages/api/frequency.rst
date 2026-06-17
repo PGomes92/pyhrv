@@ -152,6 +152,25 @@ Here, the upper band of the VLF band is greater than the lower band of the LF ba
 The resampling frequency and the interpolation methods used for this method are hardcoded to 4Hz and the cubic spline interpolation of the ``scipy.interpolate.interp1d()`` (`docs <https://docs.scipy.org/doc/scipy-0.19.1/reference/generated/scipy.interpolate.interp1d
 .html>`_, `source <https://github.com/scipy/scipy/blob/v0.19.1/scipy/interpolate/interpolate.py#L321-L647>`_) function.
 
+.. note::
+
+   **Why 4Hz?** NNI series are unevenly sampled in time, but Welch's method requires evenly-sampled data. Resampling
+   to a fixed frequency is therefore mandatory before PSD estimation. 4Hz is the standard recommendation from the
+   Task Force of the European Society of Cardiology (ESC/NASPE 1996 HRV Guidelines): the Nyquist theorem requires a
+   minimum of 0.8Hz to capture the 0.4Hz HF band upper limit; 4Hz provides a comfortable 10× safety margin. The
+   interpolation method is cubic spline.
+
+.. note::
+
+   **Window size & overlap for 5-minute recordings:** pyHRV automatically adapts the segment length (``nperseg``)
+   based on signal duration:
+
+   - **< 5 minutes:** ``nperseg = nfft`` (default 4096) — the full signal is used as one segment.
+   - **≥ 5 minutes:** ``nperseg = 300`` (300 samples = 75s at 4Hz), with 50% overlap (scipy default).
+
+   The default parameters (``nfft=2**12``, ``window='hamming'``) follow the Task Force guidelines and are suitable
+   for standard short-term HRV analysis (5-minute recordings).
+
 .. important::
 
    This function generates ``matplotlib`` plot figures which, depending on the backend you are using, can interrupt

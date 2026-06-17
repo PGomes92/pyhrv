@@ -44,6 +44,7 @@ import matplotlib.pyplot as plt
 # BioSPPy imports
 import biosppy
 from biosppy.signals.ecg import ecg
+from biosppy.utils import ReturnTuple
 
 # Local imports/pyHRV toolbox imports
 import pyhrv
@@ -88,7 +89,7 @@ def poincare(nni=None,
 		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
 		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -124,7 +125,7 @@ def poincare(nni=None,
 		# Output
 		args = (sd1, sd2, sd2 / sd1, area)
 		names = ('sd1', 'sd2', 'sd_ratio', 'ellipse_area')
-		return biosppy.utils.ReturnTuple(args, names)
+		return ReturnTuple(args, names)
 
 	# Normal:
 	# Same as dev but with plot
@@ -188,7 +189,7 @@ def poincare(nni=None,
 		# Output
 		args = (fig, sd1, sd2, sd2/sd1, area)
 		names = ('poincare_plot', 'sd1', 'sd2', 'sd_ratio', 'ellipse_area')
-		return biosppy.utils.ReturnTuple(args, names)
+		return ReturnTuple(args, names)
 
 
 
@@ -207,7 +208,7 @@ def sample_entropy(nni=None, rpeaks=None, dim=2, tolerance=None):
 	tolerance : int, float, optional
 		Tolerance distance for which the vectors to be considered equal (default: std(NNI) * 0.2).
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -238,7 +239,48 @@ def sample_entropy(nni=None, rpeaks=None, dim=2, tolerance=None):
 	# Output
 	args = (sampen, )
 	names = ('sampen', )
-	return biosppy.utils.ReturnTuple(args, names)
+	return ReturnTuple(args, names)
+
+
+def lyapunov_exponent(nni=None, rpeaks=None, emb_dim=10, lag=None, min_tsep=None, trajectory_len=20):
+	"""Computes the Largest Lyapunov Exponent (LLE) of the NNI series using the Rosenstein algorithm.
+
+	References: [Rosenstein1993]
+	Docs:		https://pyhrv.readthedocs.io/en/latest/_pages/api/nonlinear.html#largest-lyapunov-exponent-lyapunov-exponent
+
+	Parameters
+	----------
+	nni : array
+		NN intervals in [ms] or [s].
+	rpeaks : array
+		R-peak times in [ms] or [s].
+	emb_dim : int, optional
+		Embedding dimension for phase space reconstruction (default: 10).
+	lag : int, optional
+		Lag between elements of vectors in the phase space reconstruction (default: None, auto-estimated).
+	min_tsep : int, optional
+		Minimum temporal separation between neighbours (default: None, auto-estimated as mean period).
+	trajectory_len : int, optional
+		Length of the trajectories used for divergence rate estimation (default: 20).
+
+	Returns (ReturnTuple Object)
+	----------------------------
+	[key : format]
+		Description.
+	lyapunov : float
+		Largest Lyapunov Exponent of the NNI series.
+
+	"""
+	# Check input values
+	nn = pyhrv.utils.check_input(nni, rpeaks)
+
+	# Compute Largest Lyapunov Exponent
+	lle = float(nolds.lyap_r(nn, emb_dim=emb_dim, lag=lag, min_tsep=min_tsep, trajectory_len=trajectory_len))
+
+	# Output
+	args = (lle, )
+	names = ('lyapunov', )
+	return ReturnTuple(args, names)
 
 
 def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, legend=True, mode='normal'):
@@ -266,7 +308,7 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 		'normal'	Returns frequency domain parameters and PSD plot figure in a ReturnTuple object
 		'dev'		Returns frequency domain parameters, frequency and power arrays, no plot figure
 
-	Returns (biosppy.utils.ReturnTuple Object)
+	Returns (ReturnTuple Object)
 	------------------------------------------
 	[key : format]
 		Description.
@@ -342,13 +384,13 @@ def dfa(nn=None, rpeaks=None, short=None, long=None, show=True, figsize=None, le
 		if show:
 			plt.show()
 		args = (fig, alpha1, alpha2, short, long)
-		return biosppy.utils.ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
+		return ReturnTuple(args, ('dfa_plot', 'dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 	# Dev Mode:
 	# Returns results only
 	if mode == 'dev':
 		args = (alpha1, alpha2, short, long)
-		return biosppy.utils.ReturnTuple(args, ('dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
+		return ReturnTuple(args, ('dfa_alpha1', 'dfa_alpha2', 'dfa_alpha1_beats', 'dfa_alpha2_beats'))
 
 
 def nonlinear(nni=None,
@@ -358,7 +400,8 @@ def nonlinear(nni=None,
 			  show=False,
 			  kwargs_poincare=None,
 			  kwargs_sampen=None,
-			  kwargs_dfa=None,):
+			  kwargs_dfa=None,
+			  kwargs_lyapunov=None,):
 	"""Computes all time domain parameters of the HRV time domain module
 		and returns them in a ReturnTuple object.
 
@@ -404,9 +447,20 @@ def nonlinear(nni=None,
 			..	tolerance : int, float, optional
 					Tolerance distance for which the vectors to be considered equal (default: std(NNI) * 0.2).
 
+	kwargs_lyapunov : dict, optional
+		Dictionary containing the kwargs for the nonlinear 'lyapunov_exponent()' function:
+			..	emb_dim : int, optional
+					Embedding dimension for phase space reconstruction (default: 10).
+			..	lag : int, optional
+					Lag between elements of vectors (default: None, auto-estimated).
+			..	min_tsep : int, optional
+					Minimum temporal separation between neighbours (default: None, auto-estimated).
+			..	trajectory_len : int, optional
+					Length of trajectories used for divergence rate estimation (default: 20).
+
 	Returns
 	-------
-	results : biosppy.utils.ReturnTuple object
+	results : ReturnTuple object
 		All time domain results.
 
 	Returned Parameters
@@ -417,6 +471,7 @@ def nonlinear(nni=None,
 	..	Area of the fitted ellipse in [ms^2] (key: 'ellipse_area')
 	..	Sample Entropy [-] (key: 'sampen')
 	..	Detrended Fluctuations Analysis [-] (short and long term fluctuations (key: 'dfa_short', 'dfa_long')
+	..	Largest Lyapunov Exponent [-] (key: 'lyapunov')
 
 	Returned Figures
 	----------------
@@ -424,7 +479,7 @@ def nonlinear(nni=None,
 
 	Notes
 	-----
-	..	Results are stored in a biosppy.utils.ReturnTuple object and need to be accessed with the respective keys as
+	..	Results are stored in a ReturnTuple object and need to be accessed with the respective keys as
 		done with dictionaries (see list of parameters and keys above)
 	..	Provide at least one type of input data (signal, nn, or rpeaks).
 	..	Input data will be prioritized in the following order: 1. signal, 2. nn, 3. rpeaks.
@@ -439,7 +494,7 @@ def nonlinear(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		t, signal, rpeaks = ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
 		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
@@ -537,8 +592,39 @@ def nonlinear(nni=None,
 		# Compute DFA plot with default values
 		d_results = dfa(nn, show=False)
 
+	# Unwrap kwargs_lyapunov dictionary & compute Largest Lyapunov Exponent
+	if kwargs_lyapunov is not None:
+		if type(kwargs_lyapunov) is not dict:
+			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_lyapunov' must be a dictionary containing "
+							"parameters (keys) and values for the 'lyapunov_exponent()' function." % type(kwargs_lyapunov))
+
+		# Supported kwargs
+		available_kwargs = ['emb_dim', 'lag', 'min_tsep', 'trajectory_len']
+
+		# Unwrap kwargs dictionaries
+		emb_dim = kwargs_lyapunov['emb_dim'] if 'emb_dim' in kwargs_lyapunov.keys() else 10
+		lag = kwargs_lyapunov['lag'] if 'lag' in kwargs_lyapunov.keys() else None
+		min_tsep = kwargs_lyapunov['min_tsep'] if 'min_tsep' in kwargs_lyapunov.keys() else None
+		trajectory_len = kwargs_lyapunov['trajectory_len'] if 'trajectory_len' in kwargs_lyapunov.keys() else 20
+
+		unsupported_kwargs = []
+		for args in kwargs_lyapunov.keys():
+			if args not in available_kwargs:
+				unsupported_kwargs.append(args)
+
+		# Throw warning if additional unsupported kwargs have been provided
+		if unsupported_kwargs:
+			warnings.warn("Unknown kwargs for 'lyapunov_exponent()': %s. These kwargs have no effect."
+						  % unsupported_kwargs, stacklevel=2)
+
+		# Compute LLE with custom configuration
+		l_results = lyapunov_exponent(nn, emb_dim=emb_dim, lag=lag, min_tsep=min_tsep, trajectory_len=trajectory_len)
+	else:
+		# Compute LLE with default values
+		l_results = lyapunov_exponent(nn)
+
 	# Join Results
-	results = pyhrv.utils.join_tuples(p_results, s_results, d_results)
+	results = pyhrv.utils.join_tuples(p_results, s_results, d_results, l_results)
 
 	# Plot
 	if show:

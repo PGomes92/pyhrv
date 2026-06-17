@@ -104,12 +104,14 @@ venv.bak/
 .mypy_cache/
 .DS_Store
 docs/Icon
-.idea/workspace.xml
-.idea/vcs.xml
-.idea/pyhrv.iml
-.idea/modules.xml
-.idea/misc.xml
-.idea/markdown-navigator/profiles_settings.xml
-.idea/markdown-navigator.xml
-.idea/dictionaries/pedrogomes.xml
-.idea/codeStyles/codeStyleConfig.xml
+.idea/
+
+# Claude Code
+.claude/
+
+# Local working files
+ISSUES_CHECKLIST.md
+test_tinn.py
+SampleReport.txt
+SampleReport.csv
+pyhrv_test_report_python_*.txt

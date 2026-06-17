@@ -39,6 +39,8 @@ import warnings
 
 # BioSPPy import
 import biosppy
+from biosppy.signals.ecg import ecg as biosppy_ecg
+from biosppy.utils import ReturnTuple
 import matplotlib.pyplot as plt
 
 # Import toolbox functions
@@ -221,11 +223,11 @@ def hrv(nni=None,
 	..	ECG plot (key: 'ecg_plot') (only if ECG signal is provided)
 	..	Tachogram (key: 'tachogram_plot')
 	..	Poincaré plot (key: 'poincare_plot')
-	..	NNI Histogram (key: 'nn_histogram')
+	..	NNI Histogram (key: 'nni_histogram')
 	..	Welch PSD (key: 'fft_plot')
 	..	Lomb PSD (key: 'lomb_plot')
 	..	AR PSD (key: 'ar_plot')
-	.. 	Poincaré (key: 'pincare_plot')
+	.. 	Poincaré (key: 'poincare_plot')
 
 	Notes
 	-----
@@ -249,14 +251,14 @@ def hrv(nni=None,
 	"""
 	# Check input
 	if signal is not None:
-		t, signal, rpeaks = biosppy.ecg.ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
+		t, signal, rpeaks = biosppy_ecg(signal=signal, sampling_rate=sampling_rate, show=False)[:3]
 		rpeaks = t[rpeaks]
 	elif nni is None and rpeaks is None:
 		raise TypeError('No input data provided. Please specify input data.')
 
 	nn = utils.check_input(nni, rpeaks)
 
-	version = biosppy.utils.ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
+	version = ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
 
 	# COMPUTE TIME DOMAIN PARAMETERS
 	# Check for kwargs for the 'kwargs_time'

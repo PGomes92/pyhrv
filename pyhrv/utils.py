@@ -45,6 +45,7 @@ from matplotlib.projections.polar import PolarAxes
 
 # BioSPPy import
 import biosppy
+from biosppy.utils import ReturnTuple
 import pyhrv 
 
 
@@ -369,26 +370,26 @@ def segmentation(nni=None, full=True, duration=300, warn=True):
 
 
 def join_tuples(*args):
-	"""Joins multiple biosppy.biosppy.utils.ReturnTuple objects into one biosppy.biosppy.utils.ReturnTuple object.
+	"""Joins multiple biosppy.ReturnTuple objects into one biosppy.ReturnTuple object.
 
 	Docs:	https://pyhrv.readthedocs.io/en/latest/_pages/api/utils.html#join-tuples-join-tuples
 
 	Parameters
 	----------
-	tuples : list, array, biosppy.utils.ReturnTuple objects
-		List or array containing biosppy.utils.ReturnTuple objects.
+	tuples : list, array, ReturnTuple objects
+		List or array containing ReturnTuple objects.
 
 	Returns
 	-------
-	return_tuple : biosppy.biosppy.utils.ReturnTuple object
-		biosppy.biosppy.utils.ReturnTuple object with the content of all input tuples joined together.
+	return_tuple : biosppy.ReturnTuple object
+		biosppy.ReturnTuple object with the content of all input tuples joined together.
 
 	Raises
 	------
 	TypeError:
 		If no input data is provided
 	TypeError:
-		If input data contains non-biosppy.biosppy.utils.ReturnTuple objects
+		If input data contains non-biosppy.ReturnTuple objects
 
 	Notes
 	----
@@ -401,8 +402,8 @@ def join_tuples(*args):
 		raise TypeError("Please specify input data.")
 
 	for i in args:
-		if not isinstance(i, biosppy.utils.ReturnTuple):
-			raise TypeError("The list of tuples contains non-biosppy.utils.ReturnTuple objects.")
+		if not isinstance(i, ReturnTuple):
+			raise TypeError("The list of tuples contains non-ReturnTuple objects.")
 
 	# Join tuples
 	names = ()
@@ -413,7 +414,7 @@ def join_tuples(*args):
 			names = names + (key, )
 			vals = vals + (i[key], )
 
-	return biosppy.utils.ReturnTuple(vals, names)
+	return ReturnTuple(vals, names)
 
 
 def check_fname(rfile, fformat='txt', name='new_file'):

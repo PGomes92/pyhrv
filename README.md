@@ -1,6 +1,6 @@
 ![Image](./SampleFigures/pyhrv.png)
 
-![GitHub Version](https://img.shields.io/badge/GitHub-v.0.4.1-orange.svg)
+![GitHub Version](https://img.shields.io/badge/GitHub-v.0.5.0-orange.svg)
 [![PyPi Version](https://img.shields.io/pypi/v/pyhrv.svg)](https://pypi.org/project/pyhrv/)
 ![Python Versions](https://img.shields.io/badge/python-3.X-blue)
 [![Issues](https://img.shields.io/github/issues/PGomes92/pyhrv.svg)](https://github.com/PGomes92/pyhrv/issues)
@@ -24,7 +24,7 @@ pip install pyhrv
 ```
 Dependencies: [biosppy](https://github.com/PIA-Group/BioSPPy) | [numpy](http://www.numpy.org) | [scipy](http://scipy.org) | [matplotlib](https://matplotlib.org) | [nolds](https://github.com/CSchoel/nolds) | [spectrum](https://github.com/cokelaer/spectrum)
 
-pyHRV is primarily maintained in Python 3.X but has been tested under Python 2.7 up to version 0.4.0.
+pyHRV requires Python 3.6 or later.
 
 
 ### Documentation & Tutorials
@@ -79,10 +79,7 @@ your HRV research.
 - NN20 & pNN20 parameters - ```pyhrv.time_domain.nn20()``` 
 - NN50 & pNN50 parameters - ```pyhrv.time_domain.nn50()``` 
 - Triangular Index (Maximum of the Histogram / Width of the Histogram) - ```pyhrv.time_domain.triangular_index()``` 
-- Triangular Interpolation Function (TINN)<sup>1</sup> - ```pyhrv.time_domain.tinn()```
-
-<sup><sup>1</sup> the current version of pyHRV has some bug which causes misleading and false results for the TINN 
-function. [An issue has already been opened for this purpose...](https://github.com/PGomes92/pyhrv/issues/5)
+- Triangular Interpolation Function (TINN) - ```pyhrv.time_domain.tinn()```
 
 ![Image](./SampleFigures/SampleHistogram.png)
 
@@ -129,9 +126,10 @@ Plot PSDs from multiple NNI segments extracted from a NNI series (e.g. 5 minute 
 ## Nonlinear Parameters
 Computes the following Nonlinear Parameters and the respective plots:
 
-- Poincaré Plot (SD1, SD2, fittes ellipse area, SD2/SD1 ratio) - ```pyhrv.nonlinear.poincare()```
+- Poincaré Plot (SD1, SD2, fitted ellipse area, SD2/SD1 ratio) - ```pyhrv.nonlinear.poincare()```
 - Sample Entropy - ```pyhrv.nonlinear.sample_entropy()```
-- Detrended Fluctuation Analysis (short-term and long-term)- ```pyhrv.nonlinear.dfa()```
+- Largest Lyapunov Exponent (LLE) - ```pyhrv.nonlinear.lyapunov_exponent()```
+- Detrended Fluctuation Analysis (short-term and long-term) - ```pyhrv.nonlinear.dfa()```
 
 ![Image](./SampleFigures/SampleNonlinear.png)
 
@@ -175,3 +173,5 @@ This program is distributed in the hope it will be useful and provided to you "a
 
 This package has initially (up to version 0.3) been developed within the scope of my master thesis _"Development of an 
 Open-Source Python Toolbox for Heart Rate Variability (HRV)"_ at the [University of Applied Sciences Hamburg, Germany (Faculty Life Sciences, Department of Biomedical Engineering)](https://www.haw-hamburg.de/fakultaeten-und-departments/ls/studium-und-lehre/master-studiengaenge/mbme.html) and [PLUX wireless biosignals, S.A.](http://www.plux.info), Lisbon, Portugal.
+
+Parts of the bug fixes, new features, and documentation in v0.5.0 were developed with the assistance of [Claude](https://claude.ai) (Anthropic). All changes were reviewed and validated by the author.
