@@ -1,19 +1,23 @@
 # HRV SETUP SCRIPT
 
+import re
 import setuptools
-from pyhrv import __author__, __version__, __email__, name, description
-# import matplotlib
-# matplotlib.use('TkAgg')
+
+# Read version without importing the package (avoids biosppy dependency at build time)
+with open("pyhrv/__version__.py", "r") as f:
+	version_match = re.search(r"VERSION = \((\d+), (\d+), (\d+)\)", f.read())
+	__version__ = "%s.%s.%s" % version_match.groups()
+
 with open("README.md", "r") as fh:
 	long_description = fh.read()
 
 # Create setup
 setuptools.setup(
-	name=name,
+	name="pyhrv",
 	version=__version__,
-	author=__author__,
-	author_email=__email__,
-	description=description,
+	author="Pedro Gomes",
+	author_email="pgomes92@gmail.com",
+	description="Python toolbox for Heart Rate Variability.",
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	python_requires='>=3.6',
