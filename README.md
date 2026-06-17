@@ -134,6 +134,73 @@ Computes the following Nonlinear Parameters and the respective plots:
 ![Image](./SampleFigures/SampleNonlinear.png)
 
 
+## Parallel Processing
+
+pyHRV supports multiprocessing to speed up HRV computation. The three analysis domains (time, frequency, nonlinear) 
+are independent and can be computed concurrently using Python's `concurrent.futures.ProcessPoolExecutor`.
+
+### Quick Start — Parallel Mode
+
+The simplest way to enable parallel processing is via the `parallel` flag on the `hrv()` function:
+
+```python
+from pyhrv.hrv import hrv
+
+# Compute all HRV parameters in parallel
+results = hrv(nni=nni, parallel=True)
+```
+
+### Domain-Level Parallel Functions
+
+For finer control, use the parallel functions from the `pyhrv.parallel` module directly:
+
+```python
+from pyhrv.parallel import parallel_frequency_domain, parallel_time_domain
+
+# Compute Welch, Lomb-Scargle, and AR PSDs concurrently
+freq_results = parallel_frequency_domain(nni=nni)
+
+# Compute all time domain sub-functions concurrently
+time_results = parallel_time_domain(nni=nni)
+```
+
+### Available Parallel Functions
+
+| Function | Description |
+| --- | --- |
+| `pyhrv.parallel.parallel_hrv()` | Runs time, frequency, and nonlinear domains in parallel (3 processes) |
+| `pyhrv.parallel.parallel_time_domain()` | Runs individual time domain functions (SDNN, RMSSD, etc.) in parallel |
+| `pyhrv.parallel.parallel_frequency_domain()` | Runs Welch, Lomb-Scargle, and AR PSD methods in parallel (3 processes) |
+
+### Benchmark Results
+
+Tested on a 12-core CPU with Python 3.12 (median of 3 runs per test):
+
+| Computation | Dataset | Sequential | Parallel | Speedup |
+| --- | --- | --- | --- | --- |
+| Full HRV | 500 NNI | 0.96s | 0.72s | 1.33x |
+| Full HRV | 2000 NNI | 1.47s | 0.92s | 1.59x |
+| Full HRV | 4684 NNI (real) | 3.88s | 2.08s | 1.86x |
+| Full HRV | 10000 NNI | 7.30s | 5.65s | 1.29x |
+| Frequency Domain | 500 NNI | 0.09s | 0.06s | 1.61x |
+| Frequency Domain | 10000 NNI | 0.72s | 0.55s | 1.30x |
+
+### Running the Benchmark
+
+A benchmark script is included in the repository root:
+
+```bash
+python benchmark.py
+```
+
+### Notes
+
+- Parallel mode uses the `Agg` matplotlib backend in child processes (non-interactive). Plot figure objects are not 
+  returned in parallel mode — use sequential mode if you need the matplotlib figure handles.
+- No additional dependencies are required. The parallel module uses only Python's built-in `concurrent.futures` and 
+  `multiprocessing` modules.
+- The `parallel` parameter on `hrv()` defaults to `False` for full backward compatibility.
+
 ## HRV Support Tools & Other Features
 
 - Computation of NNI series - ```pyhrv.tools.nn_intervals()``` 

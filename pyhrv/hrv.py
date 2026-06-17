@@ -74,7 +74,8 @@ def hrv(nni=None,
 		kwargs_nonlinear=None,
 		kwargs_welch=None,
 		kwargs_lomb=None,
-		kwargs_ar=None):
+		kwargs_ar=None,
+		parallel=False):
 	"""Computes all HRV parameters of the pyHRV toolkit (see list below).
 
 	References:	See 'references.txt' for the full list of references
@@ -149,6 +150,10 @@ def hrv(nni=None,
 					Number of points computed for the entire AR result (default: 2**12).
 			..	order : int, optional
 					Autoregressive model order (default: 16).
+
+	parallel : bool, optional
+		If True, computes time domain, frequency domain, and nonlinear parameters
+		in parallel using multiprocessing (default: False).
 
 	kwargs_nonlinear : dict, optional
 		**kwargs for the nonlinear functions (poincare(), sample_enntropy(), dfa()):
@@ -260,79 +265,91 @@ def hrv(nni=None,
 
 	version = ReturnTuple(('v.' + pyhrv.__version__, ), ('version', ))
 
-	# COMPUTE TIME DOMAIN PARAMETERS
-	# Check for kwargs for the 'kwargs_time'
-	if kwargs_time is not None:
-		if type(kwargs_time) is not dict:
-			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_time' must be a dictionary containing "
-							"parameters (keys) and values for the 'time_domain()' function." % type(kwargs_time))
-
-		# Supported kwargs
-		available_kwargs = ['threshold', 'binsize', 'plot']
-
-		# Unwrwap kwargs dictionary
-		threshold = kwargs_time['threshold'] if 'threshold' in kwargs_time.keys() else None
-		binsize = kwargs_time['binsize'] if 'binsize' in kwargs_time.keys() else 7.8125
-		plot = kwargs_time['plot'] if 'plot' in kwargs_time.keys() else True
-
-		unsupported_kwargs = []
-		for args in kwargs_time.keys():
-			if args not in available_kwargs:
-				unsupported_kwargs.append(args)
-
-		# Throw warning if additional unsupported kwargs have been provided
-		if unsupported_kwargs:
-			warnings.warn("Unknown kwargs for 'time_domain()': %s. These kwargs have no effect."
-						  % unsupported_kwargs, stacklevel=2)
-
-		# Compute Time Domain Parameters
-		t_results = td.time_domain(nni=nn, show=False, threshold=threshold, plot=plot)
-
+	if parallel:
+		# PARALLEL MODE: compute all three domains concurrently
+		from pyhrv.parallel import parallel_hrv as _parallel_hrv
+		t_results, f_results, n_results = _parallel_hrv(
+			nni=nn,
+			kwargs_time=kwargs_time,
+			fbands=fbands,
+			kwargs_welch=kwargs_welch,
+			kwargs_lomb=kwargs_lomb,
+			kwargs_ar=kwargs_ar,
+			kwargs_nonlinear=kwargs_nonlinear,
+		)
 	else:
-		# Compute Welch's PSD with default values
-		t_results = td.time_domain(nni=nn, show=False)
+		# SEQUENTIAL MODE: original behavior
+		# COMPUTE TIME DOMAIN PARAMETERS
+		if kwargs_time is not None:
+			if type(kwargs_time) is not dict:
+				raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_time' must be a dictionary containing "
+								"parameters (keys) and values for the 'time_domain()' function." % type(kwargs_time))
 
-	# COMPUTE FREQUENCY DOMAIN RESULTS (kwargs are verified by the frequency_domain() function)
-	f_results = fd.frequency_domain(nni=nn, fbands=fbands, kwargs_welch=kwargs_welch, kwargs_lomb=kwargs_lomb,
-								 kwargs_ar=kwargs_ar, show=False)
+			# Supported kwargs
+			available_kwargs = ['threshold', 'binsize', 'plot']
 
-	# COMPUTE NONLINEAR PARAMETERS
-	if kwargs_nonlinear is not None:
-		if type(kwargs_nonlinear) is not dict:
-			raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_nonlinear' must be a dictionary containing "
-							"parameters (keys) and values for the 'nonlinear()' function." % type(kwargs_time))
+			# Unwrwap kwargs dictionary
+			threshold = kwargs_time['threshold'] if 'threshold' in kwargs_time.keys() else None
+			binsize = kwargs_time['binsize'] if 'binsize' in kwargs_time.keys() else 7.8125
+			plot = kwargs_time['plot'] if 'plot' in kwargs_time.keys() else True
 
-		# Supported kwargs
-		available_kwargs = ['ellipse', 'vectors', 'legend', 'marker', 'dim', 'tolerance', 'short', 'long', 'legend']
-		kwargs_poincare = {}
-		kwargs_sampen = {}
-		kwargs_dfa = {}
+			unsupported_kwargs = []
+			for args in kwargs_time.keys():
+				if args not in available_kwargs:
+					unsupported_kwargs.append(args)
 
-		# Unwrwap kwargs dictionaries
-		kwargs_poincare['ellipse'] = kwargs_nonlinear['ellipse'] if 'ellipse' in kwargs_nonlinear.keys() else True
-		kwargs_poincare['vectors'] = kwargs_nonlinear['vectors'] if 'vectors' in kwargs_nonlinear.keys() else True
-		kwargs_poincare['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
-		kwargs_poincare['marker'] = kwargs_nonlinear['marker'] if 'marker' in kwargs_nonlinear.keys() else 'o'
-		kwargs_sampen['dim'] = kwargs_nonlinear['dim'] if 'dim' in kwargs_nonlinear.keys() else 2
-		kwargs_sampen['tolerance'] = kwargs_nonlinear['tolerance'] if 'tolerance' in kwargs_nonlinear.keys() else None
-		kwargs_dfa['short'] = kwargs_nonlinear['short'] if 'short' in kwargs_nonlinear.keys() else None
-		kwargs_dfa['long'] = kwargs_nonlinear['long'] if 'long' in kwargs_nonlinear.keys() else None
-		kwargs_dfa['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
+			# Throw warning if additional unsupported kwargs have been provided
+			if unsupported_kwargs:
+				warnings.warn("Unknown kwargs for 'time_domain()': %s. These kwargs have no effect."
+							  % unsupported_kwargs, stacklevel=2)
 
-		unsupported_kwargs = []
-		for args in kwargs_nonlinear.keys():
-			if args not in available_kwargs:
-				unsupported_kwargs.append(args)
+			# Compute Time Domain Parameters
+			t_results = td.time_domain(nni=nn, show=False, threshold=threshold, plot=plot)
 
-		# Throw warning if additional unsupported kwargs have been provided
-		if unsupported_kwargs:
-			warnings.warn("Unknown kwargs for 'nonlinear()': %s. These kwargs have no effect."
-						  % unsupported_kwargs, stacklevel=2)
+		else:
+			t_results = td.time_domain(nni=nn, show=False)
 
-		n_results = nl.nonlinear(nni=nn, show=False, kwargs_poincare=kwargs_poincare, kwargs_sampen=kwargs_sampen,
-								 kwargs_dfa=kwargs_dfa)
-	else:
-		n_results = nl.nonlinear(nni=nn, show=False)
+		# COMPUTE FREQUENCY DOMAIN RESULTS (kwargs are verified by the frequency_domain() function)
+		f_results = fd.frequency_domain(nni=nn, fbands=fbands, kwargs_welch=kwargs_welch, kwargs_lomb=kwargs_lomb,
+									 kwargs_ar=kwargs_ar, show=False)
+
+		# COMPUTE NONLINEAR PARAMETERS
+		if kwargs_nonlinear is not None:
+			if type(kwargs_nonlinear) is not dict:
+				raise TypeError("Expected <type 'dict'>, got %s: 'kwargs_nonlinear' must be a dictionary containing "
+								"parameters (keys) and values for the 'nonlinear()' function." % type(kwargs_time))
+
+			# Supported kwargs
+			available_kwargs = ['ellipse', 'vectors', 'legend', 'marker', 'dim', 'tolerance', 'short', 'long', 'legend']
+			kwargs_poincare = {}
+			kwargs_sampen = {}
+			kwargs_dfa = {}
+
+			# Unwrwap kwargs dictionaries
+			kwargs_poincare['ellipse'] = kwargs_nonlinear['ellipse'] if 'ellipse' in kwargs_nonlinear.keys() else True
+			kwargs_poincare['vectors'] = kwargs_nonlinear['vectors'] if 'vectors' in kwargs_nonlinear.keys() else True
+			kwargs_poincare['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
+			kwargs_poincare['marker'] = kwargs_nonlinear['marker'] if 'marker' in kwargs_nonlinear.keys() else 'o'
+			kwargs_sampen['dim'] = kwargs_nonlinear['dim'] if 'dim' in kwargs_nonlinear.keys() else 2
+			kwargs_sampen['tolerance'] = kwargs_nonlinear['tolerance'] if 'tolerance' in kwargs_nonlinear.keys() else None
+			kwargs_dfa['short'] = kwargs_nonlinear['short'] if 'short' in kwargs_nonlinear.keys() else None
+			kwargs_dfa['long'] = kwargs_nonlinear['long'] if 'long' in kwargs_nonlinear.keys() else None
+			kwargs_dfa['legend'] = kwargs_nonlinear['legend'] if 'legend' in kwargs_nonlinear.keys() else True
+
+			unsupported_kwargs = []
+			for args in kwargs_nonlinear.keys():
+				if args not in available_kwargs:
+					unsupported_kwargs.append(args)
+
+			# Throw warning if additional unsupported kwargs have been provided
+			if unsupported_kwargs:
+				warnings.warn("Unknown kwargs for 'nonlinear()': %s. These kwargs have no effect."
+							  % unsupported_kwargs, stacklevel=2)
+
+			n_results = nl.nonlinear(nni=nn, show=False, kwargs_poincare=kwargs_poincare, kwargs_sampen=kwargs_sampen,
+									 kwargs_dfa=kwargs_dfa)
+		else:
+			n_results = nl.nonlinear(nni=nn, show=False)
 
 	# Prepare output
 	results = utils.join_tuples(t_results, f_results, n_results)

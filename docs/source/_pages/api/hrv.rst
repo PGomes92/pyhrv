@@ -32,6 +32,7 @@ Computes all HRV parameters of the pyHRV toolkit (see list below).
    - ``kwargs_lomb`` (dict, optional): **kwargs for the 'lomb_psd()' function (see 'frequency_domain.py' module)
    - ``kwargs_ar`` (dict, optional): **kwargs for the 'ar_psd()' function (see 'frequency_domain.py' module)
    - ``kwargs_nonlinear`` (dict, optional): **kwargs for the 'nonlinear() function (see 'nonlinear.py' module)
+   - ``parallel`` (bool, optional): If True, computes time domain, frequency domain, and nonlinear parameters concurrently using multiprocessing (default: False)
 
 .. note::
 
@@ -286,6 +287,28 @@ Use the `kwargs` input dictionaries to provide custom input parameters.
    # Compute HRV parameters
    hrv(nni=nni, kwargs_time=kwargs_time, kwargs_nonlinear=kwargs_nonlinear, kwargs_ar=kwargs_ar,
       kwargs_lomb=kwargs_lomb, kwargs_welch=kwargs_welch, kwargs_tachogram=kwargs_tachogram)
+
+Use the ``parallel`` parameter to compute all three HRV domains concurrently:
+
+.. code-block:: python
+
+   # Compute HRV parameters in parallel (time, frequency, nonlinear run concurrently)
+   results = hrv(nni=nni, parallel=True)
+
+   # Access results as usual
+   print(results['sdnn'])
+   print(results['fft_peak'])
+   print(results['sd1'])
+
+.. note::
+
+   When ``parallel=True``, matplotlib plot figure objects (e.g. ``fft_plot``, ``poincare_plot``) are returned as
+   ``None`` because figures cannot be transferred across process boundaries. Use ``parallel=False`` (the default)
+   if you need the plot figures.
+
+.. seealso::
+
+   :ref:`ref-parallelmodule` for the full parallel processing API reference.
 
 pyHRV is robust against invalid parameter keys. For example, if an invalid input parameter such as `nfft` is
 provided with the `kwargs_time` dictionary, this parameter will be ignored and a warning message will
