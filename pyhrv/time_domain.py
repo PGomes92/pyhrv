@@ -39,7 +39,6 @@ import warnings
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
 from scipy.ndimage import gaussian_filter1d
 
 # BioSppy imports
@@ -620,6 +619,7 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 	M = 0
 
 	# Compute triangle and error for each possible N value within the bins
+	d_max = np.max(D)
 	for n in n_bins:
 		# Compute triangle and error for each possible M value within the bins
 		for m in m_bins:
@@ -629,16 +629,16 @@ def tinn(nni=None, rpeaks=None, binsize=7.8125, plot=True, show=True, figsize=No
 				continue
 
 			# Compute linear function that describes the N side of the triangle (q(N) = 0 to q(X) = max(D(X)))
-			qn = interp1d([t[0], peak_bin], [0, np.max(D)], 'linear', bounds_error=False)(bins)
+			qn = np.interp(bins, [t[0], peak_bin], [0, d_max], left=np.nan, right=np.nan)
 
 			# Compute linear function that describes the M side of the triangle (q(X) = max(D(X)) to q(M) = 0)
-			qm = interp1d([peak_bin, t[-1]], [np.max(D), 0], 'linear', bounds_error=False)(bins)
+			qm = np.interp(bins, [peak_bin, t[-1]], [d_max, 0], left=np.nan, right=np.nan)
 
 			# Join the two linear functions into a single triangle array
-			q = np.where(~np.isnan(qn), qn, np.where(~np.isnan(qm), qm, 0.0))
+			q = np.where(np.isnan(qn), qm, qn)
 
 			# Compute squared error between histogram and triangle
-			error = np.sum((D - q) ** 2)
+			error = np.nansum((D - q) ** 2)
 
 			# Save N and M if this triangle has a smaller error than any previous one
 			if error < min_error:
